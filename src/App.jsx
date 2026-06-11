@@ -1,0 +1,81 @@
+import { Routes, Route } from "react-router-dom";
+import Header from "./components/Header";
+
+import HomePage from "./pages/Homepage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import BusinessDetailsPage from "./pages/BusinessDetailsPage";
+import CartPage from "./pages/CartPage";
+import CategoryPage from "./pages/CategoryPage";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
+import AccountLayout from "./pages/account/AccountLayout";
+import DashboardPage from "./pages/account/DashboardPage";
+import MyOrdersPage from "./pages/account/MyOrdersPage";
+import CustomerDetailsPage from "./pages/account/CustomerDetailsPage";
+import ChangePasswordPage from "./pages/account/ChangePasswordPage";
+import Footer from "./components/Footer";
+import ContactPage from "./pages/footer/ContactPage";
+import DeliveryInformationPage from "./pages/footer/DeliveryInformationPage";
+import ReturnsPolicyPage from "./pages/footer/ReturnsPolicyPage";
+import TermsPage from "./pages/footer/TermsPage";
+import PrivacyPolicyPage from "./pages/footer/PrivacyPolicyPage";
+import AdminProductsPage from "./pages/admin/AdminProductsPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage";
+import ProductPage from "./pages/ProductPage";
+
+export default function App() {
+  return (
+    <>
+      <Header />
+
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/business-details" element={<BusinessDetailsPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/category/:slug" element={<CategoryPage />} />
+        <Route path="/orders/:orderNumber" element={<OrderSuccessPage />} />
+
+        <Route path="/account" element={<AccountLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="orders" element={<MyOrdersPage />} />
+          <Route path="details" element={<CustomerDetailsPage />} />
+          <Route path="change-password" element={<ChangePasswordPage />} />
+        </Route>
+
+        <Route path="/contact" element={<ContactPage />} />
+        <Route
+          path="/delivery-information"
+          element={<DeliveryInformationPage />}
+        />
+        <Route path="/returns-policy" element={<ReturnsPolicyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/product/:slug" element={<ProductPage />} />
+        <Route
+          path="/admin/categories"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminCategoriesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/products"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminProductsPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+
+      <Footer />
+    </>
+  );
+}
