@@ -153,7 +153,7 @@ export default function ContactPage() {
 
             <p className="flex items-center gap-2 text-sm text-[#071b3a] mb-3">
               <Mail size={17} className="text-green-700" />
-              info@sarawholesalesupplies.co.uk
+              sales@sarawholesale.co.uk
             </p>
 
             <p className="text-sm text-[#071b3a]/80 leading-6 mt-4">

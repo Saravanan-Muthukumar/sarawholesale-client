@@ -97,7 +97,7 @@ export default function Footer() {
 
               <p className="flex items-center gap-2">
                 <Mail size={16} />
-                info@sarawholesalesupplies.co.uk
+                sales@sarawholesale.co.uk
               </p>
 
               <p>
