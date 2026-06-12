@@ -2,9 +2,9 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
-  const { isLoggedIn, user, loading } = useAuth();
+  const { isLoggedIn, user, authLoading } = useAuth();
 
-  if (loading) {
+  if (authLoading) {
     return null;
   }
 
@@ -14,9 +14,7 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
 
   const userRole = String(user?.role || "").toLowerCase();
 
-  const allowed = allowedRoles.map((role) =>
-    String(role).toLowerCase()
-  );
+  const allowed = allowedRoles.map((role) => String(role).toLowerCase());
 
   if (allowed.length && !allowed.includes(userRole)) {
     return <Navigate to="/" replace />;
