@@ -191,12 +191,12 @@ export default function ProductPage() {
 
               <p
                 className={`text-sm font-semibold mt-4 ${
-                  Number(product.stock_qty) > 0
+                  Number(product.stock_qty) < 1
                     ? "text-green-700"
                     : "text-red-600"
                 }`}
               >
-                {Number(product.stock_qty) > 0 ? "✓ In stock" : "Out of stock"}
+                {Number(product.stock_qty) < 1 ? "✓ In stock" : "Out of stock"}
               </p>
 
               <div className="border-t border-[#edf1f7] my-5" />
