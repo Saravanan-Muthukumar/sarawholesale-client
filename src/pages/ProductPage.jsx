@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import CategoryMenu from "../components/CategoryMenu";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -16,7 +18,7 @@ export default function ProductPage() {
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)
       .then((res) => res.json())
-      .then(setCategories)
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
       .catch(console.error);
   }, []);
 
@@ -34,6 +36,18 @@ export default function ProductPage() {
       : `${API_URL}${product.image_url}`;
   }, [product]);
 
+  const currentCategory = categories.find(
+    (cat) =>
+      cat.category_id === product?.category_id ||
+      cat.slug === product?.category_slug
+  );
+
+  const parentCategory = currentCategory?.parent_category_id
+    ? categories.find(
+        (cat) => cat.category_id === currentCategory.parent_category_id
+      )
+    : null;
+
   const activeTier = useMemo(() => {
     if (!product?.price_breaks?.length || qty <= 0) return null;
 
@@ -44,11 +58,12 @@ export default function ProductPage() {
     });
   }, [product, qty]);
 
-  const unitPrice =
-    activeTier?.price || product?.price_breaks?.[0]?.price || 0;
+  const unitPrice = activeTier
+    ? Number(activeTier.price)
+    : Number(product?.price_breaks?.[0]?.price || product?.selling_price || 0);
 
   const getSlabLabel = (tier) =>
-    tier.max_qty ? `${tier.min_qty} - ${tier.max_qty}` : `${tier.min_qty}+`;
+    tier.max_qty ? `${tier.min_qty}-${tier.max_qty}` : `${tier.min_qty}+`;
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -65,8 +80,8 @@ export default function ProductPage() {
         sku: product.sku,
         image_url: product.image_url,
         quantity: qty,
-        unit_price: Number(unitPrice),
-        price: Number(unitPrice),
+        unit_price: unitPrice,
+        price: unitPrice,
       });
 
       setAdded(true);
@@ -95,226 +110,184 @@ export default function ProductPage() {
         </div>
       )}
 
-      <section className="max-w-7xl mx-auto px-4 py-6">
-        <div className="text-xs sm:text-sm text-[#071b3a]/55 mb-6">
-          <Link to="/" className="hover:text-[#071b3a]">
+      <CategoryMenu categories={categories} />
+
+      <section className="max-w-7xl mx-auto px-4 pb-10">
+        <div className="hidden md:block text-xs text-[#071b3a]/50 mb-3 mt-4">
+          <Link to="/" className="hover:text-green-700">
             Home
           </Link>
-          <span className="mx-2">›</span>
-          <Link to={`/category/${product.category_slug}`} className="hover:text-[#071b3a]">
-            Products
-          </Link>
+
+          {parentCategory && (
+            <>
+              <span className="mx-2">›</span>
+              <Link
+                to={`/category/${parentCategory.slug}`}
+                className="hover:text-green-700"
+              >
+                {parentCategory.category_name}
+              </Link>
+            </>
+          )}
+
+          {currentCategory && (
+            <>
+              <span className="mx-2">›</span>
+              <Link
+                to={`/subcategory/${currentCategory.slug}`}
+                className="hover:text-green-700"
+              >
+                {currentCategory.category_name}
+              </Link>
+            </>
+          )}
+
           <span className="mx-2">›</span>
           <span>{product.product_name}</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
-          {/* DESKTOP CATEGORY SIDEBAR */}
-          <aside className="hidden lg:block">
-            <div className="bg-white border border-[#edf1f7] rounded-xl overflow-hidden shadow-sm">
-              <h3 className="px-4 py-4 font-bold text-[#071b3a] border-b border-[#edf1f7]">
-                Categories
-              </h3>
+        <div className="md:hidden mb-4 mt-3">
+          {currentCategory ? (
+            <Link
+              to={`/subcategory/${currentCategory.slug}`}
+              className="inline-flex items-center gap-2 text-sm font-medium text-[#071b3a]/60 hover:text-green-700"
+            >
+              <ArrowLeft size={16} />
+              {currentCategory.category_name}
+            </Link>
+          ) : (
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-sm font-medium text-[#071b3a]/60 hover:text-green-700"
+            >
+              <ArrowLeft size={16} />
+              Products
+            </Link>
+          )}
+        </div>
 
-              {categories.map((cat) => {
-                const active = cat.category_id === product.category_id;
-
-                return (
-                  <Link
-                    key={cat.category_id}
-                    to={`/category/${cat.slug}`}
-                    className={`flex items-center justify-between px-4 py-3 text-sm border-b border-[#edf1f7] last:border-b-0 transition ${
-                      active
-                        ? "bg-[#f5f9ff] text-blue-700 font-semibold border-l-2 border-l-blue-600"
-                        : "text-[#071b3a] hover:bg-[#f8fafc]"
-                    }`}
-                  >
-                    <span>{cat.category_name}</span>
-                    <span className="text-[#071b3a]/45">›</span>
-                  </Link>
-                );
-              })}
+        <div className="bg-white border border-[#edf1f7] rounded-2xl shadow-sm p-4 md:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-[360px_1fr] lg:grid-cols-[420px_1fr] gap-6">
+            <div className="border border-[#edf1f7] rounded-2xl bg-white h-72 md:h-96 flex items-center justify-center p-5">
+              {imageSrc ? (
+                <img
+                  src={imageSrc}
+                  alt={product.product_name}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <div className="w-full h-full bg-[#f8fafc] rounded-xl" />
+              )}
             </div>
-          </aside>
 
-          {/* PRODUCT CARD */}
-          <div className="bg-white border border-[#edf1f7] rounded-xl shadow-sm p-4 sm:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-[420px_1fr] xl:grid-cols-[420px_1fr_280px] gap-6">
-              {/* IMAGE */}
-              <div className="border border-[#edf1f7] rounded-xl bg-white h-80 sm:h-96 flex items-center justify-center p-6">
-                {imageSrc ? (
-                  <img
-                    src={imageSrc}
-                    alt={product.product_name}
-                    className="max-w-full max-h-full object-contain"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#f8fafc] rounded-xl" />
-                )}
-              </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-[#071b3a] leading-snug">
+                {product.product_name}
+              </h1>
 
-              {/* DETAILS */}
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-[#071b3a] leading-snug">
-                  {product.product_name}
-                </h1>
+              <p className="text-sm text-[#071b3a]/55 mt-3">
+                SKU: {product.sku || "N/A"}
+              </p>
 
-                <p className="text-sm text-[#071b3a]/55 mt-3">
-                  SKU: {product.sku}
-                </p>
+              <p
+                className={`text-sm font-semibold mt-4 ${
+                  Number(product.stock_qty) > 0
+                    ? "text-green-700"
+                    : "text-red-600"
+                }`}
+              >
+                {Number(product.stock_qty) > 0 ? "✓ In stock" : "Out of stock"}
+              </p>
 
-                <p
-                  className={`text-sm font-semibold mt-4 ${
-                    Number(product.stock_qty) > 0
-                      ? "text-green-700"
-                      : "text-red-600"
-                  }`}
-                >
-                  {Number(product.stock_qty) > 0 ? "✓ In stock" : "Out of stock"}
-                </p>
+              <div className="border-t border-[#edf1f7] my-5" />
 
-                <div className="border-t border-[#edf1f7] my-5" />
+              <h2 className="font-bold text-[#071b3a] mb-2">Description</h2>
+              <p className="text-sm leading-7 text-[#071b3a]/80">
+                {product.description || "No description available."}
+              </p>
 
-                {product.description && (
-                  <div>
-                    <h2 className="font-bold text-[#071b3a] mb-2">
-                      Description
-                    </h2>
-                    <p className="text-sm leading-7 text-[#071b3a]/80">
-                      {product.description}
-                    </p>
-                  </div>
-                )}
+              <p className="text-sm text-[#071b3a] mt-5">
+                <span className="font-bold">VAT rate:</span>{" "}
+                {Number(product.vat_rate || 0).toFixed(0)}%
+              </p>
 
-                <p className="text-sm text-[#071b3a] mt-5">
-                  <span className="font-bold">VAT rate:</span>{" "}
-                  {Number(product.vat_rate).toFixed(0)}%
-                </p>
+              <div className="mt-6">
+                <h2 className="font-bold text-[#071b3a] mb-3">
+                  Price breaks{" "}
+                  <span className="text-sm font-normal text-[#071b3a]/55">
+                    (per unit)
+                  </span>
+                </h2>
 
-                <div className="mt-6">
-                  <h2 className="font-bold text-[#071b3a] mb-3">
-                    Price breaks{" "}
-                    <span className="text-sm font-normal text-[#071b3a]/55">
-                      (per unit)
-                    </span>
-                  </h2>
+                <div className="grid gap-2 md:max-w-xl">
+                  {product.price_breaks?.map((tier) => {
+                    const isActive = activeTier === tier;
 
-                  <div className="border border-[#edf1f7] rounded-xl overflow-hidden max-w-md">
-                    {product.price_breaks?.map((tier) => {
-                      const active = activeTier === tier;
+                    return (
+                      <div
+                        key={`${tier.min_qty}-${tier.max_qty}`}
+                        className={`border rounded-xl overflow-hidden text-center transition ${
+                          isActive
+                            ? "border-green-300 bg-green-50 ring-1 ring-green-100"
+                            : "border-[#e8eef6] bg-white"
+                        }`}
+                      >
+                        <div className="grid grid-cols-2">
+                          <div
+                            className={`text-xs font-medium px-3 py-2 ${
+                              isActive
+                                ? "bg-green-50 text-green-700"
+                                : "bg-[#f8fafc] text-[#64748b]"
+                            }`}
+                          >
+                            {getSlabLabel(tier)}
+                          </div>
 
-                      return (
-                        <div
-                          key={`${tier.min_qty}-${tier.max_qty}`}
-                          className={`flex justify-between px-4 py-3 text-sm border-b border-[#edf1f7] last:border-b-0 ${
-                            active
-                              ? "bg-green-50 text-green-700 font-bold"
-                              : "text-[#071b3a]"
-                          }`}
-                        >
-                          <span>{getSlabLabel(tier)}</span>
-                          <span className="font-bold">
+                          <div
+                            className={`font-semibold text-xs px-3 py-2 ${
+                              isActive ? "text-green-700" : "text-[#071b3a]"
+                            }`}
+                          >
                             £{Number(tier.price).toFixed(2)}
-                          </span>
+                          </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* BUY BOX DESKTOP */}
-              <div className="hidden xl:block">
-                <BuyBox
-                  qty={qty}
-                  setQty={setQty}
-                  unitPrice={unitPrice}
-                  onAdd={handleAddToCart}
+              <div className="mt-6 flex items-center gap-3">
+                <span className="text-sm font-semibold text-[#071b3a]">
+                  Qty
+                </span>
+
+                <input
+                  type="number"
+                  min="0"
+                  value={qty}
+                  onChange={(e) =>
+                    setQty(Math.max(0, Number(e.target.value) || 0))
+                  }
+                  className="w-20 h-9 border border-[#e5eaf2] rounded-lg text-center text-sm outline-none focus:border-green-300 focus:ring-2 focus:ring-green-50"
                 />
-              </div>
-            </div>
 
-            {/* BUY BOX MOBILE/TABLET */}
-            <div className="xl:hidden mt-6">
-              <BuyBox
-                qty={qty}
-                setQty={setQty}
-                unitPrice={unitPrice}
-                onAdd={handleAddToCart}
-              />
-            </div>
-
-            {/* MOBILE CATEGORY LIST */}
-            <div className="lg:hidden mt-6 bg-white border border-[#edf1f7] rounded-xl overflow-hidden">
-              <h3 className="px-4 py-4 font-bold text-[#071b3a] border-b border-[#edf1f7]">
-                Categories
-              </h3>
-
-              {categories.slice(0, 6).map((cat) => (
-                <Link
-                  key={cat.category_id}
-                  to={`/category/${cat.slug}`}
-                  className="flex items-center justify-between px-4 py-3 text-sm border-b border-[#edf1f7] last:border-b-0 text-[#071b3a]"
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className="flex-1 md:flex-none bg-green-50 text-green-700 border border-green-200 px-6 h-9 rounded-lg text-xs font-semibold hover:bg-green-100 transition"
                 >
-                  <span>{cat.category_name}</span>
-                  <span>›</span>
-                </Link>
-              ))}
+                  Add to Cart
+                </button>
+              </div>
+
+              <p className="text-lg font-bold text-green-700 mt-5">
+                £{Number(unitPrice).toFixed(2)}
+              </p>
             </div>
           </div>
         </div>
       </section>
     </main>
-  );
-}
-
-function BuyBox({ qty, setQty, unitPrice, onAdd }) {
-  return (
-    <div className="bg-white border border-[#edf1f7] rounded-xl p-5 shadow-sm">
-      <p className="text-sm text-[#071b3a]/60">Unit Price (Ex. VAT)</p>
-      <p className="text-3xl font-bold text-[#071b3a] mt-2">
-        £{Number(unitPrice).toFixed(2)}
-      </p>
-
-      <div className="border-t border-[#edf1f7] my-5" />
-
-      <label className="block text-sm font-bold text-[#071b3a] mb-3">
-        Quantity
-      </label>
-
-      <div className="grid grid-cols-[48px_1fr_48px] h-12 border border-[#e5eaf2] rounded-lg overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setQty((q) => Math.max(0, q - 1))}
-          className="text-xl hover:bg-[#f8fafc]"
-        >
-          −
-        </button>
-
-        <input
-          type="number"
-          min="0"
-          value={qty}
-          onChange={(e) => setQty(Math.max(0, Number(e.target.value) || 0))}
-          className="text-center border-x border-[#e5eaf2] outline-none"
-        />
-
-        <button
-          type="button"
-          onClick={() => setQty((q) => q + 1)}
-          className="text-xl hover:bg-[#f8fafc]"
-        >
-          +
-        </button>
-      </div>
-
-      <button
-        type="button"
-        onClick={onAdd}
-        className="w-full h-12 bg-green-700 text-white rounded-lg font-bold mt-5 hover:bg-green-800 transition"
-      >
-        Add to Cart
-      </button>
-    </div>
   );
 }

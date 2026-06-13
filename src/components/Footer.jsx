@@ -14,6 +14,10 @@ export default function Footer() {
       .catch(() => setCategories([]));
   }, []);
 
+  const parentCategories = categories.filter(
+    (category) => !category.parent_category_id
+  );
+
   return (
     <footer className="bg-[#062b63] text-white mt-12">
       <div className="max-w-7xl mx-auto px-4 py-10">
@@ -35,13 +39,7 @@ export default function Footer() {
             <h3 className="font-bold mb-4">Shop</h3>
 
             <ul className="space-y-2 text-sm text-blue-100">
-              <li>
-                <Link to="/" className="hover:text-white">
-                  All Products
-                </Link>
-              </li>
-
-              {categories.slice(0, 6).map((category) => (
+              {parentCategories.map((category) => (
                 <li key={category.category_id}>
                   <Link
                     to={`/category/${category.slug}`}

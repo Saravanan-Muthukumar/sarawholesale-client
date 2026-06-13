@@ -7,7 +7,8 @@ import RegisterPage from "./pages/RegisterPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import BusinessDetailsPage from "./pages/BusinessDetailsPage";
 import CartPage from "./pages/CartPage";
-import CategoryPage from "./pages/CategoryPage";
+import ProductListPage from "./pages/ProductListPage";
+import SubCategoryPage from "./pages/SubCategoryPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import AccountLayout from "./pages/account/AccountLayout";
 import DashboardPage from "./pages/account/DashboardPage";
@@ -32,13 +33,16 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/category/:slug" element={<SubCategoryPage />} />
+        <Route path="/subcategory/:slug" element={<ProductListPage />} />
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/business-details" element={<BusinessDetailsPage />} />
         <Route path="/cart" element={<CartPage />} />
-        <Route path="/category/:slug" element={<CategoryPage />} />
         <Route path="/orders/:orderNumber" element={<OrderSuccessPage />} />
+        <Route path="/product/:slug" element={<ProductPage />} />
 
         <Route path="/account" element={<AccountLayout />}>
           <Route index element={<DashboardPage />} />
@@ -48,14 +52,11 @@ export default function App() {
         </Route>
 
         <Route path="/contact" element={<ContactPage />} />
-        <Route
-          path="/delivery-information"
-          element={<DeliveryInformationPage />}
-        />
+        <Route path="/delivery-information" element={<DeliveryInformationPage />} />
         <Route path="/returns-policy" element={<ReturnsPolicyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-        <Route path="/product/:slug" element={<ProductPage />} />
+
         <Route
           path="/admin/categories"
           element={

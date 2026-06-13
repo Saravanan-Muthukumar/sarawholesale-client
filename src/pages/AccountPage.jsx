@@ -61,8 +61,8 @@ export default function AccountPage() {
               Need Help?
             </h3>
 
-            <p>0121 123 4567</p>
-            <p>info@sarawholesalesupplies.co.uk</p>
+            <p>07424715150</p>
+            <p>sales@sarawholesale.co.uk</p>
           </div>
         </aside>
 

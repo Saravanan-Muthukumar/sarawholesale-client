@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import CategoryGrid from "../components/CategoryGrid";
 import { useCart } from "../context/CartContext";
+import CategoryMenu from "../components/CategoryMenu";
+import { ArrowLeft } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
-export default function CategoryPage() {
+export default function ProductListPage() {
   const { slug } = useParams();
   const { addToCart } = useCart();
 
@@ -17,14 +18,14 @@ export default function CategoryPage() {
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)
       .then((res) => res.json())
-      .then((data) => setCategories(data))
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
       .catch(console.error);
   }, []);
 
   useEffect(() => {
     fetch(`${API_URL}/api/products/category/${slug}`)
       .then((res) => res.json())
-      .then((data) => setProducts(data))
+      .then((data) => setProducts(Array.isArray(data) ? data : []))
       .catch(console.error);
   }, [slug]);
 
@@ -39,6 +40,14 @@ export default function CategoryPage() {
     if (!imageUrl) return null;
     return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
   };
+
+  const currentCategory = categories.find((cat) => cat.slug === slug);
+
+  const parentCategory = currentCategory?.parent_category_id
+    ? categories.find(
+        (cat) => cat.category_id === currentCategory.parent_category_id
+      )
+    : null;
 
   const getSlabLabel = (tier) => {
     return tier.max_qty ? `${tier.min_qty}-${tier.max_qty}` : `${tier.min_qty}+`;
@@ -92,19 +101,56 @@ export default function CategoryPage() {
         </div>
       )}
 
-      <CategoryGrid categories={categories} />
+      <CategoryMenu categories={categories} />
 
       <section className="max-w-7xl mx-auto px-4 pb-10">
-        <div className="text-xs text-[#071b3a]/50 mb-3">
+        {/* DESKTOP BREADCRUMB */}
+        <div className="hidden md:block text-xs text-[#071b3a]/50 mb-3 mt-4">
           <Link to="/" className="hover:text-green-700">
             Home
           </Link>
+
+          {parentCategory && (
+            <>
+              <span className="mx-2">›</span>
+              <Link
+                to={`/category/${parentCategory.slug}`}
+                className="hover:text-green-700"
+              >
+                {parentCategory.category_name}
+              </Link>
+            </>
+          )}
+
           <span className="mx-2">›</span>
-          <span>Products</span>
+          <span>{currentCategory?.category_name || "Products"}</span>
+        </div>
+
+        {/* MOBILE BACK NAVIGATION */}
+        <div className="md:hidden mb-4 mt-3">
+          {parentCategory ? (
+            <Link
+              to={`/category/${parentCategory.slug}`}
+              className="inline-flex items-center gap-2 text-sm font-medium text-[#071b3a]/60 hover:text-green-700"
+            >
+              <ArrowLeft size={16} />
+              {parentCategory.category_name}
+            </Link>
+          ) : (
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-sm font-medium text-[#071b3a]/60 hover:text-green-700"
+            >
+              <ArrowLeft size={16} />
+              Categories
+            </Link>
+          )}
         </div>
 
         <h1 className="text-lg md:text-xl font-bold text-[#071b3a] mb-1">
-          {products[0]?.category_name || "Products"}
+          {currentCategory?.category_name ||
+            products[0]?.category_name ||
+            "Products"}
         </h1>
 
         <p className="text-xs text-[#071b3a]/60 mb-4">

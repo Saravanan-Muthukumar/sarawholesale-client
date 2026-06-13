@@ -3,7 +3,11 @@ import { Link } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function FeaturedProducts({ products = [] }) {
-  const displayProducts = products.slice(0, 12);
+  const displayProducts = [...products]
+    .sort((a, b) =>
+      (a.product_name || "").localeCompare(b.product_name || "")
+    )
+    .slice(0, 20);
 
   const getCategoryLink = (product) => {
     if (product.category_slug) {
@@ -28,7 +32,7 @@ export default function FeaturedProducts({ products = [] }) {
         </Link>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
         {displayProducts.map((product) => {
           const imageSrc = product.image_url?.startsWith("http")
             ? product.image_url
@@ -37,26 +41,26 @@ export default function FeaturedProducts({ products = [] }) {
           return (
             <Link
               key={product.product_id}
-              to={getCategoryLink(product)}
-              className="w-60 sm:w-65 md:w-70 h-97.5 bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition shrink-0 flex flex-col"
+              to={`/product/${product.slug}`}
+              className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition flex flex-col min-h-82"
             >
               {product.image_url ? (
                 <img
                   src={imageSrc}
                   alt={product.product_name}
-                  className="h-36 w-full object-contain mb-3"
+                  className="h-32 sm:h-36 w-full object-contain mb-3"
                 />
               ) : (
-                <div className="h-36 w-full bg-gray-100 rounded-lg mb-3 flex items-center justify-center text-xs text-gray-400">
+                <div className="h-32 sm:h-36 w-full bg-gray-100 rounded-lg mb-3 flex items-center justify-center text-xs text-gray-400">
                   No Image
                 </div>
               )}
 
-              <h3 className="text-sm sm:text-base font-semibold text-[#071b3a] h-12 leading-6 overflow-hidden">
+              <h3 className="text-sm font-semibold text-[#071b3a] leading-5 line-clamp-2 min-h-10">
                 {product.product_name}
               </h3>
 
-              <p className="text-xs sm:text-sm text-gray-500 mt-2">
+              <p className="text-xs text-gray-500 mt-2">
                 SKU: {product.sku || "N/A"}
               </p>
 

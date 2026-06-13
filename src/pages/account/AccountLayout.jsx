@@ -89,7 +89,7 @@ export default function AccountLayout() {
             </h3>
 
             <p>07424715150</p>
-            <p>info@sarawholesalesupplies.co.uk</p>
+            <p>sales@sarawholesales.co.uk</p>
           </div>
         </aside>
 
