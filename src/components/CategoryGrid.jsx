@@ -6,10 +6,14 @@ export default function CategoryGrid({ categories = [] }) {
   const parentCategories = categories.filter(
     (cat) => !cat.parent_category_id
   );
-
   const getImage = (imageUrl) => {
     if (!imageUrl) return null;
-    return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
+  
+    const url = imageUrl.startsWith("http")
+      ? imageUrl
+      : `${API_URL}${imageUrl}`;
+  
+    return `${url}?v=${Date.now()}`;
   };
 
   return (
@@ -32,12 +36,14 @@ export default function CategoryGrid({ categories = [] }) {
               to={`/category/${cat.slug}`}
               className="bg-white border border-[#edf1f7] rounded-xl min-h-35 md:min-h-52.5 p-2 md:p-5 flex flex-col items-center justify-center text-center hover:shadow-md transition"
             >
-              <div className="h-14 md:h-24 w-full flex items-center justify-center mb-2 md:mb-5">
+              {/* <div className="h-14 md:h-24 w-full flex items-center justify-center mb-2 md:mb-5"> */}
+              <div className="h-16 md:h-28 w-full flex items-center justify-center mb-2 md:mb-4">
                 {getImage(cat.image_url) ? (
                   <img
                     src={getImage(cat.image_url)}
                     alt={cat.category_name}
-                    className="max-h-14 md:max-h-24 max-w-full object-contain"
+                    // className="max-h-14 md:max-h-24 max-w-full object-contain"
+                    className="h-full w-full object-contain scale-125"
                   />
                 ) : (
                   <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-[#f3f6fb]" />

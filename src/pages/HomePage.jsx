@@ -24,8 +24,10 @@ export default function HomePage() {
   return (
     <main className="bg-gray-50 h-full">
       <CategoryGrid categories={categories} />
-      <Hero />
       <FeaturedProducts products={products} />
+      <Hero />
+      
+      
     </main>
   );
 }
