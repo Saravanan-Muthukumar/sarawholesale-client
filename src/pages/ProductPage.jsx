@@ -297,9 +297,23 @@ export default function ProductPage() {
                 </button>
               </div>
 
-              <p className="text-lg font-bold text-green-700 mt-5">
-                £{Number(unitPrice).toFixed(2)}
-              </p>
+              <div className="mt-4">
+                  <p className="text-sm font-bold text-green-700">
+                    £{Number(unitPrice).toFixed(2)}
+                    <span className="text-[9px] font-normal text-[#071b3a]/45 ml-1">
+                      per unit
+                    </span>
+                  </p>
+
+                  {qty > 0 && (
+                    <p className="text-[10px] text-[#071b3a]/55 mt-0.5">
+                      Total for {qty} units:
+                      <span className="font-medium text-[#071b3a] ml-1">
+                        £{(Number(qty) * Number(unitPrice)).toFixed(2)}
+                      </span>
+                    </p>
+                  )}
+                </div>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Minus,
@@ -20,6 +20,11 @@ export default function CartPage() {
   const getImage = (imageUrl) => {
     if (!imageUrl) return null;
     return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
+  };
+
+  const getProductLink = (item) => {
+    const slug = item.slug || item.product_slug;
+    return slug ? `/product/${slug}` : "#";
   };
 
   const getLineTotal = (item) =>
@@ -115,10 +120,13 @@ export default function CartPage() {
                     {cartItems.map((item) => (
                       <tr
                         key={item.cart_item_id || item.product_id}
-                        className="border-t border-[#edf1f7]"
+                        className="border-t border-[#edf1f7] hover:bg-[#fbfcfe]"
                       >
                         <td className="p-3">
-                          <div className="flex items-center gap-3">
+                          <Link
+                            to={getProductLink(item)}
+                            className="flex items-center gap-3 hover:text-green-700 transition cursor-pointer"
+                          >
                             {getImage(item.image_url) ? (
                               <img
                                 src={getImage(item.image_url)}
@@ -137,7 +145,7 @@ export default function CartPage() {
                                 SKU: {item.sku}
                               </p>
                             </div>
-                          </div>
+                          </Link>
                         </td>
 
                         <td className="p-3">
@@ -179,7 +187,10 @@ export default function CartPage() {
                     key={item.cart_item_id || item.product_id}
                     className="border border-[#edf1f7] rounded-xl p-3 shadow-sm"
                   >
-                    <div className="flex gap-3">
+                    <Link
+                      to={getProductLink(item)}
+                      className="flex gap-3 hover:text-green-700 transition cursor-pointer"
+                    >
                       {getImage(item.image_url) ? (
                         <img
                           src={getImage(item.image_url)}
@@ -201,7 +212,7 @@ export default function CartPage() {
                           £{Number(item.unit_price || 0).toFixed(2)} each
                         </p>
                       </div>
-                    </div>
+                    </Link>
 
                     <div className="flex items-center justify-between mt-3">
                       <QtyBox
