@@ -42,7 +42,7 @@ export default function FeaturedProducts({ products = [] }) {
             <Link
               key={product.product_id}
               to={`/product/${product.slug}`}
-              className="bg-white rounded-xl border border-gray-200 p-2 md:p-4 shadow-sm hover:shadow-md transition flex flex-col min-h-[190px] md:min-h-[320px]"
+              className="bg-white rounded-xl border border-gray-200 p-2 md:p-4 shadow-sm hover:shadow-md transition flex flex-col min-h-47.5 md:min-h-80"
             >
               {product.image_url ? (
                 <img

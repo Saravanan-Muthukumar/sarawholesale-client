@@ -30,7 +30,7 @@ export default function CategoryGrid({ categories = [] }) {
             <Link
               key={cat.category_id}
               to={`/category/${cat.slug}`}
-              className="bg-white border border-[#edf1f7] rounded-xl min-h-[140px] md:min-h-[210px] p-2 md:p-5 flex flex-col items-center justify-center text-center hover:shadow-md transition"
+              className="bg-white border border-[#edf1f7] rounded-xl min-h-35 md:min-h-52.5 p-2 md:p-5 flex flex-col items-center justify-center text-center hover:shadow-md transition"
             >
               <div className="h-14 md:h-24 w-full flex items-center justify-center mb-2 md:mb-5">
                 {getImage(cat.image_url) ? (

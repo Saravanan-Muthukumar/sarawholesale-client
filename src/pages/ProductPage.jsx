@@ -12,7 +12,7 @@ export default function ProductPage() {
 
   const [product, setProduct] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [qty, setQty] = useState(0);
+  const [qty, setQty] = useState("");
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
@@ -28,6 +28,8 @@ export default function ProductPage() {
       .then(setProduct)
       .catch(console.error);
   }, [slug]);
+
+  const enteredQty = Number(qty || 0);
 
   const imageSrc = useMemo(() => {
     if (!product?.image_url) return null;
@@ -49,14 +51,14 @@ export default function ProductPage() {
     : null;
 
   const activeTier = useMemo(() => {
-    if (!product?.price_breaks?.length || qty <= 0) return null;
+    if (!product?.price_breaks?.length || enteredQty <= 0) return null;
 
     return product.price_breaks.find((tier) => {
       const min = Number(tier.min_qty);
       const max = tier.max_qty ? Number(tier.max_qty) : Infinity;
-      return qty >= min && qty <= max;
+      return enteredQty >= min && enteredQty <= max;
     });
-  }, [product, qty]);
+  }, [product, enteredQty]);
 
   const unitPrice = activeTier
     ? Number(activeTier.price)
@@ -65,10 +67,23 @@ export default function ProductPage() {
   const getSlabLabel = (tier) =>
     tier.max_qty ? `${tier.min_qty}-${tier.max_qty}` : `${tier.min_qty}+`;
 
+  const updateQty = (value) => {
+    if (value === "") {
+      setQty("");
+      return;
+    }
+
+    setQty(Math.max(0, Number(value) || 0));
+  };
+
+  const handleSlabClick = (tier) => {
+    setQty(Number(tier.min_qty));
+  };
+
   const handleAddToCart = async () => {
     if (!product) return;
 
-    if (qty <= 0) {
+    if (enteredQty <= 0) {
       alert("Please enter quantity");
       return;
     }
@@ -79,7 +94,7 @@ export default function ProductPage() {
         product_name: product.product_name,
         sku: product.sku,
         image_url: product.image_url,
-        quantity: qty,
+        quantity: enteredQty,
         unit_price: unitPrice,
         price: unitPrice,
       });
@@ -215,7 +230,7 @@ export default function ProductPage() {
                 <h2 className="font-bold text-[#071b3a] mb-3">
                   Price breaks{" "}
                   <span className="text-sm font-normal text-[#071b3a]/55">
-                    (per unit)
+                    (click slab to select qty)
                   </span>
                 </h2>
 
@@ -224,12 +239,14 @@ export default function ProductPage() {
                     const isActive = activeTier === tier;
 
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={`${tier.min_qty}-${tier.max_qty}`}
-                        className={`border rounded-xl overflow-hidden text-center transition ${
+                        onClick={() => handleSlabClick(tier)}
+                        className={`border rounded-xl overflow-hidden text-center transition cursor-pointer ${
                           isActive
                             ? "border-green-300 bg-green-50 ring-1 ring-green-100"
-                            : "border-[#e8eef6] bg-white"
+                            : "border-[#e8eef6] bg-white hover:border-green-200 hover:bg-green-50"
                         }`}
                       >
                         <div className="grid grid-cols-2">
@@ -251,7 +268,7 @@ export default function ProductPage() {
                             £{Number(tier.price).toFixed(2)}
                           </div>
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -266,9 +283,8 @@ export default function ProductPage() {
                   type="number"
                   min="0"
                   value={qty}
-                  onChange={(e) =>
-                    setQty(Math.max(0, Number(e.target.value) || 0))
-                  }
+                  onChange={(e) => updateQty(e.target.value)}
+                  placeholder="Qty"
                   className="w-20 h-9 border border-[#e5eaf2] rounded-lg text-center text-sm outline-none focus:border-green-300 focus:ring-2 focus:ring-green-50"
                 />
 
