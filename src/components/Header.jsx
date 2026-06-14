@@ -23,6 +23,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [cartPreviewOpen, setCartPreviewOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -31,7 +32,10 @@ export default function Header() {
   const navigate = useNavigate();
 
   const { user, isLoggedIn, logout } = useAuth();
-  const { cartItemCount } = useCart();
+  const cartContext = useCart();
+
+  const cartItemCount = cartContext.cartItemCount || 0;
+  const cartItems = cartContext.cartItems || cartContext.items || [];
 
   const isAdmin = String(user?.role).toLowerCase() === "admin";
 
@@ -78,6 +82,7 @@ export default function Header() {
     setUserMenuOpen(false);
     setMenuOpen(false);
     setSelectedCategory(null);
+    setCartPreviewOpen(false);
   };
 
   const handleLogout = async () => {
@@ -221,6 +226,7 @@ export default function Header() {
             ) : (
               <Link
                 to="/login"
+                state={{ from: location.pathname }}
                 onClick={closeMenus}
                 className="flex items-center gap-2 font-semibold text-[#062b63]"
               >
@@ -229,14 +235,79 @@ export default function Header() {
               </Link>
             )}
 
-            <Link
-              to="/cart"
-              onClick={closeMenus}
-              className="flex items-center gap-2 bg-green-700 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-800"
+            <div
+              className="relative"
+              onMouseEnter={() => setCartPreviewOpen(true)}
+              onMouseLeave={() => setCartPreviewOpen(false)}
             >
-              <ShoppingCart size={20} />
-              Cart ({cartItemCount})
-            </Link>
+              <Link
+                to="/cart"
+                onClick={closeMenus}
+                className="relative flex items-center gap-2 text-[#071b3a] font-semibold hover:text-green-700 transition"
+              >
+                <div className="relative">
+                  <ShoppingCart size={24} />
+
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </div>
+              </Link>
+
+              {cartPreviewOpen && (
+                <div className="absolute right-0 top-9 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100">
+                    <h3 className="font-bold text-[#071b3a] text-sm">
+                      Order Summary
+                    </h3>
+                  </div>
+
+                  {cartItemCount > 0 ? (
+                    <>
+                      <div className="max-h-72 overflow-y-auto">
+                        {cartItems.length > 0 ? (
+                          cartItems.slice(0, 5).map((item) => (
+                            <div
+                              key={item.cart_item_id || item.product_id}
+                              className="p-3 border-b border-gray-100"
+                            >
+                              <p className="text-sm font-semibold text-[#071b3a] line-clamp-2">
+                                {item.product_name}
+                              </p>
+
+                              <p className="text-xs text-gray-500 mt-1">
+                                Qty: {item.quantity}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-4 text-sm text-gray-600">
+                            You have {cartItemCount} item
+                            {cartItemCount > 1 ? "s" : ""} in your cart.
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-4">
+                        <Link
+                          to="/cart"
+                          onClick={closeMenus}
+                          className="block text-center bg-green-700 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-800"
+                        >
+                          View Cart
+                        </Link>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-4 text-sm text-gray-500">
+                      Your cart is empty.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="md:hidden flex items-center gap-4">
@@ -246,7 +317,9 @@ export default function Header() {
                 onClick={() =>
                   isLoggedIn
                     ? setUserMenuOpen((prev) => !prev)
-                    : navigate("/login")
+                    : navigate("/login", {
+                        state: { from: location.pathname },
+                      })
                 }
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-[#062b63] ${
                   userMenuOpen ? "bg-green-50" : ""
@@ -267,10 +340,17 @@ export default function Header() {
             <Link
               to="/cart"
               onClick={closeMenus}
-              className="flex items-center gap-1 text-green-700 font-semibold text-sm"
+              className="relative flex items-center gap-1 text-green-700 font-semibold text-sm"
             >
-              <ShoppingCart size={23} />
-              Cart ({cartItemCount})
+              <div className="relative">
+                <ShoppingCart size={23} />
+
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                    {cartItemCount}
+                  </span>
+                )}
+              </div>
             </Link>
           </div>
         </div>
@@ -463,7 +543,7 @@ function UserDropdown({ user, fullName, onLogout, onClose }) {
 
 function MobileUserDropdown({ onClose, onLogout }) {
   return (
-    <div className="absolute right-0 top-12 w-[318px] max-w-[calc(100vw-24px)] bg-white border border-[#edf1f7] rounded-2xl shadow-2xl z-50">
+    <div className="absolute right-0 top-12 w-79.5 max-w-[calc(100vw-24px)] bg-white border border-[#edf1f7] rounded-2xl shadow-2xl z-50">
       <div className="px-6 pt-6 pb-3">
         <h3 className="text-2xl font-bold text-[#071b3a]">My Account</h3>
       </div>

@@ -25,11 +25,17 @@ import AdminProductsPage from "./pages/admin/AdminProductsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage";
 import ProductPage from "./pages/ProductPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import CheckoutPage from "./pages/CheckoutPage";
+
 
 export default function App() {
   return (
-    <>
+    <div className="min-h-screen flex flex-col bg-white">
+    
       <Header />
+      <main className="flex-1">
 
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -41,7 +47,7 @@ export default function App() {
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/business-details" element={<BusinessDetailsPage />} />
         <Route path="/cart" element={<CartPage />} />
-        <Route path="/orders/:orderNumber" element={<OrderSuccessPage />} />
+        <Route path="/order-success/:orderNumber" element={<OrderSuccessPage />} />
         <Route path="/product/:slug" element={<ProductPage />} />
 
         <Route path="/account" element={<AccountLayout />}>
@@ -56,6 +62,9 @@ export default function App() {
         <Route path="/returns-policy" element={<ReturnsPolicyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
 
         <Route
           path="/admin/categories"
@@ -75,8 +84,9 @@ export default function App() {
           }
         />
       </Routes>
+      </main>
 
-      <Footer />
-    </>
+      <Footer/>
+    </div>
   );
 }

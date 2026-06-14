@@ -6,21 +6,16 @@ import {
   Plus,
   Trash2,
   ShieldCheck,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function CartPage() {
-  const { cartItems, updateCartItem, removeCartItem, requestOrder } = useCart();
+  const { cartItems, updateCartItem, removeCartItem } = useCart();
 
   const navigate = useNavigate();
-
-  const [submitting, setSubmitting] = useState(false);
-  const [notification, setNotification] = useState(null);
+  const [updating, setUpdating] = useState(false);
 
   const getImage = (imageUrl) => {
     if (!imageUrl) return null;
@@ -37,116 +32,38 @@ export default function CartPage() {
     0
   );
 
-  const showNotification = (type, title, message, orderNumber) => {
-    setNotification({
-      type,
-      title,
-      message,
-      orderNumber,
-    });
-
-    setTimeout(() => {
-      setNotification(null);
-    }, 5000);
-  };
-
   const handleIncrease = async (item) => {
+    setUpdating(true);
     await updateCartItem(
       item.cart_item_id || item.product_id,
       Number(item.quantity) + 1
     );
+    setUpdating(false);
   };
 
   const handleDecrease = async (item) => {
+    setUpdating(true);
+
     const newQty = Number(item.quantity) - 1;
 
     if (newQty <= 0) {
       await removeCartItem(item.cart_item_id || item.product_id);
+      setUpdating(false);
       return;
     }
 
     await updateCartItem(item.cart_item_id || item.product_id, newQty);
+    setUpdating(false);
   };
 
   const handleRemove = async (item) => {
+    setUpdating(true);
     await removeCartItem(item.cart_item_id || item.product_id);
-  };
-
-  const handleRequestOrder = async () => {
-    if (submitting) return;
-
-    try {
-      setSubmitting(true);
-
-      const data = await requestOrder();
-
-      showNotification(
-        "success",
-        "Order request submitted",
-        "We have received your request. Our sales team will contact you shortly.",
-        data.order_request_number
-      );
-
-      setTimeout(() => {
-        navigate(`/orders/${data.order_request_number}`);
-      }, 1800);
-    } catch (error) {
-      showNotification(
-        "error",
-        "Order request failed",
-        error.message || "Failed to submit order request"
-      );
-    } finally {
-      setSubmitting(false);
-    }
+    setUpdating(false);
   };
 
   return (
     <main className="bg-white border-t border-[#edf1f7] relative">
-      {notification && (
-        <div className="fixed top-5 right-5 z-50 w-[calc(100%-40px)] max-w-sm">
-          <div
-            className={`rounded-xl border shadow-lg bg-white p-4 ${
-              notification.type === "success"
-                ? "border-green-200"
-                : "border-red-200"
-            }`}
-          >
-            <div className="flex gap-3">
-              {notification.type === "success" ? (
-                <CheckCircle className="text-green-700 mt-0.5" size={22} />
-              ) : (
-                <AlertCircle className="text-red-600 mt-0.5" size={22} />
-              )}
-
-              <div className="flex-1">
-                <p className="font-bold text-sm text-[#071b3a]">
-                  {notification.title}
-                </p>
-
-                {notification.orderNumber && (
-                  <p className="text-xs font-bold text-green-700 mt-1">
-                    Order No: {notification.orderNumber}
-                  </p>
-                )}
-
-                <p className="text-xs text-[#071b3a]/70 mt-1">
-                  {notification.message}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setNotification(null)}
-                className="text-[#071b3a]/50 hover:text-[#071b3a] cursor-pointer"
-                type="button"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <section className="max-w-7xl mx-auto px-4 py-5">
         <div className="text-xs text-[#071b3a]/70 mb-3">
           Home <span className="mx-2">›</span> Your Cart
@@ -228,7 +145,7 @@ export default function CartPage() {
                             qty={item.quantity}
                             onMinus={() => handleDecrease(item)}
                             onPlus={() => handleIncrease(item)}
-                            disabled={submitting}
+                            disabled={updating}
                           />
                         </td>
 
@@ -243,7 +160,7 @@ export default function CartPage() {
                         <td className="p-3">
                           <button
                             onClick={() => handleRemove(item)}
-                            disabled={submitting}
+                            disabled={updating}
                             className="text-[#071b3a] hover:text-red-600 cursor-pointer disabled:opacity-50"
                             type="button"
                           >
@@ -291,7 +208,7 @@ export default function CartPage() {
                         qty={item.quantity}
                         onMinus={() => handleDecrease(item)}
                         onPlus={() => handleIncrease(item)}
-                        disabled={submitting}
+                        disabled={updating}
                       />
 
                       <p className="font-semibold text-sm text-[#071b3a]">
@@ -300,7 +217,7 @@ export default function CartPage() {
 
                       <button
                         onClick={() => handleRemove(item)}
-                        disabled={submitting}
+                        disabled={updating}
                         className="text-[#071b3a] hover:text-red-600 cursor-pointer disabled:opacity-50"
                         type="button"
                       >
@@ -350,19 +267,11 @@ export default function CartPage() {
                 </div>
 
                 <button
-                  onClick={handleRequestOrder}
-                  disabled={submitting}
-                  className="w-full h-10 bg-green-700 text-white rounded-lg font-bold text-sm mt-5 hover:bg-green-800 cursor-pointer transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  onClick={() => navigate("/checkout")}
+                  className="w-full h-10 bg-green-700 text-white rounded-lg font-bold text-sm mt-5 hover:bg-green-800 cursor-pointer transition"
                   type="button"
                 >
-                  {submitting ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    "Request Order"
-                  )}
+                  Proceed to Checkout
                 </button>
               </div>
 

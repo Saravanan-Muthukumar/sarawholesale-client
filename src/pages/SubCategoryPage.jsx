@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import CategoryMenu from "../components/CategoryMenu";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -29,6 +30,9 @@ export default function SubCategoryPage() {
 
   return (
     <main className="bg-[#fbfcfe] min-h-screen">
+        <div className="hidden md:block">
+            <CategoryMenu categories={categories} />
+        </div>
       <section className="max-w-7xl mx-auto px-4 py-5">
         {/* DESKTOP BREADCRUMB */}
         <div className="hidden md:block text-xs text-[#071b3a]/50 mb-3 mt-1">
@@ -88,7 +92,7 @@ export default function SubCategoryPage() {
               </div>
 
               <div className="mt-3">
-                <h3 className="text-xs font-semibold text-[#071b3a] leading-snug line-clamp-2 min-h-[32px]">
+                <h3 className="text-xs font-semibold text-[#071b3a] leading-snug line-clamp-2 min-h-8">
                   {sub.category_name}
                 </h3>
 

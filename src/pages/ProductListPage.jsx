@@ -30,9 +30,24 @@ export default function ProductListPage() {
   }, [slug]);
 
   const updateQty = (productId, value) => {
+    if (value === "") {
+      setQty((prev) => ({
+        ...prev,
+        [productId]: "",
+      }));
+      return;
+    }
+
     setQty((prev) => ({
       ...prev,
       [productId]: Math.max(0, Number(value) || 0),
+    }));
+  };
+
+  const setQtyFromSlab = (productId, minQty) => {
+    setQty((prev) => ({
+      ...prev,
+      [productId]: Number(minQty),
     }));
   };
 
@@ -54,7 +69,7 @@ export default function ProductListPage() {
   };
 
   const getActiveTier = (product) => {
-    const enteredQty = qty[product.product_id] || 0;
+    const enteredQty = Number(qty[product.product_id] || 0);
     if (!enteredQty || !product.price_breaks?.length) return null;
 
     return product.price_breaks.find((tier) => {
@@ -64,8 +79,17 @@ export default function ProductListPage() {
     });
   };
 
+  const getLineTotal = (product) => {
+    const enteredQty = Number(qty[product.product_id] || 0);
+    const activeTier = getActiveTier(product);
+
+    if (!enteredQty || !activeTier) return "£0.00";
+
+    return `£${(enteredQty * Number(activeTier.price)).toFixed(2)}`;
+  };
+
   const handleAddToCart = async (product) => {
-    const enteredQty = qty[product.product_id] || 0;
+    const enteredQty = Number(qty[product.product_id] || 0);
 
     if (enteredQty <= 0) {
       alert("Please enter quantity");
@@ -159,7 +183,7 @@ export default function ProductListPage() {
 
         {/* DESKTOP TABLE */}
         <div className="hidden md:block bg-white border border-[#edf1f7] rounded-2xl overflow-hidden shadow-sm">
-          <div className="max-h-162.5 overflow-y-auto">
+          <div>
             <table className="w-full text-xs text-[#071b3a]">
               <tbody>
                 {products.map((product) => {
@@ -209,12 +233,19 @@ export default function ProductListPage() {
                             const isActive = activeTier === tier;
 
                             return (
-                              <div
+                              <button
+                                type="button"
                                 key={`${tier.min_qty}-${tier.max_qty}`}
-                                className={`border rounded-xl overflow-hidden text-center transition ${
+                                onClick={() =>
+                                  setQtyFromSlab(
+                                    product.product_id,
+                                    tier.min_qty
+                                  )
+                                }
+                                className={`border rounded-xl overflow-hidden text-center transition cursor-pointer ${
                                   isActive
                                     ? "border-green-300 bg-green-50 ring-1 ring-green-100"
-                                    : "border-[#e8eef6] bg-white"
+                                    : "border-[#e8eef6] bg-white hover:border-green-200 hover:bg-green-50"
                                 }`}
                               >
                                 <div
@@ -236,22 +267,36 @@ export default function ProductListPage() {
                                 >
                                   £{Number(tier.price).toFixed(2)}
                                 </div>
-                              </div>
+                              </button>
                             );
                           })}
                         </div>
                       </td>
 
                       <td className="p-4">
-                        <input
-                          type="number"
-                          min="0"
-                          value={qty[product.product_id] || 0}
-                          onChange={(e) =>
-                            updateQty(product.product_id, e.target.value)
-                          }
-                          className="w-20 h-9 border border-[#e5eaf2] rounded-lg text-center text-sm outline-none focus:border-green-300 focus:ring-2 focus:ring-green-50"
-                        />
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center border border-[#e5eaf2] rounded-xl bg-white overflow-hidden w-28 focus-within:border-green-300 focus-within:ring-2 focus-within:ring-green-50">
+                            <span className="px-3 text-[11px] text-[#071b3a]/50 bg-[#f8fafc] h-10 flex items-center">
+                              Qty
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={qty[product.product_id] ?? ""}
+                              onChange={(e) =>
+                                updateQty(product.product_id, e.target.value)
+                              }
+                              className="w-full h-10 text-center text-base md:text-sm outline-none bg-white"
+                            />
+                          </div>
+
+                          <p className="text-[11px] text-[#071b3a]/60">
+                            Total:{" "}
+                            <span className="font-bold text-[#071b3a]">
+                              {getLineTotal(product)}
+                            </span>
+                          </p>
+                        </div>
                       </td>
 
                       <td className="p-4">
@@ -307,9 +352,13 @@ export default function ProductListPage() {
                     const isActive = activeTier === tier;
 
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={`${tier.min_qty}-${tier.max_qty}`}
-                        className={`min-w-18.75 border rounded-xl p-2 text-center transition ${
+                        onClick={() =>
+                          setQtyFromSlab(product.product_id, tier.min_qty)
+                        }
+                        className={`min-w-18.75 border rounded-xl p-2 text-center transition cursor-pointer ${
                           isActive
                             ? "border-green-300 bg-green-50 ring-1 ring-green-100"
                             : "border-[#e8eef6] bg-white"
@@ -329,30 +378,41 @@ export default function ProductListPage() {
                         >
                           £{Number(tier.price).toFixed(2)}
                         </p>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-[#071b3a]">
-                    Qty
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center border border-[#e5eaf2] rounded-xl bg-white overflow-hidden w-28 focus-within:border-green-300 focus-within:ring-2 focus-within:ring-green-50">
+                      <span className="px-3 text-[11px] text-[#071b3a]/50 bg-[#f8fafc] h-10 flex items-center">
+                        Qty
+                      </span>
 
-                  <input
-                    type="number"
-                    min="0"
-                    value={qty[product.product_id] || 0}
-                    onChange={(e) =>
-                      updateQty(product.product_id, e.target.value)
-                    }
-                    className="w-20 h-9 border border-[#e5eaf2] rounded-lg text-center text-sm outline-none focus:border-green-300 focus:ring-2 focus:ring-green-50"
-                  />
+                      <input
+                        type="number"
+                        min="0"
+                        value={qty[product.product_id] ?? ""}
+                        onChange={(e) =>
+                          updateQty(product.product_id, e.target.value)
+                        }
+                        className="w-full h-10 text-center text-base md:text-sm outline-none bg-white"
+                      />
+                    </div>
+
+                    <p className="text-[11px] text-[#071b3a]/60">
+                      Total:{" "}
+                      <span className="font-bold text-[#071b3a]">
+                        {getLineTotal(product)}
+                      </span>
+                    </p>
+                  </div>
 
                   <button
                     type="button"
                     onClick={() => handleAddToCart(product)}
-                    className="flex-1 bg-green-50 text-green-700 border border-green-200 h-9 rounded-lg text-xs font-semibold hover:bg-green-100 transition"
+                    className="flex-1 bg-green-50 text-green-700 border border-green-200 h-10 rounded-lg text-xs font-semibold hover:bg-green-100 transition"
                   >
                     Add to Cart
                   </button>

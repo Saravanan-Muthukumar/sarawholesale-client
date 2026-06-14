@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Loader2, Save, XCircle } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -25,6 +26,10 @@ export default function CustomerDetailsPage() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+const [searchParams] = useSearchParams();
+
+const redirectTo = searchParams.get("redirect") || "/account/details";
 
   const loadDetails = async () => {
     try {
@@ -100,6 +105,7 @@ export default function CustomerDetailsPage() {
       }
 
       setMessage("Customer details updated successfully.");
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message || "Failed to save details");
     } finally {

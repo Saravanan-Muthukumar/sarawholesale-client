@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function BusinessDetailsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { saveBusinessDetails } = useAuth();
+
+  const redirectTo = location.state?.from || "/login";
 
   const [form, setForm] = useState({
     business_name: "",
@@ -36,7 +39,7 @@ export default function BusinessDetailsPage() {
     try {
       await saveBusinessDetails(form);
 
-      navigate("/login");
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message || "Failed to save business details");
     } finally {
@@ -68,61 +71,14 @@ export default function BusinessDetailsPage() {
           )}
 
           <div className="grid md:grid-cols-2 gap-4">
-            <Input
-              label="Business Name *"
-              name="business_name"
-              value={form.business_name}
-              onChange={handleChange}
-            />
-
-            <Input
-              label="Company Number"
-              name="company_number"
-              value={form.company_number}
-              onChange={handleChange}
-            />
-
-            <Input
-              label="VAT Number"
-              name="vat_number"
-              value={form.vat_number}
-              onChange={handleChange}
-            />
-
-            <Input
-              label="Business Type"
-              name="business_type"
-              value={form.business_type}
-              onChange={handleChange}
-            />
-
-            <Input
-              label="Address Line 1 *"
-              name="address_line1"
-              value={form.address_line1}
-              onChange={handleChange}
-            />
-
-            <Input
-              label="City *"
-              name="city"
-              value={form.city}
-              onChange={handleChange}
-            />
-
-            <Input
-              label="Postcode *"
-              name="postcode"
-              value={form.postcode}
-              onChange={handleChange}
-            />
-
-            <Input
-              label="Website"
-              name="website"
-              value={form.website}
-              onChange={handleChange}
-            />
+            <Input label="Business Name *" name="business_name" value={form.business_name} onChange={handleChange} />
+            <Input label="Company Number" name="company_number" value={form.company_number} onChange={handleChange} />
+            <Input label="VAT Number" name="vat_number" value={form.vat_number} onChange={handleChange} />
+            <Input label="Business Type" name="business_type" value={form.business_type} onChange={handleChange} />
+            <Input label="Address Line 1 *" name="address_line1" value={form.address_line1} onChange={handleChange} />
+            <Input label="City *" name="city" value={form.city} onChange={handleChange} />
+            <Input label="Postcode *" name="postcode" value={form.postcode} onChange={handleChange} />
+            <Input label="Website" name="website" value={form.website} onChange={handleChange} />
           </div>
 
           <button

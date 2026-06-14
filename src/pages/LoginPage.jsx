@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, Eye, UserPlus, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  const redirectTo = location.state?.from || "/";
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -23,9 +25,9 @@ export default function LoginPage() {
 
     try {
       await login(form.email, form.password);
-      navigate("/");
+      navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -90,7 +92,7 @@ export default function LoginPage() {
             </Field>
 
             <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-2 font-semibold text-[#071b3a]">
+              {/* <label className="flex items-center gap-2 font-semibold text-[#071b3a]">
                 <input
                   type="checkbox"
                   checked={remember}
@@ -98,11 +100,11 @@ export default function LoginPage() {
                   className="w-3.5 h-3.5"
                 />
                 Remember me
-              </label>
+              </label> */}
 
-              <button type="button" className="font-semibold text-blue-700">
+              <Link to="/forgot-password" className="font-semibold text-blue-700">
                 Forgot Password?
-              </button>
+              </Link>
             </div>
 
             <button

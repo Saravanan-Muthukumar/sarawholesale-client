@@ -9,12 +9,12 @@ export default function FeaturedProducts({ products = [] }) {
     )
     .slice(0, 20);
 
-  const getCategoryLink = (product) => {
-    if (product.category_slug) {
-      return `/category/${product.category_slug}`;
-    }
+  const getLowestPrice = (product) => {
+    if (!product.price_breaks?.length) return "0.00";
 
-    return "/products";
+    return Math.min(
+      ...product.price_breaks.map((p) => Number(p.price || 0))
+    ).toFixed(2);
   };
 
   return (
@@ -26,13 +26,13 @@ export default function FeaturedProducts({ products = [] }) {
 
         <Link
           to="/products"
-          className="text-sm sm:text-base font-semibold text-green-700 hover:text-green-800"
+          className="text-sm font-semibold text-green-700 hover:text-green-800"
         >
           View All →
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
         {displayProducts.map((product) => {
           const imageSrc = product.image_url?.startsWith("http")
             ? product.image_url
@@ -42,36 +42,32 @@ export default function FeaturedProducts({ products = [] }) {
             <Link
               key={product.product_id}
               to={`/product/${product.slug}`}
-              className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition flex flex-col min-h-82"
+              className="bg-white rounded-xl border border-gray-200 p-2 md:p-4 shadow-sm hover:shadow-md transition flex flex-col min-h-[190px] md:min-h-[320px]"
             >
               {product.image_url ? (
                 <img
                   src={imageSrc}
                   alt={product.product_name}
-                  className="h-32 sm:h-36 w-full object-contain mb-3"
+                  className="h-20 md:h-36 w-full object-contain mb-2"
                 />
               ) : (
-                <div className="h-32 sm:h-36 w-full bg-gray-100 rounded-lg mb-3 flex items-center justify-center text-xs text-gray-400">
+                <div className="h-20 md:h-36 w-full bg-gray-100 rounded-lg mb-2 flex items-center justify-center text-xs text-gray-400">
                   No Image
                 </div>
               )}
 
-              <h3 className="text-sm font-semibold text-[#071b3a] leading-5 line-clamp-2 min-h-10">
+              <h3 className="text-[11px] md:text-sm font-semibold text-[#071b3a] leading-4 md:leading-5 line-clamp-2 min-h-8 md:min-h-10">
                 {product.product_name}
               </h3>
 
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-[10px] md:text-xs text-gray-500 mt-1">
                 SKU: {product.sku || "N/A"}
               </p>
 
-              <div className="mt-auto">
-                <p className="text-base sm:text-lg font-bold text-green-700 mb-3">
-                  £{Number(product.selling_price || 0).toFixed(2)}
+              <div className="mt-auto pt-2">
+                <p className="text-[11px] md:text-base font-semibold text-green-700">
+                  From £{getLowestPrice(product)}
                 </p>
-
-                <div className="w-full bg-green-700 text-white text-sm font-semibold py-2 rounded-lg text-center">
-                  View Category
-                </div>
               </div>
             </Link>
           );

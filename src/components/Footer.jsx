@@ -19,7 +19,7 @@ export default function Footer() {
   );
 
   return (
-    <footer className="bg-[#062b63] text-white mt-12">
+    <footer className="bg-[#062b63] text-white">
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
@@ -88,15 +88,21 @@ export default function Footer() {
             <h3 className="font-bold mb-4">Get in Touch</h3>
 
             <div className="space-y-3 text-sm text-blue-100">
-              <p className="flex items-center gap-2">
+            <a
+                href="tel:07424715150"
+                className="flex items-center gap-2 hover:text-white transition"
+              >
                 <Phone size={16} />
                 07424715150
-              </p>
+              </a>
 
-              <p className="flex items-center gap-2">
+              <a
+                href="mailto:sales@sarawholesale.co.uk"
+                className="flex items-center gap-2 hover:text-white transition break-all"
+              >
                 <Mail size={16} />
                 sales@sarawholesale.co.uk
-              </p>
+              </a>
 
               <p>
                 Monday - Friday
