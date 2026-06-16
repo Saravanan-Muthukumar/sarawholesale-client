@@ -1,78 +1,53 @@
 import heroImg from "../assets/hero-packaging-supplies.png";
-import { ShieldCheck, Truck, Tag, Headphones } from "lucide-react";
+import { Truck, Tag, Package } from "lucide-react";
 
-export default function Hero() {
+export default function Hero({ onShopNow }) {
   return (
-    <section className="max-w-7xl mx-auto px-4">
-      <div className="bg-linear-to-r from-blue-50 to-green-50 rounded-xl overflow-hidden">
-        <div className="grid md:grid-cols-2 items-center">
-          {/* Text */}
-          <div className="p-6 md:p-10">
-            <h1 className="text-3xl md:text-5xl font-bold text-[#071b3a] leading-tight">
-              Packaging Supplies
-              <span className="block text-green-700">
-                At Wholesale Prices
-              </span>
-            </h1>
+    <section className="bg-gradient-to-r from-[#062b63] via-[#06499c] to-[#0877d8] text-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 py-10 md:py-14 grid md:grid-cols-2 gap-8 items-center">
+        <div>
+          <p className="text-green-400 font-bold text-sm mb-3">
+            WHOLESALE SUPPLIES OF PACKAGING AND STATIONARY
+          </p>
 
-            <p className="mt-4 text-gray-700 text-base md:text-lg max-w-md">
-              Quality packaging supplies and business essentials for retail and
-              wholesale customers. Fast delivery, competitive pricing and reliable
-              service across the UK.
+          <h1 className="text-3xl md:text-5xl font-extrabold leading-tight mb-6">
+            Everything your business needs, delivered fast.
+          </h1>
+
+          <div className="space-y-3 text-sm md:text-base mb-7">
+          <p className="flex items-center gap-3">
+              <Truck className="text-green-400" size={22} />
+              Next day delivery across UK mainland
             </p>
 
+            <p className="flex items-center gap-3">
+              <Tag className="text-green-400" size={22} />
+              Trade price even for minimum quantity
+            </p>
 
+            <p className="flex items-center gap-3">
+              <Package className="text-green-400" size={22} />
+              Same day delivery within 50 miles of Slough
+            </p>
           </div>
 
-          {/* Image */}
-          <div className="p-4 md:p-6">
-            <img
-              src={heroImg}
-              alt="Packaging supplies"
-              className="w-full h-55 md:h-90 object-contain"
-            />
-          </div>
+          <button
+            type="button"
+            onClick={onShopNow}
+            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold px-7 py-3 rounded-md cursor-pointer"
+          >
+            SHOP NOW →
+          </button>
         </div>
 
-        {/* Benefits */}
-        <div className="bg-white/70 grid grid-cols-2 md:grid-cols-4 gap-4 px-5 py-4">
-          <Benefit
-            icon={<ShieldCheck size={24} />}
-            title="Quality Guaranteed"
-            text="Premium products you can trust"
-          />
-          <Benefit
-            icon={<Truck size={24} />}
-            title="Fast Delivery"
-            text="Quick dispatch, every time"
-          />
-          <Benefit
-            icon={<Tag size={24} />}
-            title="Competitive Prices"
-            text="Better prices for your business"
-          />
-          <Benefit
-            icon={<Headphones size={24} />}
-            title="Customer Support"
-            text="Here to help you"
+        <div className="flex justify-center">
+          <img
+            src={heroImg}
+            alt="Wholesale packaging supplies"
+            className="w-full max-w-xl object-contain"
           />
         </div>
       </div>
     </section>
-  );
-}
-
-function Benefit({ icon, title, text }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-green-100 text-green-700 flex items-center justify-center shrink-0">
-        {icon}
-      </div>
-
-      <div>
-        <h3 className="text-sm font-bold text-[#071b3a]">{title}</h3>
-        <p className="text-xs text-gray-600">{text}</p>
-      </div>
-    </div>
   );
 }

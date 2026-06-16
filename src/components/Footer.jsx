@@ -81,6 +81,11 @@ export default function Footer() {
                   Privacy Policy
                 </Link>
               </li>
+              <li>
+                <Link to="/cookie-policy" className="hover:text-white">
+                  Cookie Policy
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -115,9 +120,14 @@ export default function Footer() {
 
         <div className="border-t border-blue-500/30 mt-8 pt-5">
           <p className="text-center text-sm text-blue-100">
-            © 2026 SARA Wholesale Supplies. All rights reserved.
+            © 2026 SARA Wholesale. All rights reserved.
+          </p>
+
+          <p className="text-center text-xs text-blue-200 mt-2">
+            SAARAH ENTERPRISES LTD | Company No: 15920690
           </p>
         </div>
+                
       </div>
     </footer>
   );

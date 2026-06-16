@@ -28,7 +28,8 @@ import ProductPage from "./pages/ProductPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CheckoutPage from "./pages/CheckoutPage";
-
+import CookieBanner from "./components/CookieBanner";
+import CookiePolicyPage from "./pages/CookiePolicyPage";
 
 export default function App() {
   return (
@@ -65,6 +66,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/cookie-policy" element={<CookiePolicyPage />} />
 
         <Route
           path="/admin/categories"
@@ -87,6 +89,7 @@ export default function App() {
       </main>
 
       <Footer/>
+      <CookieBanner />
     </div>
   );
 }

@@ -23,6 +23,9 @@ export default function AdminProductsPage() {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+
   const loadData = async () => {
     const [productsRes, categoriesRes] = await Promise.all([
       fetch(`${API_URL}/api/products`),
@@ -36,6 +39,20 @@ export default function AdminProductsPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const filteredProducts = products.filter((product) => {
+    const search = searchTerm.toLowerCase();
+
+    const matchesSearch =
+      product.product_name?.toLowerCase().includes(search) ||
+      product.sku?.toLowerCase().includes(search) ||
+      product.category_name?.toLowerCase().includes(search);
+
+    const matchesCategory =
+      !categoryFilter || String(product.category_id) === String(categoryFilter);
+
+    return matchesSearch && matchesCategory;
+  });
 
   const createSlug = (value) =>
     value
@@ -82,6 +99,7 @@ export default function AdminProductsPage() {
   const removePriceBreak = (index) => {
     setForm((prev) => {
       if (prev.price_breaks.length === 1) return prev;
+
       return {
         ...prev,
         price_breaks: prev.price_breaks.filter((_, i) => i !== index),
@@ -90,16 +108,44 @@ export default function AdminProductsPage() {
   };
 
   const formatPriceBreaks = (priceBreaks = []) => {
-    if (!priceBreaks.length) return "No price";
+    if (!priceBreaks.length) {
+      return <span className="text-xs text-gray-400">No price</span>;
+    }
 
-    return priceBreaks
-      .map((item) => {
-        const min = item.min_qty;
-        const max = item.max_qty;
-        const price = Number(item.price || 0).toFixed(2);
-        return max ? `${min}-${max}: £${price}` : `${min}+: £${price}`;
-      })
-      .join(", ");
+    return (
+      <div className="w-full max-w-[540px]">
+        <div className="grid grid-cols-4 text-center text-[12px] font-semibold text-[#071b3a] border-b border-green-600 pb-1">
+          {priceBreaks.map((item, index) => {
+            const min = item.min_qty;
+            const max = item.max_qty;
+
+            return (
+              <div
+                key={`qty-${index}`}
+                className="px-2 border-r border-gray-200 last:border-r-0"
+              >
+                {max ? `${min}-${max}` : `${min}+`}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="grid grid-cols-4 text-center text-[13px] font-bold text-green-700 pt-1">
+          {priceBreaks.map((item, index) => {
+            const price = Number(item.price || 0).toFixed(2);
+
+            return (
+              <div
+                key={`price-${index}`}
+                className="px-2 border-r border-gray-200 last:border-r-0"
+              >
+                £{price}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   const openAdd = () => {
@@ -214,6 +260,7 @@ export default function AdminProductsPage() {
           </div>
 
           <button
+            type="button"
             onClick={openAdd}
             className="bg-green-700 text-white px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-green-800"
           >
@@ -222,74 +269,131 @@ export default function AdminProductsPage() {
           </button>
         </div>
 
+        <div className="grid md:grid-cols-3 gap-3 mb-4">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search product, SKU or category..."
+            className="md:col-span-2 h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-green-600"
+          />
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-10 border border-gray-200 rounded-lg px-3 text-sm outline-none focus:border-green-600 bg-white"
+          >
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat.category_id} value={cat.category_id}>
+                {cat.category_name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-3 text-xs text-gray-500">
+          Showing {filteredProducts.length} of {products.length} products
+        </div>
+
         <div className="overflow-x-auto border border-gray-200 rounded-xl">
           <table className="w-full text-xs">
             <thead className="bg-gray-50 text-[#071b3a]">
               <tr>
-                <th className="p-3 text-left font-semibold">Image</th>
-                <th className="p-3 text-left font-semibold">Product</th>
-                <th className="p-3 text-left font-semibold">Category</th>
-                <th className="p-3 text-left font-semibold">SKU</th>
-                <th className="p-3 text-left font-semibold">Price Slabs</th>
-                <th className="p-3 text-left font-semibold">Stock</th>
-                <th className="p-3 text-right font-semibold">Action</th>
+                <th className="p-3 text-left font-semibold w-20">Image</th>
+                <th className="p-3 text-left font-semibold w-[230px]">
+                  Product
+                </th>
+                <th className="p-3 text-left font-semibold w-[140px]">
+                  Category
+                </th>
+                <th className="p-3 text-left font-semibold">
+                  Qty Breaks / Price Per Unit
+                </th>
+                <th className="p-3 text-left font-semibold w-20">Stock</th>
+                <th className="p-3 text-right font-semibold w-24">Action</th>
               </tr>
             </thead>
 
             <tbody>
-              {products.map((product) => {
-                const imageSrc = product.image_url?.startsWith("http")
-                  ? product.image_url
-                  : `${API_URL}${product.image_url}`;
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => {
+                  const imageSrc = product.image_url?.startsWith("http")
+                    ? product.image_url
+                    : `${API_URL}${product.image_url}`;
 
-                return (
-                  <tr key={product.product_id} className="border-t border-gray-100">
-                    <td className="p-3">
-                      {product.image_url ? (
-                        <img
-                          src={imageSrc}
-                          alt={product.product_name}
-                          className="w-12 h-12 object-contain border border-gray-200 rounded-md"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center text-[11px] text-gray-400">
-                          No Img
+                  return (
+                    <tr
+                      key={product.product_id}
+                      className="border-t border-gray-100 hover:bg-[#fbfcfe]"
+                    >
+                      <td className="p-2">
+                        {product.image_url ? (
+                          <img
+                            src={imageSrc}
+                            alt={product.product_name}
+                            className="w-11 h-11 object-contain border border-gray-200 rounded-md bg-white"
+                          />
+                        ) : (
+                          <div className="w-11 h-11 bg-gray-100 rounded-md flex items-center justify-center text-[10px] text-gray-400">
+                            No Img
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="p-3 max-w-[230px]">
+                        <p className="font-semibold text-[#071b3a] leading-snug line-clamp-2">
+                          {product.product_name}
+                        </p>
+                        <p className="text-[11px] text-gray-500 mt-1">
+                          SKU: {product.sku || "N/A"}
+                        </p>
+                      </td>
+
+                      <td className="p-3 text-gray-600">
+                        {product.category_name}
+                      </td>
+
+                      <td className="p-3">
+                        {formatPriceBreaks(product.price_breaks)}
+                      </td>
+
+                      <td className="p-3 text-gray-600">
+                        {product.stock_qty || 0}
+                      </td>
+
+                      <td className="p-3">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(product)}
+                            className="h-8 w-8 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center"
+                          >
+                            <Edit size={14} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(product.product_id)}
+                            className="h-8 w-8 rounded-md border border-red-200 text-red-500 hover:bg-red-50 flex items-center justify-center"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
-                      )}
-                    </td>
-
-                    <td className="p-3 font-medium text-[#071b3a]">
-                      {product.product_name}
-                    </td>
-                    <td className="p-3 text-gray-600">{product.category_name}</td>
-                    <td className="p-3 text-gray-600">{product.sku || "N/A"}</td>
-
-                    <td className="p-3 text-gray-600 max-w-xs">
-                      {formatPriceBreaks(product.price_breaks)}
-                    </td>
-
-                    <td className="p-3 text-gray-600">{product.stock_qty || 0}</td>
-
-                    <td className="p-3">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => openEdit(product)}
-                          className="h-8 w-8 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center"
-                        >
-                          <Edit size={14} />
-                        </button>
-
-                        <button
-                          onClick={() => handleDelete(product.product_id)}
-                          className="h-8 w-8 rounded-md border border-red-200 text-red-500 hover:bg-red-50 flex items-center justify-center"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="p-8 text-center text-sm text-gray-500"
+                  >
+                    No products found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -486,6 +590,7 @@ function Input({ label, name, value, onChange, type = "text" }) {
       <label className="block text-xs font-semibold text-gray-700 mb-1">
         {label}
       </label>
+
       <input
         name={name}
         type={type}
@@ -511,6 +616,7 @@ function SmallNumberInput({
       <label className="block text-[11px] font-semibold text-gray-700 mb-1">
         {label}
       </label>
+
       <input
         type="number"
         min="0"

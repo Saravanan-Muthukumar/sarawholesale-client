@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import CategoryMenu from "../components/CategoryMenu";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShoppingCart } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -31,10 +31,7 @@ export default function ProductListPage() {
 
   const updateQty = (productId, value) => {
     if (value === "") {
-      setQty((prev) => ({
-        ...prev,
-        [productId]: "",
-      }));
+      setQty((prev) => ({ ...prev, [productId]: "" }));
       return;
     }
 
@@ -70,13 +67,24 @@ export default function ProductListPage() {
 
   const getActiveTier = (product) => {
     const enteredQty = Number(qty[product.product_id] || 0);
+
     if (!enteredQty || !product.price_breaks?.length) return null;
 
-    return product.price_breaks.find((tier) => {
+    const sortedTiers = [...product.price_breaks].sort(
+      (a, b) => Number(a.min_qty) - Number(b.min_qty)
+    );
+
+    const matchingTier = sortedTiers.find((tier) => {
       const min = Number(tier.min_qty);
-      const max = tier.max_qty ? Number(tier.max_qty) : Infinity;
+      const max =
+        tier.max_qty === null || tier.max_qty === undefined || tier.max_qty === ""
+          ? Infinity
+          : Number(tier.max_qty);
+
       return enteredQty >= min && enteredQty <= max;
     });
+
+    return matchingTier || sortedTiers[sortedTiers.length - 1];
   };
 
   const getLineTotal = (product) => {
@@ -127,8 +135,7 @@ export default function ProductListPage() {
 
       <CategoryMenu categories={categories} />
 
-      <section className="max-w-7xl mx-auto px-4 pb-10">
-        {/* DESKTOP BREADCRUMB */}
+      <section className="max-w-5xl mx-auto px-4 pb-10">
         <div className="hidden md:block text-xs text-[#071b3a]/50 mb-3 mt-4">
           <Link to="/" className="hover:text-green-700">
             Home
@@ -150,7 +157,6 @@ export default function ProductListPage() {
           <span>{currentCategory?.category_name || "Products"}</span>
         </div>
 
-        {/* MOBILE BACK NAVIGATION */}
         <div className="md:hidden mb-4 mt-3">
           {parentCategory ? (
             <Link
@@ -181,139 +187,136 @@ export default function ProductListPage() {
           Showing all {products.length} products
         </p>
 
-        {/* DESKTOP TABLE */}
+        {/* DESKTOP LIST */}
         <div className="hidden md:block bg-white border border-[#edf1f7] rounded-2xl overflow-hidden shadow-sm">
-          <div>
-            <table className="w-full text-xs text-[#071b3a]">
-              <tbody>
-                {products.map((product) => {
-                  const activeTier = getActiveTier(product);
+          <table className="w-full text-xs text-[#071b3a]">
+            <tbody>
+              {products.map((product) => {
+                const activeTier = getActiveTier(product);
 
-                  return (
-                    <tr
-                      key={product.product_id}
-                      className="border-t border-[#edf1f7] hover:bg-[#fbfcfe]"
-                    >
-                      <td className="p-4">
-                        <Link
-                          to={`/product/${product.slug}`}
-                          className="flex items-center gap-4"
-                        >
-                          {getImage(product.image_url) ? (
-                            <img
-                              src={getImage(product.image_url)}
-                              alt={product.product_name}
-                              className="w-14 h-14 object-contain"
-                            />
-                          ) : (
-                            <div className="w-14 h-14 bg-gray-100 rounded" />
-                          )}
+                return (
+                  <tr
+                    key={product.product_id}
+                    className="border-t first:border-t-0 border-[#edf1f7] odd:bg-white even:bg-[#f3f6fa] hover:bg-[#eaf7ee]"
+                  >
+                    <td className="py-5 pl-5 pr-2 w-[420px]">
+                      <Link
+                        to={`/product/${product.slug}`}
+                        className="flex items-center gap-5"
+                      >
+                        {getImage(product.image_url) ? (
+                          <img
+                            src={getImage(product.image_url)}
+                            alt={product.product_name}
+                            className="w-20 h-20 object-contain shrink-0"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 bg-gray-100 rounded shrink-0" />
+                        )}
 
-                          <div>
-                            <h3 className="font-semibold text-sm text-[#071b3a]">
-                              {product.product_name}
-                            </h3>
-                            <p className="text-[11px] text-[#071b3a]/50 mt-1">
-                              SKU: {product.sku}
-                            </p>
-                          </div>
-                        </Link>
-                      </td>
-
-                      <td className="p-4">
-                        <div
-                          className="grid gap-2"
-                          style={{
-                            gridTemplateColumns: `repeat(${
-                              product.price_breaks?.length || 1
-                            }, minmax(80px, 1fr))`,
-                          }}
-                        >
-                          {product.price_breaks?.map((tier) => {
-                            const isActive = activeTier === tier;
-
-                            return (
-                              <button
-                                type="button"
-                                key={`${tier.min_qty}-${tier.max_qty}`}
-                                onClick={() =>
-                                  setQtyFromSlab(
-                                    product.product_id,
-                                    tier.min_qty
-                                  )
-                                }
-                                className={`border rounded-xl overflow-hidden text-center transition cursor-pointer ${
-                                  isActive
-                                    ? "border-green-300 bg-green-50 ring-1 ring-green-100"
-                                    : "border-[#e8eef6] bg-white hover:border-green-200 hover:bg-green-50"
-                                }`}
-                              >
-                                <div
-                                  className={`text-[11px] font-medium px-2 py-1.5 ${
-                                    isActive
-                                      ? "bg-green-50 text-green-700"
-                                      : "bg-[#f8fafc] text-[#64748b]"
-                                  }`}
-                                >
-                                  {getSlabLabel(tier)}
-                                </div>
-
-                                <div
-                                  className={`font-semibold text-xs px-2 py-2 ${
-                                    isActive
-                                      ? "text-green-700"
-                                      : "text-[#071b3a]"
-                                  }`}
-                                >
-                                  £{Number(tier.price).toFixed(2)}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </td>
-
-                      <td className="p-4">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center border border-[#e5eaf2] rounded-xl bg-white overflow-hidden w-28 focus-within:border-green-300 focus-within:ring-2 focus-within:ring-green-50">
-                            <span className="px-3 text-[11px] text-[#071b3a]/50 bg-[#f8fafc] h-10 flex items-center">
-                              Qty
-                            </span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={qty[product.product_id] ?? ""}
-                              onChange={(e) =>
-                                updateQty(product.product_id, e.target.value)
-                              }
-                              className="w-full h-10 text-center text-base md:text-sm outline-none bg-white"
-                            />
-                          </div>
-
-                          <p className="text-[11px] text-[#071b3a]/60">
-                            Total:{" "}
-                            <span className="font-bold text-[#071b3a]">
-                              {getLineTotal(product)}
-                            </span>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-sm text-[#071b3a] leading-snug">
+                            {product.product_name}
+                          </h3>
+                          <p className="text-[11px] text-[#071b3a]/50 mt-2">
+                            SKU: {product.sku}
                           </p>
                         </div>
-                      </td>
+                      </Link>
+                    </td>
 
-                      <td className="p-4">
-                        <button
-                          type="button"
-                          onClick={() => handleAddToCart(product)}
-                          className="bg-green-50 text-green-700 border border-green-200 px-4 py-2 h-9 rounded-lg text-xs font-semibold hover:bg-green-100 transition"
-                        >
-                          Add to Cart
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    <td className="py-5 px-2 w-[390px]">
+                      <div
+                        className="grid border border-[#e3eaf3] rounded-lg overflow-hidden bg-white"
+                        style={{
+                          gridTemplateColumns: `repeat(${
+                            product.price_breaks?.length || 1
+                          }, minmax(75px, 1fr))`,
+                        }}
+                      >
+                        {product.price_breaks?.map((tier) => {
+                          const isActive = activeTier === tier;
+
+                          return (
+                            <button
+                              type="button"
+                              key={`${tier.min_qty}-${tier.max_qty}`}
+                              onClick={() =>
+                                setQtyFromSlab(product.product_id, tier.min_qty)
+                              }
+                              className={`text-center transition border-r last:border-r-0 border-[#e3eaf3] ${
+                                isActive
+                                  ? "bg-green-50"
+                                  : "bg-white hover:bg-green-50"
+                              }`}
+                            >
+                              <div
+                                className={`text-[11px] font-medium px-2 py-2 border-b border-[#e3eaf3] ${
+                                  isActive
+                                    ? "text-green-700 bg-green-50"
+                                    : "text-[#64748b] bg-[#f8fafc]"
+                                }`}
+                              >
+                                {getSlabLabel(tier)}
+                              </div>
+
+                              <div
+                                className={`font-bold text-xs px-2 py-2 ${
+                                  isActive
+                                    ? "text-green-700"
+                                    : "text-[#071b3a]"
+                                }`}
+                              >
+                                £{Number(tier.price).toFixed(2)}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </td>
+
+                    <td className="py-5 px-2 w-[145px]">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center border border-[#e5eaf2] rounded-lg bg-white overflow-hidden w-[100px] focus-within:border-green-300 focus-within:ring-2 focus-within:ring-green-50">
+                          <span className="px-3 text-[11px] text-[#071b3a]/50 bg-[#f8fafc] h-9 flex items-center border-r border-[#e5eaf2]">
+                            Qty
+                          </span>
+
+                          <input
+                            type="number"
+                            min="0"
+                            value={qty[product.product_id] ?? ""}
+                            onChange={(e) =>
+                              updateQty(product.product_id, e.target.value)
+                            }
+                            className="w-full h-9 text-center text-sm outline-none bg-white"
+                          />
+                        </div>
+
+                        <p className="text-[11px] text-[#071b3a]/60">
+                          Total:{" "}
+                          <span className="font-bold text-[#071b3a]">
+                            {getLineTotal(product)}
+                          </span>
+                        </p>
+                      </div>
+                    </td>
+
+                    <td className="py-5 pl-2 pr-4 w-[95px] text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleAddToCart(product)}
+                        className="inline-flex items-center justify-center gap-1 bg-green-50 text-green-700 border border-green-200 px-2.5 h-9 rounded-lg text-[11px] font-semibold hover:bg-green-100 transition w-[105px]"
+                      >
+                        <ShoppingCart size={13} />
+                        Add Cart
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
         {/* MOBILE CARDS */}
@@ -324,7 +327,9 @@ export default function ProductListPage() {
             return (
               <div
                 key={product.product_id}
-                className="bg-white border border-[#edf1f7] rounded-2xl p-4 shadow-sm"
+                className={`border border-[#edf1f7] rounded-2xl p-4 shadow-sm ${
+                    products.indexOf(product) % 2 === 0 ? "bg-white" : "bg-[#f8fafc]"
+                  }`}
               >
                 <Link to={`/product/${product.slug}`} className="flex gap-4">
                   {getImage(product.image_url) ? (
@@ -347,7 +352,14 @@ export default function ProductListPage() {
                   </div>
                 </Link>
 
-                <div className="flex gap-2 overflow-x-auto py-4">
+                <div
+                  className="grid border border-[#e3eaf3] rounded-lg overflow-hidden bg-white mt-4"
+                  style={{
+                    gridTemplateColumns: `repeat(${
+                      product.price_breaks?.length || 1
+                    }, minmax(70px, 1fr))`,
+                  }}
+                >
                   {product.price_breaks?.map((tier) => {
                     const isActive = activeTier === tier;
 
@@ -358,21 +370,22 @@ export default function ProductListPage() {
                         onClick={() =>
                           setQtyFromSlab(product.product_id, tier.min_qty)
                         }
-                        className={`min-w-18.75 border rounded-xl p-2 text-center transition cursor-pointer ${
-                          isActive
-                            ? "border-green-300 bg-green-50 ring-1 ring-green-100"
-                            : "border-[#e8eef6] bg-white"
+                        className={`text-center transition border-r last:border-r-0 border-[#e3eaf3] ${
+                          isActive ? "bg-green-50" : "bg-white"
                         }`}
                       >
                         <p
-                          className={`text-[11px] font-medium ${
-                            isActive ? "text-green-700" : "text-[#64748b]"
+                          className={`text-[11px] font-medium px-2 py-2 border-b border-[#e3eaf3] ${
+                            isActive
+                              ? "text-green-700 bg-green-50"
+                              : "text-[#64748b] bg-[#f8fafc]"
                           }`}
                         >
                           {getSlabLabel(tier)}
                         </p>
+
                         <p
-                          className={`text-xs font-semibold ${
+                          className={`text-xs font-bold px-2 py-2 ${
                             isActive ? "text-green-700" : "text-[#071b3a]"
                           }`}
                         >
@@ -383,10 +396,10 @@ export default function ProductListPage() {
                   })}
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 mt-4">
                   <div className="flex flex-col gap-1">
-                    <div className="flex items-center border border-[#e5eaf2] rounded-xl bg-white overflow-hidden w-28 focus-within:border-green-300 focus-within:ring-2 focus-within:ring-green-50">
-                      <span className="px-3 text-[11px] text-[#071b3a]/50 bg-[#f8fafc] h-10 flex items-center">
+                    <div className="flex items-center border border-[#e5eaf2] rounded-lg bg-white overflow-hidden w-28 focus-within:border-green-300 focus-within:ring-2 focus-within:ring-green-50">
+                      <span className="px-3 text-[11px] text-[#071b3a]/50 bg-[#f8fafc] h-10 flex items-center border-r border-[#e5eaf2]">
                         Qty
                       </span>
 
@@ -397,7 +410,7 @@ export default function ProductListPage() {
                         onChange={(e) =>
                           updateQty(product.product_id, e.target.value)
                         }
-                        className="w-full h-10 text-center text-base md:text-sm outline-none bg-white"
+                        className="w-full h-10 text-center text-base outline-none bg-white"
                       />
                     </div>
 
@@ -412,8 +425,9 @@ export default function ProductListPage() {
                   <button
                     type="button"
                     onClick={() => handleAddToCart(product)}
-                    className="flex-1 bg-green-50 text-green-700 border border-green-200 h-10 rounded-lg text-xs font-semibold hover:bg-green-100 transition"
+                    className="flex-1 inline-flex items-center justify-center gap-2 bg-green-50 text-green-700 border border-green-200 h-10 rounded-lg text-xs font-semibold hover:bg-green-100 transition"
                   >
+                    <ShoppingCart size={15} />
                     Add to Cart
                   </button>
                 </div>
