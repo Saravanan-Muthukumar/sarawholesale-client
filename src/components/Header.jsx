@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Lock,
   LogOut,
+  Search,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
@@ -25,8 +26,9 @@ export default function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [cartPreviewOpen, setCartPreviewOpen] = useState(false);
   const [itemAddedMessage, setItemAddedMessage] = useState(false);
-  const [showStickyMobileHeader, setShowStickyMobileHeader] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [hideMobileLogo, setHideMobileLogo] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,14 +52,14 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    function handleScroll() {
-      setShowStickyMobileHeader(window.scrollY > 120);
-    }
+    const onScroll = () => {
+      setHideMobileLogo(window.scrollY > 40);
+    };
 
-    window.addEventListener("scroll", handleScroll);
-    handleScroll();
+    window.addEventListener("scroll", onScroll);
+    onScroll();
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -92,6 +94,7 @@ export default function Header() {
     setMenuOpen(false);
     setSelectedCategory(null);
     setCartPreviewOpen(false);
+    setMobileSearchOpen(false);
   };
 
   const handleLogout = async () => {
@@ -115,6 +118,7 @@ export default function Header() {
 
   return (
     <header className="bg-white">
+      {/* TOP DELIVERY BAR */}
       <div className="bg-[#062b63] text-white text-sm">
         <div className="max-w-7xl mx-auto px-4 h-9 flex items-center justify-between">
           <span className="flex items-center gap-2">
@@ -131,36 +135,24 @@ export default function Header() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4">
+      {/* DESKTOP HEADER */}
+      <div className="hidden md:block max-w-7xl mx-auto px-4">
         <div className="h-24 flex items-center justify-between gap-6">
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="md:hidden text-[#062b63] cursor-pointer"
-            type="button"
-            aria-label="Open categories"
-          >
-            <Menu size={28} />
-          </button>
-
-          <Link
-            to="/"
-            onClick={closeMenus}
-            className={`shrink-0 ${isAuthPage ? "hidden md:block" : ""}`}
-          >
+          <Link to="/" onClick={closeMenus} className="shrink-0">
             <img
               src="/logo.png"
-              alt="SARA Wholesale Supplies"
+              alt="SARA Wholesale"
               className="h-16 w-auto"
             />
           </Link>
 
           {!isAuthPage && (
-            <div className="hidden md:block flex-1 max-w-xl">
+            <div className="flex-1 max-w-xl">
               <AdvancedSearchBar />
             </div>
           )}
 
-          <div className="hidden md:flex items-center gap-5">
+          <div className="flex items-center gap-5">
             {isAdmin && (
               <>
                 <Link
@@ -229,119 +221,177 @@ export default function Header() {
               </div>
             </Link>
           </div>
+        </div>
+      </div>
 
-          <div className="md:hidden flex items-center gap-4">
-            <div className="relative">
+      {/* MOBILE HEADER */}
+      <div
+        className="md:hidden sticky top-0 z-[9998] bg-white border-b border-gray-200 shadow-sm"
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget)) {
+            setMobileSearchOpen(false);
+          }
+        }}
+      >
+        {!hideMobileLogo && (
+          <div className="flex items-center justify-center py-3 border-b border-gray-100">
+            <Link to="/" onClick={closeMenus}>
+              <img
+                src="/logo.png"
+                alt="SARA Wholesale"
+                className="h-12 w-auto object-contain"
+              />
+            </Link>
+          </div>
+        )}
+
+        {!isAuthPage && (
+          <>
+            <div className="grid grid-cols-4 h-[62px] text-[#00539f]">
+              <button
+                type="button"
+                onClick={() => setMenuOpen(true)}
+                className="flex flex-col items-center justify-center border-r border-gray-200"
+              >
+                <Menu size={24} />
+                <span className="text-[10px] font-semibold mt-1">Browse</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMobileSearchOpen((prev) => !prev)}
+                className="flex flex-col items-center justify-center border-r border-gray-200"
+              >
+                <Search size={24} />
+                <span className="text-[10px] font-semibold mt-1">Search</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() =>
                   isLoggedIn
                     ? setUserMenuOpen((prev) => !prev)
-                    : navigate("/login", {
-                        state: { from: location.pathname },
-                      })
+                    : navigate("/login", { state: { from: location.pathname } })
                 }
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-[#062b63] ${
-                  userMenuOpen ? "bg-green-50" : ""
-                }`}
-                aria-label="Account"
+                className="relative flex flex-col items-center justify-center border-r border-gray-200"
               >
-                <User size={23} />
+                <User size={24} />
+                <span className="text-[10px] font-semibold mt-1">Account</span>
+
+                {isLoggedIn && userMenuOpen && (
+                  <MobileUserDropdown
+                    onClose={() => setUserMenuOpen(false)}
+                    onLogout={handleLogout}
+                  />
+                )}
               </button>
 
-              {isLoggedIn && userMenuOpen && !showStickyMobileHeader && (
-                <MobileUserDropdown
-                  onClose={() => setUserMenuOpen(false)}
-                  onLogout={handleLogout}
-                />
-              )}
+              <Link
+                to="/cart"
+                onClick={closeMenus}
+                className="flex flex-col items-center justify-center relative"
+              >
+                <div className="relative">
+                  <ShoppingCart size={24} />
+
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </div>
+
+                <span className="text-[10px] font-semibold mt-1">Cart</span>
+              </Link>
             </div>
 
-            <Link
-              to="/cart"
-              onClick={closeMenus}
-              className="relative flex items-center gap-1 text-green-700 font-semibold text-sm"
-            >
-              <div className="relative">
-                <ShoppingCart size={23} />
-
-                {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
-                    {cartItemCount}
-                  </span>
-                )}
+            {mobileSearchOpen && (
+              <div className="px-3 pb-3 border-t border-gray-200">
+                <div className="pt-3">
+                  <AdvancedSearchBar />
+                </div>
               </div>
-            </Link>
-          </div>
-        </div>
-
-        {!isAuthPage && (
-          <div className="md:hidden pb-4">
-            <AdvancedSearchBar />
-          </div>
+            )}
+          </>
         )}
       </div>
+      {/* STICKY MOBILE MENU AFTER SCROLL */}
+{!isAuthPage && hideMobileLogo && (
+  <div
+    className="md:hidden fixed top-0 left-0 right-0 z-[9998] bg-white border-b border-gray-200 shadow-sm"
+    onBlur={(e) => {
+      if (!e.currentTarget.contains(e.relatedTarget)) {
+        setMobileSearchOpen(false);
+      }
+    }}
+  >
+    <div className="grid grid-cols-4 h-[62px] text-[#00539f]">
+      <button
+        type="button"
+        onClick={() => setMenuOpen(true)}
+        className="flex flex-col items-center justify-center border-r border-gray-200"
+      >
+        <Menu size={24} />
+        <span className="text-[10px] font-semibold mt-1">Browse</span>
+      </button>
 
-      {!isAuthPage && showStickyMobileHeader && (
-        <div className="md:hidden fixed top-0 left-0 right-0 z-[9998] bg-white border-b border-gray-200 shadow-sm">
-          <div className="grid grid-cols-4 h-[70px] text-[#00539f]">
-            <button
-              type="button"
-              onClick={() => setMenuOpen(true)}
-              className="flex flex-col items-center justify-center border-r border-gray-200"
-            >
-              <Menu size={25} />
-              <span className="text-[11px] font-semibold mt-1">Browse</span>
-            </button>
+      <button
+        type="button"
+        onClick={() => setMobileSearchOpen((prev) => !prev)}
+        className="flex flex-col items-center justify-center border-r border-gray-200"
+      >
+        <Search size={24} />
+        <span className="text-[10px] font-semibold mt-1">Search</span>
+      </button>
 
-            <div className="flex flex-col items-center justify-center border-r border-gray-200">
-              <span className="text-[11px] font-semibold">Search below</span>
-            </div>
+      <button
+        type="button"
+        onClick={() =>
+          isLoggedIn
+            ? setUserMenuOpen((prev) => !prev)
+            : navigate("/login", { state: { from: location.pathname } })
+        }
+        className="relative flex flex-col items-center justify-center border-r border-gray-200"
+      >
+        <User size={24} />
+        <span className="text-[10px] font-semibold mt-1">Account</span>
 
-            <button
-              type="button"
-              onClick={() =>
-                isLoggedIn
-                  ? setUserMenuOpen((prev) => !prev)
-                  : navigate("/login", { state: { from: location.pathname } })
-              }
-              className="relative flex flex-col items-center justify-center border-r border-gray-200"
-            >
-              <User size={25} />
-              <span className="text-[11px] font-semibold mt-1">Account</span>
+        {isLoggedIn && userMenuOpen && (
+          <MobileUserDropdown
+            onClose={() => setUserMenuOpen(false)}
+            onLogout={handleLogout}
+          />
+        )}
+      </button>
 
-              {isLoggedIn && userMenuOpen && showStickyMobileHeader && (
-                <MobileUserDropdown
-                  onClose={() => setUserMenuOpen(false)}
-                  onLogout={handleLogout}
-                />
-              )}
-            </button>
+      <Link
+        to="/cart"
+        onClick={closeMenus}
+        className="flex flex-col items-center justify-center relative"
+      >
+        <div className="relative">
+          <ShoppingCart size={24} />
 
-            <Link
-              to="/cart"
-              onClick={closeMenus}
-              className="flex flex-col items-center justify-center relative"
-            >
-              <div className="relative">
-                <ShoppingCart size={25} />
-
-                {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
-                    {cartItemCount}
-                  </span>
-                )}
-              </div>
-
-              <span className="text-[11px] font-semibold mt-1">Cart</span>
-            </Link>
-          </div>
-
-          <div className="px-4 pb-3">
-            <AdvancedSearchBar />
-          </div>
+          {cartItemCount > 0 && (
+            <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+              {cartItemCount}
+            </span>
+          )}
         </div>
-      )}
+
+        <span className="text-[10px] font-semibold mt-1">Cart</span>
+      </Link>
+    </div>
+
+    {mobileSearchOpen && (
+      <div className="px-3 pb-3 border-t border-gray-200 bg-white">
+        <div className="pt-3">
+          <AdvancedSearchBar />
+        </div>
+      </div>
+    )}
+  </div>
+)}
 
       {cartPreviewOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 px-4">
@@ -587,7 +637,7 @@ function UserDropdown({ user, fullName, onLogout, onClose }) {
 
 function MobileUserDropdown({ onClose, onLogout }) {
   return (
-    <div className="absolute right-0 top-12 w-79.5 max-w-[calc(100vw-24px)] bg-white border border-[#edf1f7] rounded-2xl shadow-2xl z-[9999]">
+    <div className="absolute right-0 top-14 w-[300px] max-w-[calc(100vw-24px)] bg-white border border-[#edf1f7] rounded-2xl shadow-2xl z-[9999]">
       <div className="px-6 pt-6 pb-3">
         <h3 className="text-2xl font-bold text-[#071b3a]">My Account</h3>
       </div>
