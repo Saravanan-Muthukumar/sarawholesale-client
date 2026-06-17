@@ -121,7 +121,7 @@ export default function ProductCard({
           <input
             type="number"
             min="0"
-            value={qty}
+            value={qty || 1}
             onChange={(e) => onQtyChange(product.product_id, e.target.value)}
             placeholder="Qty"
             className="w-20 h-10 border border-gray-300 text-center outline-none"

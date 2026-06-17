@@ -16,6 +16,7 @@ export default function ProductListPage() {
   const [products, setProducts] = useState([]);
   const [qty, setQty] = useState({});
   const [addedProduct, setAddedProduct] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)
@@ -81,7 +82,7 @@ export default function ProductListPage() {
   };
 
   const getActiveTier = (product) => {
-    const enteredQty = Number(qty[product.product_id] || 0);
+    const enteredQty = Number(qty[product.product_id] || 1);
 
     if (!enteredQty || !product.price_breaks?.length) return null;
 
@@ -105,15 +106,9 @@ export default function ProductListPage() {
   };
 
   const handleAddToCart = async (product) => {
-    const enteredQty = Number(qty[product.product_id] || 0);
-
-    if (enteredQty <= 0) {
-      alert("Please enter quantity");
-      return;
-    }
-
+    const enteredQty = Number(qty[product.product_id] || 1);
     const activeTier = getActiveTier(product);
-
+  
     try {
       await addToCart({
         product_id: product.product_id,
@@ -124,11 +119,12 @@ export default function ProductListPage() {
         unit_price: activeTier ? Number(activeTier.price) : 0,
         price: activeTier ? Number(activeTier.price) : 0,
       });
-
+  
       setAddedProduct(product.product_name);
       setTimeout(() => setAddedProduct(""), 2000);
     } catch (err) {
-      alert(err.message || "Failed to add to cart");
+      setErrorMessage(err.message || "Failed to add to cart");
+      setTimeout(() => setErrorMessage(""), 2500);
     }
   };
 
@@ -138,6 +134,13 @@ export default function ProductListPage() {
         <div className="fixed top-5 right-5 z-50 bg-white border border-green-100 shadow-lg rounded-xl px-5 py-4">
           <p className="text-sm font-semibold text-green-700">Added to cart</p>
           <p className="text-xs text-[#071b3a]/55 mt-1">{addedProduct}</p>
+        </div>
+      )}
+      {errorMessage && (
+        <div className="fixed top-5 right-5 z-50 bg-red-50 border border-red-200 shadow-lg rounded-xl px-5 py-4">
+          <p className="text-sm font-semibold text-red-700">
+            {errorMessage}
+          </p>
         </div>
       )}
 
@@ -234,7 +237,7 @@ export default function ProductListPage() {
                   <ProductCard
                     key={product.product_id}
                     product={product}
-                    qty={qty[product.product_id] ?? ""}
+                    qty={qty[product.product_id] ?? 1}
                     activeTier={getActiveTier(product)}
                     onQtyChange={updateQty}
                     onSlabClick={setQtyFromSlab}

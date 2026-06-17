@@ -6,6 +6,7 @@ import CategoryMenu from "../components/CategoryMenu";
 import WhyChooseUs from "../components/WhyChooseUs";
 import ShopByCollection from "../components/ShopByCollection";
 import PriceMatchBanner from "../components/PriceMatchBanner";
+import { useLocation } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -14,6 +15,24 @@ export default function HomePage() {
   const [products, setProducts] = useState([]);
   const [showStickyMenu, setShowStickyMenu] = useState(false);
   const [heroHidden, setHeroHidden] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.hideHero) {
+      setHeroHidden(true);
+  
+      setTimeout(() => {
+        document
+          .getElementById("home-category-grid")
+          ?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+      }, 100);
+    } else {
+      setHeroHidden(false);
+    }
+  }, [location.key]);
 
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)

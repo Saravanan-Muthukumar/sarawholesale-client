@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import CategoryMenu from "../components/CategoryMenu";
 
@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function SubCategoryPage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
 
@@ -28,11 +29,16 @@ export default function SubCategoryPage() {
     return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
   };
 
+  const goToCategories = () => {
+    navigate("/", { state: { hideHero: true } });
+  };
+
   return (
     <main className="bg-[#fbfcfe] min-h-screen">
-        <div className="hidden md:block">
-            <CategoryMenu categories={categories} />
-        </div>
+      <div className="hidden md:block">
+        <CategoryMenu categories={categories} />
+      </div>
+
       <section className="max-w-7xl mx-auto px-4 py-5">
         {/* DESKTOP BREADCRUMB */}
         <div className="hidden md:block text-xs text-[#071b3a]/50 mb-3 mt-1">
@@ -42,9 +48,13 @@ export default function SubCategoryPage() {
 
           <span className="mx-2">›</span>
 
-          <Link to="/" className="hover:text-green-700">
+          <button
+            type="button"
+            onClick={goToCategories}
+            className="hover:text-green-700"
+          >
             Categories
-          </Link>
+          </button>
 
           <span className="mx-2">›</span>
 
@@ -53,13 +63,14 @@ export default function SubCategoryPage() {
 
         {/* MOBILE BACK NAVIGATION */}
         <div className="md:hidden mb-3">
-          <Link
-            to="/"
+          <button
+            type="button"
+            onClick={goToCategories}
             className="inline-flex items-center gap-2 text-sm font-medium text-[#071b3a]/60 hover:text-green-700"
           >
             <ArrowLeft size={16} />
             Categories
-          </Link>
+          </button>
         </div>
 
         <h1 className="text-xl font-bold text-[#071b3a]">

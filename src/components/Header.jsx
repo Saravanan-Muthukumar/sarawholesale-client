@@ -138,7 +138,12 @@ export default function Header() {
       {/* DESKTOP HEADER */}
       <div className="hidden md:block max-w-7xl mx-auto px-4">
         <div className="h-24 flex items-center justify-between gap-6">
-          <Link to="/" onClick={closeMenus} className="shrink-0">
+        <Link
+          to="/"
+          state={{ resetHero: true }}
+          onClick={closeMenus}
+          className="shrink-0"
+        >
             <img
               src="/logo.png"
               alt="SARA Wholesale"
@@ -235,7 +240,11 @@ export default function Header() {
       >
         {!hideMobileLogo && (
           <div className="flex items-center justify-center py-3 border-b border-gray-100">
-            <Link to="/" onClick={closeMenus}>
+          <Link
+              to="/"
+              state={{ resetHero: true }}
+              onClick={closeMenus}
+            >
               <img
                 src="/logo.png"
                 alt="SARA Wholesale"
