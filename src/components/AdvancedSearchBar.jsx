@@ -85,7 +85,7 @@ export default function AdvancedSearchBar() {
           }}
           onFocus={() => query.trim().length >= 2 && setOpen(true)}
           placeholder="Search products, SKU, category..."
-          className="w-full h-12 pl-5 pr-24 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+          className="w-full h-12 pl-5 pr-24 rounded-lg border border-gray-300 text-[16px] focus:outline-none focus:ring-2 focus:ring-green-600"
         />
 
         {query && (
@@ -114,7 +114,7 @@ export default function AdvancedSearchBar() {
         <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
           <div className="max-h-[960px] overflow-y-auto">
             {loading && (
-              <div className="px-5 py-3 text-sm text-gray-500">
+                <div className="px-5 py-3 text-[16px] text-gray-500">
                 Searching...
               </div>
             )}
