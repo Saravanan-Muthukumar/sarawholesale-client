@@ -60,23 +60,26 @@ export function CartProvider({ children }) {
           unit_price: product.unit_price || product.price,
         }),
       });
-
+  
       const data = await res.json();
-
+  
       if (!res.ok) {
         throw new Error(data.message || "Failed to add to cart");
       }
-
+  
       await loadCart();
+  
+      window.dispatchEvent(new Event("cart:item-added"));
+  
       return data;
     }
-
+  
     const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-
+  
     const existingItem = guestCart.find(
       (item) => item.product_id === product.product_id
     );
-
+  
     if (existingItem) {
       existingItem.quantity += product.quantity || 1;
       existingItem.unit_price = product.unit_price || product.price;
@@ -88,10 +91,12 @@ export function CartProvider({ children }) {
         unit_price: product.unit_price || product.price,
       });
     }
-
+  
     localStorage.setItem("guestCart", JSON.stringify(guestCart));
     setCartItems(guestCart);
-
+  
+    window.dispatchEvent(new Event("cart:item-added"));
+  
     return {
       message: "Item added to cart",
     };

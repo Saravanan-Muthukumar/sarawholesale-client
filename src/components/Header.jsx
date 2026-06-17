@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Menu,
-  Search,
   ShoppingCart,
   User,
   Truck,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import AdvancedSearchBar from "./AdvancedSearchBar";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -24,19 +24,17 @@ export default function Header() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [cartPreviewOpen, setCartPreviewOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [products, setProducts] = useState([]);
+  const [itemAddedMessage, setItemAddedMessage] = useState(false);
+  const [showStickyMobileHeader, setShowStickyMobileHeader] = useState(false);
   const [categories, setCategories] = useState([]);
 
   const location = useLocation();
   const navigate = useNavigate();
-
   const { user, isLoggedIn, logout } = useAuth();
   const cartContext = useCart();
 
   const cartItemCount = cartContext.cartItemCount || 0;
   const cartItems = cartContext.cartItems || cartContext.items || [];
-
   const isAdmin = String(user?.role).toLowerCase() === "admin";
 
   const isAuthPage =
@@ -45,15 +43,40 @@ export default function Header() {
     location.pathname === "/verify-email";
 
   useEffect(() => {
-    fetch(`${API_URL}/api/products`)
-      .then((res) => res.json())
-      .then((data) => setProducts(Array.isArray(data) ? data : []))
-      .catch(() => setProducts([]));
-
     fetch(`${API_URL}/api/categories`)
       .then((res) => res.json())
       .then((data) => setCategories(Array.isArray(data) ? data : []))
       .catch(() => setCategories([]));
+  }, []);
+
+  useEffect(() => {
+    function handleScroll() {
+      setShowStickyMobileHeader(window.scrollY > 120);
+    }
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    function handleItemAdded() {
+      setCartPreviewOpen(true);
+      setItemAddedMessage(true);
+
+      setTimeout(() => {
+        setItemAddedMessage(false);
+      }, 2500);
+    }
+
+    window.addEventListener("cart:item-added", handleItemAdded);
+    window.addEventListener("cart-updated", handleItemAdded);
+
+    return () => {
+      window.removeEventListener("cart:item-added", handleItemAdded);
+      window.removeEventListener("cart-updated", handleItemAdded);
+    };
   }, []);
 
   const parentCategories = categories.filter((cat) => !cat.parent_category_id);
@@ -63,20 +86,6 @@ export default function Header() {
         (cat) => cat.parent_category_id === selectedCategory.category_id
       )
     : [];
-
-  const searchResults = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    if (!q) return [];
-
-    return products
-      .filter(
-        (product) =>
-          product.product_name?.toLowerCase().includes(q) ||
-          product.sku?.toLowerCase().includes(q) ||
-          product.category_name?.toLowerCase().includes(q)
-      )
-      .slice(0, 8);
-  }, [searchTerm, products]);
 
   const closeMenus = () => {
     setUserMenuOpen(false);
@@ -89,19 +98,6 @@ export default function Header() {
     await logout();
     closeMenus();
     navigate("/login");
-  };
-
-  const handleProductClick = (product) => {
-    setSearchTerm("");
-    closeMenus();
-
-    if (product.slug) {
-      navigate(`/product/${product.slug}`);
-    } else if (product.category_slug) {
-      navigate(`/subcategory/${product.category_slug}`);
-    } else {
-      navigate("/");
-    }
   };
 
   const handleSubCategoryClick = (slug) => {
@@ -126,7 +122,7 @@ export default function Header() {
           </span>
 
           <span className="hidden md:flex items-center gap-2">
-            <Truck size={16} /> Free Delivery over £50
+            <Truck size={16} /> Free Delivery over £20
           </span>
 
           <Link to="/contact" className="flex items-center gap-2">
@@ -159,26 +155,8 @@ export default function Header() {
           </Link>
 
           {!isAuthPage && (
-            <div className="hidden md:block flex-1 max-w-2xl relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search products, categories, SKU..."
-                className="w-full h-12 border border-gray-300 rounded-lg px-5 pr-12 outline-none focus:border-green-600"
-              />
-
-              <Search
-                size={22}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#062b63]"
-              />
-
-              {searchTerm && (
-                <SearchDropdown
-                  results={searchResults}
-                  onProductClick={handleProductClick}
-                />
-              )}
+            <div className="hidden md:block flex-1 max-w-xl">
+              <AdvancedSearchBar />
             </div>
           )}
 
@@ -208,7 +186,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-2 font-semibold text-[#062b63] cursor-pointer"
+                  className="flex items-center gap-2 font-semibold text-[#062b63]"
                 >
                   <User size={20} />
                   <span>{displayName}</span>
@@ -235,79 +213,21 @@ export default function Header() {
               </Link>
             )}
 
-            <div
-              className="relative"
-              onMouseEnter={() => setCartPreviewOpen(true)}
-              onMouseLeave={() => setCartPreviewOpen(false)}
+            <Link
+              to="/cart"
+              onClick={closeMenus}
+              className="relative flex items-center gap-2 text-[#071b3a] font-semibold hover:text-green-700 transition"
             >
-              <Link
-                to="/cart"
-                onClick={closeMenus}
-                className="relative flex items-center gap-2 text-[#071b3a] font-semibold hover:text-green-700 transition"
-              >
-                <div className="relative">
-                  <ShoppingCart size={24} />
+              <div className="relative">
+                <ShoppingCart size={24} />
 
-                  {cartItemCount > 0 && (
-                    <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
-                      {cartItemCount}
-                    </span>
-                  )}
-                </div>
-              </Link>
-
-              {cartPreviewOpen && (
-                <div className="absolute right-0 top-9 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
-                  <div className="p-4 border-b border-gray-100">
-                    <h3 className="font-bold text-[#071b3a] text-sm">
-                      Order Summary
-                    </h3>
-                  </div>
-
-                  {cartItemCount > 0 ? (
-                    <>
-                      <div className="max-h-72 overflow-y-auto">
-                        {cartItems.length > 0 ? (
-                          cartItems.slice(0, 5).map((item) => (
-                            <div
-                              key={item.cart_item_id || item.product_id}
-                              className="p-3 border-b border-gray-100"
-                            >
-                              <p className="text-sm font-semibold text-[#071b3a] line-clamp-2">
-                                {item.product_name}
-                              </p>
-
-                              <p className="text-xs text-gray-500 mt-1">
-                                Qty: {item.quantity}
-                              </p>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="p-4 text-sm text-gray-600">
-                            You have {cartItemCount} item
-                            {cartItemCount > 1 ? "s" : ""} in your cart.
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="p-4">
-                        <Link
-                          to="/cart"
-                          onClick={closeMenus}
-                          className="block text-center bg-green-700 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-800"
-                        >
-                          View Cart
-                        </Link>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="p-4 text-sm text-gray-500">
-                      Your cart is empty.
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                    {cartItemCount}
+                  </span>
+                )}
+              </div>
+            </Link>
           </div>
 
           <div className="md:hidden flex items-center gap-4">
@@ -329,7 +249,7 @@ export default function Header() {
                 <User size={23} />
               </button>
 
-              {isLoggedIn && userMenuOpen && (
+              {isLoggedIn && userMenuOpen && !showStickyMobileHeader && (
                 <MobileUserDropdown
                   onClose={() => setUserMenuOpen(false)}
                   onLogout={handleLogout}
@@ -346,7 +266,7 @@ export default function Header() {
                 <ShoppingCart size={23} />
 
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                  <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                     {cartItemCount}
                   </span>
                 )}
@@ -356,32 +276,156 @@ export default function Header() {
         </div>
 
         {!isAuthPage && (
-          <div className="md:hidden pb-4 relative">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search products, categories, SKU..."
-              className="w-full h-11 border border-gray-300 rounded-lg px-4 pr-11 outline-none focus:border-green-600"
-            />
-
-            <Search
-              size={20}
-              className="absolute right-4 top-5.5 -translate-y-1/2 text-[#062b63]"
-            />
-
-            {searchTerm && (
-              <SearchDropdown
-                results={searchResults}
-                onProductClick={handleProductClick}
-              />
-            )}
+          <div className="md:hidden pb-4">
+            <AdvancedSearchBar />
           </div>
         )}
       </div>
 
+      {!isAuthPage && showStickyMobileHeader && (
+        <div className="md:hidden fixed top-0 left-0 right-0 z-[9998] bg-white border-b border-gray-200 shadow-sm">
+          <div className="grid grid-cols-4 h-[70px] text-[#00539f]">
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className="flex flex-col items-center justify-center border-r border-gray-200"
+            >
+              <Menu size={25} />
+              <span className="text-[11px] font-semibold mt-1">Browse</span>
+            </button>
+
+            <div className="flex flex-col items-center justify-center border-r border-gray-200">
+              <span className="text-[11px] font-semibold">Search below</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                isLoggedIn
+                  ? setUserMenuOpen((prev) => !prev)
+                  : navigate("/login", { state: { from: location.pathname } })
+              }
+              className="relative flex flex-col items-center justify-center border-r border-gray-200"
+            >
+              <User size={25} />
+              <span className="text-[11px] font-semibold mt-1">Account</span>
+
+              {isLoggedIn && userMenuOpen && showStickyMobileHeader && (
+                <MobileUserDropdown
+                  onClose={() => setUserMenuOpen(false)}
+                  onLogout={handleLogout}
+                />
+              )}
+            </button>
+
+            <Link
+              to="/cart"
+              onClick={closeMenus}
+              className="flex flex-col items-center justify-center relative"
+            >
+              <div className="relative">
+                <ShoppingCart size={25} />
+
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                    {cartItemCount}
+                  </span>
+                )}
+              </div>
+
+              <span className="text-[11px] font-semibold mt-1">Cart</span>
+            </Link>
+          </div>
+
+          <div className="px-4 pb-3">
+            <AdvancedSearchBar />
+          </div>
+        </div>
+      )}
+
+      {cartPreviewOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 px-4">
+          <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl p-6 md:p-8">
+            <button
+              type="button"
+              onClick={() => {
+                setCartPreviewOpen(false);
+                setItemAddedMessage(false);
+              }}
+              className="absolute top-4 right-4 text-[#071b3a] hover:text-red-600"
+              aria-label="Close"
+            >
+              <X size={26} />
+            </button>
+
+            <div className="text-center pt-6">
+              <div className="mx-auto w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-5">
+                <span className="text-green-700 text-5xl leading-none">✓</span>
+              </div>
+
+              <h3 className="text-2xl md:text-3xl font-bold text-[#071b3a]">
+                Item Added to Cart!
+              </h3>
+
+              <p className="text-sm md:text-base text-[#071b3a]/70 mt-2">
+                The item has been added to your cart.
+              </p>
+            </div>
+
+            <div className="border-t border-gray-200 my-6" />
+
+            {cartItems.length > 0 && (
+              <div className="flex gap-4 items-center">
+                {cartItems[0]?.image_url ? (
+                  <img
+                    src={
+                      cartItems[0].image_url.startsWith("http")
+                        ? cartItems[0].image_url
+                        : `${API_URL}${cartItems[0].image_url}`
+                    }
+                    alt={cartItems[0]?.product_name}
+                    className="w-24 h-24 md:w-32 md:h-32 object-contain shrink-0"
+                  />
+                ) : (
+                  <div className="w-24 h-24 md:w-32 md:h-32 bg-gray-100 rounded-xl shrink-0" />
+                )}
+
+                <div className="flex-1">
+                  <h4 className="font-bold text-[#071b3a] text-sm md:text-lg leading-snug">
+                    {cartItems[0]?.product_name}
+                  </h4>
+
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">
+                    Quantity: {cartItems[0]?.quantity || 1}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Link
+                to="/cart"
+                onClick={closeMenus}
+                className="h-12 border border-green-700 text-green-700 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-green-50"
+              >
+                <ShoppingCart size={18} />
+                View Cart
+              </Link>
+
+              <Link
+                to="/checkout"
+                onClick={closeMenus}
+                className="h-12 bg-green-700 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-green-800"
+              >
+                Proceed to Checkout
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {menuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-[9999] md:hidden">
           <button
             type="button"
             onClick={closeMenus}
@@ -543,7 +587,7 @@ function UserDropdown({ user, fullName, onLogout, onClose }) {
 
 function MobileUserDropdown({ onClose, onLogout }) {
   return (
-    <div className="absolute right-0 top-12 w-79.5 max-w-[calc(100vw-24px)] bg-white border border-[#edf1f7] rounded-2xl shadow-2xl z-50">
+    <div className="absolute right-0 top-12 w-79.5 max-w-[calc(100vw-24px)] bg-white border border-[#edf1f7] rounded-2xl shadow-2xl z-[9999]">
       <div className="px-6 pt-6 pb-3">
         <h3 className="text-2xl font-bold text-[#071b3a]">My Account</h3>
       </div>
@@ -596,36 +640,6 @@ function MobileUserDropdown({ onClose, onLogout }) {
           Logout
         </button>
       </div>
-    </div>
-  );
-}
-
-function SearchDropdown({ results, onProductClick }) {
-  return (
-    <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-      {results.length ? (
-        results.map((product) => (
-          <button
-            key={product.product_id}
-            type="button"
-            onClick={() => onProductClick(product)}
-            className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0"
-          >
-            <p className="text-sm font-bold text-[#071b3a]">
-              {product.product_name}
-            </p>
-
-            <p className="text-xs text-gray-500 mt-0.5">
-              {product.category_name || "Category"} · SKU:{" "}
-              {product.sku || "N/A"}
-            </p>
-          </button>
-        ))
-      ) : (
-        <div className="px-4 py-3 text-sm text-gray-500">
-          No products found
-        </div>
-      )}
     </div>
   );
 }

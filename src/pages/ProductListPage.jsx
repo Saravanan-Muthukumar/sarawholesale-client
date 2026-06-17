@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import CategoryMenu from "../components/CategoryMenu";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
+import ProductCard from "../components/ProductCard";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function ProductListPage() {
   const { slug } = useParams();
   const { addToCart } = useCart();
+  const categoryScrollRef = useRef(null);
 
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
@@ -29,6 +31,36 @@ export default function ProductListPage() {
       .catch(console.error);
   }, [slug]);
 
+  const currentCategory = categories.find((cat) => cat.slug === slug);
+
+  const parentCategory = currentCategory?.parent_category_id
+    ? categories.find(
+        (cat) => cat.category_id === currentCategory.parent_category_id
+      )
+    : null;
+
+  const sideSubCategories = categories.filter(
+    (cat) =>
+      cat.parent_category_id ===
+      (parentCategory?.category_id || currentCategory?.category_id)
+  );
+
+  const relatedCategories = sideSubCategories.filter(
+    (cat) => cat.category_id !== currentCategory?.category_id
+  );
+
+  const getImage = (imageUrl) => {
+    if (!imageUrl) return "";
+    return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
+  };
+
+  const scrollCategories = (direction) => {
+    categoryScrollRef.current?.scrollBy({
+      left: direction === "left" ? -300 : 300,
+      behavior: "smooth",
+    });
+  };
+
   const updateQty = (productId, value) => {
     if (value === "") {
       setQty((prev) => ({ ...prev, [productId]: "" }));
@@ -48,23 +80,6 @@ export default function ProductListPage() {
     }));
   };
 
-  const getImage = (imageUrl) => {
-    if (!imageUrl) return null;
-    return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
-  };
-
-  const currentCategory = categories.find((cat) => cat.slug === slug);
-
-  const parentCategory = currentCategory?.parent_category_id
-    ? categories.find(
-        (cat) => cat.category_id === currentCategory.parent_category_id
-      )
-    : null;
-
-  const getSlabLabel = (tier) => {
-    return tier.max_qty ? `${tier.min_qty}-${tier.max_qty}` : `${tier.min_qty}+`;
-  };
-
   const getActiveTier = (product) => {
     const enteredQty = Number(qty[product.product_id] || 0);
 
@@ -74,26 +89,19 @@ export default function ProductListPage() {
       (a, b) => Number(a.min_qty) - Number(b.min_qty)
     );
 
-    const matchingTier = sortedTiers.find((tier) => {
-      const min = Number(tier.min_qty);
-      const max =
-        tier.max_qty === null || tier.max_qty === undefined || tier.max_qty === ""
-          ? Infinity
-          : Number(tier.max_qty);
+    return (
+      sortedTiers.find((tier) => {
+        const min = Number(tier.min_qty);
+        const max =
+          tier.max_qty === null ||
+          tier.max_qty === undefined ||
+          tier.max_qty === ""
+            ? Infinity
+            : Number(tier.max_qty);
 
-      return enteredQty >= min && enteredQty <= max;
-    });
-
-    return matchingTier || sortedTiers[sortedTiers.length - 1];
-  };
-
-  const getLineTotal = (product) => {
-    const enteredQty = Number(qty[product.product_id] || 0);
-    const activeTier = getActiveTier(product);
-
-    if (!enteredQty || !activeTier) return "£0.00";
-
-    return `£${(enteredQty * Number(activeTier.price)).toFixed(2)}`;
+        return enteredQty >= min && enteredQty <= max;
+      }) || sortedTiers[sortedTiers.length - 1]
+    );
   };
 
   const handleAddToCart = async (product) => {
@@ -125,7 +133,7 @@ export default function ProductListPage() {
   };
 
   return (
-    <main className="bg-[#fbfcfe]">
+    <main className="bg-gray-100 min-h-screen">
       {addedProduct && (
         <div className="fixed top-5 right-5 z-50 bg-white border border-green-100 shadow-lg rounded-xl px-5 py-4">
           <p className="text-sm font-semibold text-green-700">Added to cart</p>
@@ -133,11 +141,16 @@ export default function ProductListPage() {
         </div>
       )}
 
-      <CategoryMenu categories={categories} />
+      {/* Category menu below header - not sticky */}
+      <div className="hidden md:block sticky top-0 z-[800] bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto">
+          <CategoryMenu categories={categories} />
+        </div>
+      </div>
 
-      <section className="max-w-5xl mx-auto px-4 pb-10">
-        <div className="hidden md:block text-xs text-[#071b3a]/50 mb-3 mt-4">
-          <Link to="/" className="hover:text-green-700">
+      <section className="max-w-7xl mx-auto px-4 pt-6 pb-6">
+        <div className="hidden md:block text-sm mb-2">
+          <Link to="/" className="text-blue-700 underline">
             Home
           </Link>
 
@@ -146,7 +159,7 @@ export default function ProductListPage() {
               <span className="mx-2">›</span>
               <Link
                 to={`/category/${parentCategory.slug}`}
-                className="hover:text-green-700"
+                className="text-blue-700 underline"
               >
                 {parentCategory.category_name}
               </Link>
@@ -157,283 +170,137 @@ export default function ProductListPage() {
           <span>{currentCategory?.category_name || "Products"}</span>
         </div>
 
-        <div className="md:hidden mb-4 mt-3">
-          {parentCategory ? (
-            <Link
-              to={`/category/${parentCategory.slug}`}
-              className="inline-flex items-center gap-2 text-sm font-medium text-[#071b3a]/60 hover:text-green-700"
-            >
-              <ArrowLeft size={16} />
-              {parentCategory.category_name}
-            </Link>
-          ) : (
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-sm font-medium text-[#071b3a]/60 hover:text-green-700"
-            >
-              <ArrowLeft size={16} />
-              Categories
-            </Link>
-          )}
+        <div className="md:hidden mb-4">
+          <Link
+            to={parentCategory ? `/category/${parentCategory.slug}` : "/"}
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-600"
+          >
+            <ArrowLeft size={16} />
+            {parentCategory?.category_name || "Categories"}
+          </Link>
         </div>
 
-        <h1 className="text-lg md:text-xl font-bold text-[#071b3a] mb-1">
-          {currentCategory?.category_name ||
-            products[0]?.category_name ||
-            "Products"}
-        </h1>
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-5">
+        <aside className="hidden lg:block space-y-4 sticky top-[70px] h-fit">
+            <div className="bg-white border border-gray-300 p-4">
+              <h1 className="text-2xl font-bold text-blue-800 uppercase leading-tight">
+                {currentCategory?.category_name || "Products"}
+              </h1>
 
-        <p className="text-xs text-[#071b3a]/60 mb-4">
-          Showing all {products.length} products
-        </p>
+              <p className="text-sm text-blue-700 font-semibold mt-1">
+                {products.length} products
+              </p>
+            </div>
 
-        {/* DESKTOP LIST */}
-        <div className="hidden md:block bg-white border border-[#edf1f7] rounded-2xl overflow-hidden shadow-sm">
-          <table className="w-full text-xs text-[#071b3a]">
-            <tbody>
-              {products.map((product) => {
-                const activeTier = getActiveTier(product);
+            <div className="bg-white border border-gray-300 p-4">
+              <h2 className="text-xl font-bold text-blue-800 mb-3">
+                Sub Categories
+              </h2>
 
-                return (
-                  <tr
-                    key={product.product_id}
-                    className="border-t first:border-t-0 border-[#edf1f7] odd:bg-white even:bg-[#f3f6fa] hover:bg-[#eaf7ee]"
-                  >
-                    <td className="py-5 pl-5 pr-2 w-[420px]">
-                      <Link
-                        to={`/product/${product.slug}`}
-                        className="flex items-center gap-5"
-                      >
-                        {getImage(product.image_url) ? (
-                          <img
-                            src={getImage(product.image_url)}
-                            alt={product.product_name}
-                            className="w-20 h-20 object-contain shrink-0"
-                          />
-                        ) : (
-                          <div className="w-20 h-20 bg-gray-100 rounded shrink-0" />
-                        )}
-
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-sm text-[#071b3a] leading-snug">
-                            {product.product_name}
-                          </h3>
-                          <p className="text-[11px] text-[#071b3a]/50 mt-2">
-                            SKU: {product.sku}
-                          </p>
-                        </div>
-                      </Link>
-                    </td>
-
-                    <td className="py-5 px-2 w-[390px]">
-                      <div
-                        className="grid border border-[#e3eaf3] rounded-lg overflow-hidden bg-white"
-                        style={{
-                          gridTemplateColumns: `repeat(${
-                            product.price_breaks?.length || 1
-                          }, minmax(75px, 1fr))`,
-                        }}
-                      >
-                        {product.price_breaks?.map((tier) => {
-                          const isActive = activeTier === tier;
-
-                          return (
-                            <button
-                              type="button"
-                              key={`${tier.min_qty}-${tier.max_qty}`}
-                              onClick={() =>
-                                setQtyFromSlab(product.product_id, tier.min_qty)
-                              }
-                              className={`text-center transition border-r last:border-r-0 border-[#e3eaf3] ${
-                                isActive
-                                  ? "bg-green-50"
-                                  : "bg-white hover:bg-green-50"
-                              }`}
-                            >
-                              <div
-                                className={`text-[11px] font-medium px-2 py-2 border-b border-[#e3eaf3] ${
-                                  isActive
-                                    ? "text-green-700 bg-green-50"
-                                    : "text-[#64748b] bg-[#f8fafc]"
-                                }`}
-                              >
-                                {getSlabLabel(tier)}
-                              </div>
-
-                              <div
-                                className={`font-bold text-xs px-2 py-2 ${
-                                  isActive
-                                    ? "text-green-700"
-                                    : "text-[#071b3a]"
-                                }`}
-                              >
-                                £{Number(tier.price).toFixed(2)}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </td>
-
-                    <td className="py-5 px-2 w-[145px]">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center border border-[#e5eaf2] rounded-lg bg-white overflow-hidden w-[100px] focus-within:border-green-300 focus-within:ring-2 focus-within:ring-green-50">
-                          <span className="px-3 text-[11px] text-[#071b3a]/50 bg-[#f8fafc] h-9 flex items-center border-r border-[#e5eaf2]">
-                            Qty
-                          </span>
-
-                          <input
-                            type="number"
-                            min="0"
-                            value={qty[product.product_id] ?? ""}
-                            onChange={(e) =>
-                              updateQty(product.product_id, e.target.value)
-                            }
-                            className="w-full h-9 text-center text-sm outline-none bg-white"
-                          />
-                        </div>
-
-                        <p className="text-[11px] text-[#071b3a]/60">
-                          Total:{" "}
-                          <span className="font-bold text-[#071b3a]">
-                            {getLineTotal(product)}
-                          </span>
-                        </p>
-                      </div>
-                    </td>
-
-                    <td className="py-5 pl-2 pr-4 w-[95px] text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleAddToCart(product)}
-                        className="inline-flex items-center justify-center gap-1 bg-green-50 text-green-700 border border-green-200 px-2.5 h-9 rounded-lg text-[11px] font-semibold hover:bg-green-100 transition w-[105px]"
-                      >
-                        <ShoppingCart size={13} />
-                        Add Cart
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* MOBILE CARDS */}
-        <div className="md:hidden space-y-4">
-          {products.map((product) => {
-            const activeTier = getActiveTier(product);
-
-            return (
-              <div
-                key={product.product_id}
-                className={`border border-[#edf1f7] rounded-2xl p-4 shadow-sm ${
-                    products.indexOf(product) % 2 === 0 ? "bg-white" : "bg-[#f8fafc]"
+              {sideSubCategories.map((cat) => (
+                <Link
+                  key={cat.category_id}
+                  to={`/subcategory/${cat.slug}`}
+                  className={`block w-full text-left py-2 border-b border-gray-300 ${
+                    cat.slug === slug ? "font-bold text-green-700" : ""
                   }`}
-              >
-                <Link to={`/product/${product.slug}`} className="flex gap-4">
-                  {getImage(product.image_url) ? (
-                    <img
-                      src={getImage(product.image_url)}
-                      alt={product.product_name}
-                      className="w-20 h-20 object-contain"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 bg-gray-100 rounded" />
+                >
+                  {cat.category_name}
+                </Link>
+              ))}
+            </div>
+          </aside>
+
+          <section className="min-w-0">
+            <div className="lg:hidden bg-white border border-gray-300 p-4 mb-4">
+              <h1 className="text-sm font-bold text-blue-800 uppercase">
+                {currentCategory?.category_name || "Products"}
+              </h1>
+
+              <p className="text-sm text-blue-700 font-semibold">
+                {products.length} products
+              </p>
+            </div>
+
+            {products.length === 0 && (
+              <div className="bg-white border border-gray-300 p-6">
+                No products found.
+              </div>
+            )}
+
+            {products.length > 0 && (
+              <div className="grid grid-cols-1 2xl:grid-cols-2 gap-5">
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.product_id}
+                    product={product}
+                    qty={qty[product.product_id] ?? ""}
+                    activeTier={getActiveTier(product)}
+                    onQtyChange={updateQty}
+                    onSlabClick={setQtyFromSlab}
+                    onAddToCart={handleAddToCart}
+                  />
+                ))}
+              </div>
+            )}
+
+            {relatedCategories.length > 0 && (
+              <div className="mt-8 bg-white border border-gray-300 p-4 overflow-hidden">
+                <h2 className="text-xl font-bold text-blue-800 mb-4">
+                  Related Categories
+                </h2>
+
+                <div className="relative">
+                  {relatedCategories.length > 4 && (
+                    <button
+                      type="button"
+                      onClick={() => scrollCategories("left")}
+                      className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-20 h-12 w-12 rounded-full bg-white border border-gray-300 shadow items-center justify-center"
+                    >
+                      <ChevronLeft size={30} />
+                    </button>
                   )}
 
-                  <div>
-                    <h3 className="font-semibold text-sm text-[#071b3a] leading-snug">
-                      {product.product_name}
-                    </h3>
-                    <p className="text-[11px] text-[#071b3a]/50 mt-1">
-                      SKU: {product.sku}
-                    </p>
-                  </div>
-                </Link>
-
-                <div
-                  className="grid border border-[#e3eaf3] rounded-lg overflow-hidden bg-white mt-4"
-                  style={{
-                    gridTemplateColumns: `repeat(${
-                      product.price_breaks?.length || 1
-                    }, minmax(70px, 1fr))`,
-                  }}
-                >
-                  {product.price_breaks?.map((tier) => {
-                    const isActive = activeTier === tier;
-
-                    return (
-                      <button
-                        type="button"
-                        key={`${tier.min_qty}-${tier.max_qty}`}
-                        onClick={() =>
-                          setQtyFromSlab(product.product_id, tier.min_qty)
-                        }
-                        className={`text-center transition border-r last:border-r-0 border-[#e3eaf3] ${
-                          isActive ? "bg-green-50" : "bg-white"
-                        }`}
-                      >
-                        <p
-                          className={`text-[11px] font-medium px-2 py-2 border-b border-[#e3eaf3] ${
-                            isActive
-                              ? "text-green-700 bg-green-50"
-                              : "text-[#64748b] bg-[#f8fafc]"
-                          }`}
-                        >
-                          {getSlabLabel(tier)}
-                        </p>
-
-                        <p
-                          className={`text-xs font-bold px-2 py-2 ${
-                            isActive ? "text-green-700" : "text-[#071b3a]"
-                          }`}
-                        >
-                          £{Number(tier.price).toFixed(2)}
-                        </p>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="flex items-center gap-3 mt-4">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center border border-[#e5eaf2] rounded-lg bg-white overflow-hidden w-28 focus-within:border-green-300 focus-within:ring-2 focus-within:ring-green-50">
-                      <span className="px-3 text-[11px] text-[#071b3a]/50 bg-[#f8fafc] h-10 flex items-center border-r border-[#e5eaf2]">
-                        Qty
-                      </span>
-
-                      <input
-                        type="number"
-                        min="0"
-                        value={qty[product.product_id] ?? ""}
-                        onChange={(e) =>
-                          updateQty(product.product_id, e.target.value)
-                        }
-                        className="w-full h-10 text-center text-base outline-none bg-white"
-                      />
-                    </div>
-
-                    <p className="text-[11px] text-[#071b3a]/60">
-                      Total:{" "}
-                      <span className="font-bold text-[#071b3a]">
-                        {getLineTotal(product)}
-                      </span>
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAddToCart(product)}
-                    className="flex-1 inline-flex items-center justify-center gap-2 bg-green-50 text-green-700 border border-green-200 h-10 rounded-lg text-xs font-semibold hover:bg-green-100 transition"
+                  <div
+                    ref={categoryScrollRef}
+                    className="flex gap-4 overflow-x-auto pb-2"
                   >
-                    <ShoppingCart size={15} />
-                    Add to Cart
-                  </button>
+                    {relatedCategories.map((cat) => (
+                      <Link
+                        key={cat.category_id}
+                        to={`/subcategory/${cat.slug}`}
+                        className="shrink-0 w-[210px] bg-white border border-gray-300 p-3 hover:shadow-sm transition"
+                      >
+                        <div className="h-36 bg-gray-50 flex items-center justify-center mb-3">
+                          {cat.image_url && (
+                            <img
+                              src={getImage(cat.image_url)}
+                              alt={cat.category_name}
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          )}
+                        </div>
+
+                        <p className="text-sm font-semibold text-center">
+                          {cat.category_name}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+
+                  {relatedCategories.length > 4 && (
+                    <button
+                      type="button"
+                      onClick={() => scrollCategories("right")}
+                      className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-20 h-12 w-12 rounded-full bg-white border border-gray-300 shadow items-center justify-center"
+                    >
+                      <ChevronRight size={30} />
+                    </button>
+                  )}
                 </div>
               </div>
-            );
-          })}
+            )}
+          </section>
         </div>
       </section>
     </main>

@@ -30,10 +30,16 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CookieBanner from "./components/CookieBanner";
 import CookiePolicyPage from "./pages/CookiePolicyPage";
+import AdminFlyerBuilderPage from "./pages/admin/AdminFlyerBuilderPage";
+import SearchResultsPage from "./pages/SearchResultsPage";
+import ScrollToTop from "./components/ScrollToTop";
+import WhatsAppChatButton from "./components/WhatsAppButton";
+
 
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
+    <ScrollToTop />
     
       <Header />
       <main className="flex-1">
@@ -67,6 +73,9 @@ export default function App() {
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+        <Route path="/admin/flyer-builder" element={<AdminFlyerBuilderPage />} />
+        <Route path="/search" element={<SearchResultsPage />} />
+        
 
         <Route
           path="/admin/categories"
@@ -88,6 +97,7 @@ export default function App() {
       </Routes>
       </main>
 
+      <WhatsAppChatButton />
       <Footer/>
       <CookieBanner />
     </div>

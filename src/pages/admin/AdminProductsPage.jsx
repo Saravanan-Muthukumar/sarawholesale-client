@@ -11,8 +11,9 @@ const emptyForm = {
   slug: "",
   description: "",
   is_active: 1,
-  image: null,
+  images: [],
   price_breaks: [{ min_qty: "1", max_qty: "", price: "" }],
+  specifications: [{ spec_name: "", spec_value: "" }],
 };
 
 export default function AdminProductsPage() {
@@ -64,8 +65,8 @@ export default function AdminProductsPage() {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
-    if (name === "image") {
-      setForm((prev) => ({ ...prev, image: files[0] }));
+    if (name === "images") {
+      setForm((prev) => ({ ...prev, images: Array.from(files || []) }));
       return;
     }
 
@@ -107,6 +108,40 @@ export default function AdminProductsPage() {
     });
   };
 
+  const handleSpecChange = (index, field, value) => {
+    setForm((prev) => {
+      const updatedSpecs = [...prev.specifications];
+      updatedSpecs[index] = { ...updatedSpecs[index], [field]: value };
+      return { ...prev, specifications: updatedSpecs };
+    });
+  };
+
+  const addSpec = () => {
+    setForm((prev) => ({
+      ...prev,
+      specifications: [
+        ...prev.specifications,
+        { spec_name: "", spec_value: "" },
+      ],
+    }));
+  };
+
+  const removeSpec = (index) => {
+    setForm((prev) => {
+      if (prev.specifications.length === 1) return prev;
+
+      return {
+        ...prev,
+        specifications: prev.specifications.filter((_, i) => i !== index),
+      };
+    });
+  };
+
+  const getImageSrc = (imageUrl) => {
+    if (!imageUrl) return "";
+    return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
+  };
+
   const formatPriceBreaks = (priceBreaks = []) => {
     if (!priceBreaks.length) {
       return <span className="text-xs text-gray-400">No price</span>;
@@ -114,7 +149,12 @@ export default function AdminProductsPage() {
 
     return (
       <div className="w-full max-w-[540px]">
-        <div className="grid grid-cols-4 text-center text-[12px] font-semibold text-[#071b3a] border-b border-green-600 pb-1">
+        <div
+          className="grid text-center text-[12px] font-semibold text-[#071b3a] border-b border-green-600 pb-1"
+          style={{
+            gridTemplateColumns: `repeat(${priceBreaks.length}, minmax(0, 1fr))`,
+          }}
+        >
           {priceBreaks.map((item, index) => {
             const min = item.min_qty;
             const max = item.max_qty;
@@ -130,7 +170,12 @@ export default function AdminProductsPage() {
           })}
         </div>
 
-        <div className="grid grid-cols-4 text-center text-[13px] font-bold text-green-700 pt-1">
+        <div
+          className="grid text-center text-[13px] font-bold text-green-700 pt-1"
+          style={{
+            gridTemplateColumns: `repeat(${priceBreaks.length}, minmax(0, 1fr))`,
+          }}
+        >
           {priceBreaks.map((item, index) => {
             const price = Number(item.price || 0).toFixed(2);
 
@@ -163,7 +208,7 @@ export default function AdminProductsPage() {
       slug: product.slug || "",
       description: product.description || "",
       is_active: product.is_active ?? 1,
-      image: null,
+      images: [],
       price_breaks:
         product.price_breaks && product.price_breaks.length
           ? product.price_breaks.map((price) => ({
@@ -172,6 +217,13 @@ export default function AdminProductsPage() {
               price: price.price || "",
             }))
           : [{ min_qty: "1", max_qty: "", price: "" }],
+      specifications:
+        product.specifications && product.specifications.length
+          ? product.specifications.map((spec) => ({
+              spec_name: spec.spec_name || "",
+              spec_value: spec.spec_value || "",
+            }))
+          : [{ spec_name: "", spec_value: "" }],
     });
 
     setEditing(true);
@@ -183,6 +235,10 @@ export default function AdminProductsPage() {
 
     const validPriceBreaks = form.price_breaks.filter(
       (item) => item.min_qty && item.price
+    );
+
+    const validSpecs = form.specifications.filter(
+      (item) => item.spec_name && item.spec_value
     );
 
     if (!validPriceBreaks.length) {
@@ -200,10 +256,11 @@ export default function AdminProductsPage() {
     formData.append("description", form.description);
     formData.append("is_active", form.is_active);
     formData.append("price_breaks", JSON.stringify(validPriceBreaks));
+    formData.append("specifications", JSON.stringify(validSpecs));
 
-    if (form.image) {
-      formData.append("image", form.image);
-    }
+    form.images.forEach((image) => {
+      formData.append("images", image);
+    });
 
     const url = editing
       ? `${API_URL}/api/products/${form.product_id}`
@@ -255,7 +312,7 @@ export default function AdminProductsPage() {
               Admin Products
             </h1>
             <p className="text-xs text-gray-500">
-              Add, edit and delete products with price slabs
+              Add, edit and delete products with images, price slabs and specs
             </p>
           </div>
 
@@ -300,7 +357,7 @@ export default function AdminProductsPage() {
           <table className="w-full text-xs">
             <thead className="bg-gray-50 text-[#071b3a]">
               <tr>
-                <th className="p-3 text-left font-semibold w-20">Image</th>
+                <th className="p-3 text-left font-semibold w-24">Image</th>
                 <th className="p-3 text-left font-semibold w-[230px]">
                   Product
                 </th>
@@ -310,6 +367,7 @@ export default function AdminProductsPage() {
                 <th className="p-3 text-left font-semibold">
                   Qty Breaks / Price Per Unit
                 </th>
+                <th className="p-3 text-left font-semibold w-24">Specs</th>
                 <th className="p-3 text-left font-semibold w-20">Stock</th>
                 <th className="p-3 text-right font-semibold w-24">Action</th>
               </tr>
@@ -318,9 +376,12 @@ export default function AdminProductsPage() {
             <tbody>
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => {
-                  const imageSrc = product.image_url?.startsWith("http")
-                    ? product.image_url
-                    : `${API_URL}${product.image_url}`;
+                  const mainImage =
+                    product.image_url ||
+                    product.images?.find((img) => img.is_main)?.image_url ||
+                    product.images?.[0]?.image_url;
+
+                  const imageSrc = getImageSrc(mainImage);
 
                   return (
                     <tr
@@ -328,14 +389,21 @@ export default function AdminProductsPage() {
                       className="border-t border-gray-100 hover:bg-[#fbfcfe]"
                     >
                       <td className="p-2">
-                        {product.image_url ? (
-                          <img
-                            src={imageSrc}
-                            alt={product.product_name}
-                            className="w-11 h-11 object-contain border border-gray-200 rounded-md bg-white"
-                          />
+                        {mainImage ? (
+                          <div>
+                            <img
+                              src={imageSrc}
+                              alt={product.product_name}
+                              className="w-12 h-12 object-contain border border-gray-200 rounded-md bg-white"
+                            />
+                            {product.images?.length > 1 && (
+                              <p className="text-[10px] text-gray-400 mt-1">
+                                +{product.images.length - 1} more
+                              </p>
+                            )}
+                          </div>
                         ) : (
-                          <div className="w-11 h-11 bg-gray-100 rounded-md flex items-center justify-center text-[10px] text-gray-400">
+                          <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center text-[10px] text-gray-400">
                             No Img
                           </div>
                         )}
@@ -356,6 +424,10 @@ export default function AdminProductsPage() {
 
                       <td className="p-3">
                         {formatPriceBreaks(product.price_breaks)}
+                      </td>
+
+                      <td className="p-3 text-gray-600">
+                        {product.specifications?.length || 0} rows
                       </td>
 
                       <td className="p-3 text-gray-600">
@@ -387,7 +459,7 @@ export default function AdminProductsPage() {
               ) : (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="7"
                     className="p-8 text-center text-sm text-gray-500"
                   >
                     No products found.
@@ -403,7 +475,7 @@ export default function AdminProductsPage() {
         <div className="fixed inset-0 bg-black/35 z-50 flex items-center justify-center px-4">
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-xl w-full max-w-3xl p-5 max-h-[88vh] overflow-y-auto shadow-xl"
+            className="bg-white rounded-xl w-full max-w-4xl p-5 max-h-[88vh] overflow-y-auto shadow-xl"
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#071b3a]">
@@ -461,17 +533,36 @@ export default function AdminProductsPage() {
                 onChange={handleChange}
               />
 
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Product Image
+                  Product Images
                 </label>
                 <input
                   type="file"
-                  name="image"
+                  name="images"
                   accept="image/*"
+                  multiple
                   onChange={handleChange}
                   className="w-full border border-gray-200 rounded-md px-3 py-1.5 text-sm"
                 />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  You can select multiple images. First selected image will be
+                  the main image.
+                </p>
+
+                {form.images.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {form.images.map((image, index) => (
+                      <div
+                        key={`${image.name}-${index}`}
+                        className="border border-gray-200 rounded-md px-2 py-1 text-[11px] text-gray-600 bg-gray-50"
+                      >
+                        {index === 0 ? "Main: " : ""}
+                        {image.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="md:col-span-2">
@@ -553,6 +644,84 @@ export default function AdminProductsPage() {
 
                 <p className="text-[11px] text-gray-400 mt-2">
                   Leave Max Qty blank for final slab, example: 50+
+                </p>
+              </div>
+
+              <div className="md:col-span-2 border border-gray-200 rounded-lg p-3 bg-gray-50/60">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-[#071b3a]">
+                    Product Specifications
+                  </h3>
+
+                  <button
+                    type="button"
+                    onClick={addSpec}
+                    className="border border-gray-200 bg-white text-[#071b3a] px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1 hover:bg-gray-50"
+                  >
+                    <Plus size={13} />
+                    Add Spec
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {form.specifications.map((spec, index) => (
+                    <div
+                      key={index}
+                      className="grid grid-cols-12 gap-2 items-end bg-white border border-gray-200 rounded-md p-2"
+                    >
+                      <div className="col-span-5">
+                        <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                          Spec Name
+                        </label>
+                        <input
+                          value={spec.spec_name}
+                          onChange={(e) =>
+                            handleSpecChange(
+                              index,
+                              "spec_name",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Example: Size"
+                          className="w-full h-8 border border-gray-200 rounded-md px-2 text-sm outline-none focus:border-[#071b3a]"
+                        />
+                      </div>
+
+                      <div className="col-span-6">
+                        <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                          Spec Value
+                        </label>
+                        <input
+                          value={spec.spec_value}
+                          onChange={(e) =>
+                            handleSpecChange(
+                              index,
+                              "spec_value",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Example: 48mm x 66m"
+                          className="w-full h-8 border border-gray-200 rounded-md px-2 text-sm outline-none focus:border-[#071b3a]"
+                        />
+                      </div>
+
+                      <div className="col-span-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => removeSpec(index)}
+                          disabled={form.specifications.length === 1}
+                          className="h-8 w-8 rounded-md border border-red-200 text-red-500 hover:bg-red-50 flex items-center justify-center disabled:opacity-40"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-[11px] text-gray-400 mt-2">
+                  Example: Size, Colour, Material, Pack Qty, Thickness,
+                  Adhesive Type.
                 </p>
               </div>
             </div>

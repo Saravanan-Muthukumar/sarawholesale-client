@@ -267,14 +267,14 @@ const redirectTo = searchParams.get("redirect") || "/account/details";
           </button>
 
           <button
-            type="button"
-            onClick={loadDetails}
-            disabled={saving}
-            className="h-10 px-5 border border-[#e5eaf2] rounded-lg font-bold text-sm text-[#071b3a] cursor-pointer hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <XCircle size={16} />
-            Cancel
-          </button>
+              type="button"
+              onClick={() => navigate(-1)}
+              disabled={saving}
+              className="h-10 px-5 border border-[#e5eaf2] rounded-lg font-bold text-sm text-[#071b3a] cursor-pointer hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <XCircle size={16} />
+              Cancel
+            </button>
         </div>
       </form>
     </div>

@@ -5,6 +5,7 @@ import FeaturedProducts from "../components/FeaturedProducts";
 import CategoryMenu from "../components/CategoryMenu";
 import WhyChooseUs from "../components/WhyChooseUs";
 import ShopByCollection from "../components/ShopByCollection";
+import PriceMatchBanner from "../components/PriceMatchBanner";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -75,7 +76,7 @@ export default function HomePage() {
       <section id="home-category-grid" className="bg-[#f4f9ff]">
         <CategoryGrid categories={categories} />
       </section>
-
+      <PriceMatchBanner />
       <FeaturedProducts products={products} />
 
       <WhyChooseUs />
