@@ -58,6 +58,9 @@ export default function CheckoutPage() {
     0
   );
 
+  const vatAmount = subtotal * 0.2;
+const totalAmount = subtotal + vatAmount;
+
   const totalItems = cartItems.reduce(
     (sum, item) => sum + Number(item.quantity || 0),
     0
@@ -267,6 +270,8 @@ export default function CheckoutPage() {
                 <OrderSummary
                   totalItems={totalItems}
                   subtotal={subtotal}
+                  vatAmount={vatAmount}
+                  totalAmount={totalAmount}
                   submitting={submitting}
                   onSubmit={handleSubmitOrder}
                   submitRef={bottomSubmitRef}
@@ -280,6 +285,8 @@ export default function CheckoutPage() {
                   <OrderSummary
                     totalItems={totalItems}
                     subtotal={subtotal}
+                    vatAmount={vatAmount}
+                    totalAmount={totalAmount}
                     submitting={submitting}
                     onSubmit={handleSubmitOrder}
                   />
@@ -310,12 +317,12 @@ export default function CheckoutPage() {
               </p>
 
               <p className="text-xl font-bold text-[#071b3a]">
-                £{subtotal.toFixed(2)}
+                £{totalAmount.toFixed(2)}
               </p>
             </div>
 
             <p className="text-xs text-[#071b3a]/60 text-right">
-              VAT at invoice stage
+              VAT £{vatAmount.toFixed(2)}
             </p>
           </div>
 
@@ -339,29 +346,26 @@ export default function CheckoutPage() {
 function OrderSummary({
   totalItems,
   subtotal,
+  vatAmount,
+  totalAmount,
   submitting,
   onSubmit,
   submitRef,
 }) {
   return (
     <>
-      <h2 className="text-xl font-bold text-[#071b3a] mb-5">Order summary</h2>
+      <h2 className="text-xl font-bold text-[#071b3a] mb-5">
+        Order summary
+      </h2>
 
       <SummaryRow label="Items" value={totalItems} />
       <SummaryRow label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
+      <SummaryRow label="VAT (20%)" value={`£${vatAmount.toFixed(2)}`} />
       <SummaryRow label="Estimated delivery" value="Free" green />
 
-      <p className="text-xs text-[#071b3a]/70 mb-4">
-        Delivery charges and VAT will be confirmed at invoice stage.
-      </p>
-
-      <div className="border-t border-[#edf1f7] pt-4">
-        <SummaryRow label="VAT" value="Invoice stage" />
-      </div>
-
       <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-xl text-[#071b3a]">
-        <span>Total</span>
-        <span>£{subtotal.toFixed(2)}</span>
+        <span>Total incl. VAT</span>
+        <span>£{totalAmount.toFixed(2)}</span>
       </div>
 
       <button

@@ -34,6 +34,7 @@ import AdminFlyerBuilderPage from "./pages/admin/AdminFlyerBuilderPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
 import ScrollToTop from "./components/ScrollToTop";
 import WhatsAppChatButton from "./components/WhatsAppButton";
+import OrderDetailsPage from "./pages/orderDetailsPage";
 
 
 export default function App() {
@@ -75,6 +76,7 @@ export default function App() {
         <Route path="/cookie-policy" element={<CookiePolicyPage />} />
         <Route path="/admin/flyer-builder" element={<AdminFlyerBuilderPage />} />
         <Route path="/search" element={<SearchResultsPage />} />
+        <Route path="/orders/:orderNumber" element={<OrderDetailsPage />}/>
         
 
         <Route

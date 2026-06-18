@@ -3,7 +3,7 @@ import { Truck, Tag, Package } from "lucide-react";
 
 export default function Hero({ onShopNow }) {
   return (
-    <section className="bg-gradient-to-r from-[#062b63] via-[#06499c] to-[#0877d8] text-white overflow-hidden">
+    <section className="-mt-px bg-gradient-to-r from-[#062b63] via-[#06499c] to-[#0877d8] text-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 py-10 md:py-14 grid md:grid-cols-2 gap-8 items-center">
         <div>
           <p className="text-green-400 font-bold text-sm mb-3">

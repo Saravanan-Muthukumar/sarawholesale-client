@@ -20,14 +20,12 @@ export default function HomePage() {
   useEffect(() => {
     if (location.state?.hideHero) {
       setHeroHidden(true);
-  
+
       setTimeout(() => {
-        document
-          .getElementById("home-category-grid")
-          ?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
+        document.getElementById("home-category-grid")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 100);
     } else {
       setHeroHidden(false);
@@ -73,15 +71,15 @@ export default function HomePage() {
   };
 
   return (
-    <main className="bg-white min-h-screen">
+    <main className="bg-[#f3f4f6] min-h-screen">
       {!heroHidden && (
-        <div className="hidden md:block">
+        <div className="hidden md:block bg-white border-b border-[#d9e2ef]">
           <CategoryMenu categories={categories} />
         </div>
       )}
 
       {showStickyMenu && (
-        <div className="hidden md:block fixed top-0 left-0 right-0 z-[999] shadow-lg">
+        <div className="hidden md:block fixed top-0 left-0 right-0 z-[999] bg-white border-b border-[#d9e2ef] shadow-md">
           <CategoryMenu categories={categories} sticky />
         </div>
       )}
@@ -92,10 +90,12 @@ export default function HomePage() {
         </div>
       )}
 
-      <section id="home-category-grid" className="bg-[#f4f9ff]">
+      <section id="home-category-grid">
         <CategoryGrid categories={categories} />
       </section>
+
       <PriceMatchBanner />
+
       <FeaturedProducts products={products} />
 
       <WhyChooseUs />

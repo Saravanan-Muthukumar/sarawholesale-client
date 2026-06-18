@@ -24,6 +24,8 @@ export default function AdvancedSearchBar() {
         return;
       }
 
+      setLoading(true);
+
       fetch(`${API_URL}/api/search/keywords?q=${encodeURIComponent(value)}`)
         .then((res) => res.json())
         .then((data) => {
@@ -35,8 +37,6 @@ export default function AdvancedSearchBar() {
           setSuggestions([]);
         })
         .finally(() => setLoading(false));
-
-      setLoading(true);
     }, 250);
 
     return () => clearTimeout(timer);
@@ -94,7 +94,7 @@ export default function AdvancedSearchBar() {
             if (query.trim().length >= 2) setOpen(true);
           }}
           placeholder="Search products, SKU, category..."
-          className="w-full h-12 pl-5 pr-24 rounded-lg border border-gray-300 text-[16px] focus:outline-none focus:ring-2 focus:ring-green-600"
+          className="w-full h-14 pl-5 pr-24 border border-[#cfd8e6] bg-white text-[16px] text-[#071b3a] shadow-md placeholder:text-[#071b3a]/35 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
         />
 
         {query && (
@@ -106,17 +106,17 @@ export default function AdvancedSearchBar() {
               setOpen(false);
               inputRef.current?.focus();
             }}
-            className="absolute right-16 top-1/2 -translate-y-1/2 text-gray-500"
+            className="absolute right-16 top-1/2 -translate-y-1/2 text-[#071b3a]/45 hover:text-red-600"
           >
-            <X size={24} />
+            <X size={22} />
           </button>
         )}
 
         <button
           type="submit"
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 hover:text-green-700"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#071b3a] hover:text-green-700"
         >
-          <Search size={26} />
+          <Search size={26} strokeWidth={2.4} />
         </button>
       </form>
 
@@ -124,17 +124,17 @@ export default function AdvancedSearchBar() {
         <div
           onTouchStart={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
-          className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[99999] overflow-hidden"
+          className="absolute left-0 right-0 top-full bg-white border border-[#cfd8e6] shadow-2xl z-[99999] overflow-hidden"
         >
-          <div className="max-h-[60vh] overflow-y-auto">
+          <div className="max-h-[65vh] overflow-y-auto">
             {loading && (
-              <div className="px-5 py-3 text-[16px] text-gray-500">
+              <div className="px-5 py-3 text-[15px] text-[#071b3a]/50">
                 Searching...
               </div>
             )}
 
             {!loading && suggestions.length > 0 && (
-              <div className="py-2">
+              <div className="py-1">
                 {suggestions.slice(0, 12).map((item) => (
                   <div
                     key={item.keyword}
@@ -148,7 +148,7 @@ export default function AdvancedSearchBar() {
                       e.stopPropagation();
                       goToSearch(item.keyword);
                     }}
-                    className="w-full px-6 py-4 text-[16px] active:bg-gray-100 hover:bg-gray-50 text-gray-900 cursor-pointer"
+                    className="w-full px-5 py-3 text-[15px] active:bg-[#f3f4f6] hover:bg-[#f3f4f6] text-[#071b3a] cursor-pointer border-b border-[#edf1f7] last:border-b-0"
                   >
                     {item.keyword}
                   </div>
@@ -157,7 +157,7 @@ export default function AdvancedSearchBar() {
             )}
 
             {!loading && suggestions.length === 0 && (
-              <div className="px-5 py-3 text-sm text-gray-500">
+              <div className="px-5 py-3 text-sm text-[#071b3a]/50">
                 No suggestions found
               </div>
             )}
@@ -174,7 +174,7 @@ export default function AdvancedSearchBar() {
               e.stopPropagation();
               goToSearch();
             }}
-            className="w-full px-6 py-4 bg-gray-50 active:bg-green-50 hover:bg-green-50 text-sm font-semibold text-green-700 border-t border-gray-100 cursor-pointer"
+            className="w-full px-5 py-3 bg-[#f3f4f6] active:bg-green-50 hover:bg-green-50 text-sm font-bold text-green-700 border-t border-[#d9e2ef] cursor-pointer"
           >
             View all results for "{query}"
           </div>

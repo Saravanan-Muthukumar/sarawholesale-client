@@ -16,6 +16,7 @@ export default function CartPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const [showMobileStickyCheckout, setShowMobileStickyCheckout] = useState(true);
   const [deleteItemId, setDeleteItemId] = useState(null);
+  
 
   const getImage = (imageUrl) => {
     if (!imageUrl) return null;
@@ -39,8 +40,15 @@ export default function CartPage() {
   const getLineTotal = (item) =>
     Number(item.quantity || 0) * Number(item.unit_price || 0);
 
-  const subtotal = cartItems.reduce((sum, item) => sum + getLineTotal(item), 0);
-  const totalItems = cartItemCount;
+    const subtotal = cartItems.reduce(
+      (sum, item) => sum + getLineTotal(item),
+      0
+    );
+    
+    const vatAmount = subtotal * 0.2;
+    const totalAmount = subtotal + vatAmount;
+    const totalItems = cartItemCount; 
+
 
   useEffect(() => {
     if (!bottomCheckoutRef.current) return;
@@ -75,6 +83,8 @@ export default function CartPage() {
     await updateCartItem(id, qty - 1);
     setUpdatingId(null);
   };
+
+
 
   const handleQtyChange = async (item, value) => {
     const id = getItemId(item);
@@ -261,6 +271,8 @@ export default function CartPage() {
                 <OrderSummary
                   totalItems={totalItems}
                   subtotal={subtotal}
+                  vatAmount={vatAmount}
+                  totalAmount={totalAmount}
                   onCheckout={() => navigate("/checkout")}
                   checkoutRef={bottomCheckoutRef}
                 />
@@ -273,6 +285,8 @@ export default function CartPage() {
                   <OrderSummary
                     totalItems={totalItems}
                     subtotal={subtotal}
+                    vatAmount={vatAmount}
+                    totalAmount={totalAmount}
                     onCheckout={() => navigate("/checkout")}
                   />
                 </div>
@@ -302,12 +316,12 @@ export default function CartPage() {
               </p>
 
               <p className="text-xl font-bold text-[#071b3a]">
-                £{subtotal.toFixed(2)}
+                £{totalAmount.toFixed(2)}
               </p>
             </div>
 
             <p className="text-xs text-[#071b3a]/60 text-right">
-              VAT at invoice stage
+              VAT £{vatAmount.toFixed(2)}
             </p>
           </div>
 
@@ -325,26 +339,26 @@ export default function CartPage() {
   );
 }
 
-function OrderSummary({ totalItems, subtotal, onCheckout, checkoutRef }) {
+function OrderSummary({
+  totalItems,
+  subtotal,
+  vatAmount,
+  totalAmount,
+  onCheckout,
+  checkoutRef,
+}) {
   return (
     <>
       <h2 className="text-xl font-bold text-[#071b3a] mb-5">Order summary</h2>
 
       <SummaryRow label="Items" value={totalItems} />
       <SummaryRow label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
+      <SummaryRow label="VAT (20%)" value={`£${vatAmount.toFixed(2)}`} />
       <SummaryRow label="Estimated delivery" value="Free" green />
 
-      <p className="text-xs text-[#071b3a]/70 mb-4">
-        Delivery charges and VAT will be confirmed at invoice stage.
-      </p>
-
-      <div className="border-t border-[#edf1f7] pt-4">
-        <SummaryRow label="VAT" value="Invoice stage" />
-      </div>
-
       <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-xl text-[#071b3a]">
-        <span>Total</span>
-        <span>£{subtotal.toFixed(2)}</span>
+        <span>Total incl. VAT</span>
+        <span>£{totalAmount.toFixed(2)}</span>
       </div>
 
       <button

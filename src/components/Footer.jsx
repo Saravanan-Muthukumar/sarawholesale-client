@@ -26,7 +26,7 @@ export default function Footer() {
             <img
               src="/logo.png"
               alt="SARA Wholesale Supplies"
-              className="h-14 mb-4"
+              className="h-14 mb-4 bg-white"
             />
 
             <p className="text-sm text-blue-100 leading-6">

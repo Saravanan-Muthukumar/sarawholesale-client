@@ -145,10 +145,8 @@ export default function ProductListPage() {
       )}
 
       {/* Category menu below header - not sticky */}
-      <div className="hidden md:block sticky top-0 z-[800] bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto">
-          <CategoryMenu categories={categories} />
-        </div>
+      <div className="hidden md:block bg-[#4a5358]">
+      <CategoryMenu categories={categories} />
       </div>
 
       <section className="max-w-7xl mx-auto px-4 pt-6 pb-6">

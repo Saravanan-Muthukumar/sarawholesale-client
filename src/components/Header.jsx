@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -38,11 +38,53 @@ export default function Header() {
   const cartItemCount = cartContext.cartItemCount || 0;
   const cartItems = cartContext.cartItems || cartContext.items || [];
   const isAdmin = String(user?.role).toLowerCase() === "admin";
+  const userMenuRef = useRef(null);
+  const [cartHoverOpen, setCartHoverOpen] = useState(false);
+  const userHoverTimer = useRef(null);
+const cartHoverTimer = useRef(null);
+
+const openUserMenuSlowly = () => {
+  clearTimeout(userHoverTimer.current);
+  userHoverTimer.current = setTimeout(() => {
+    setUserMenuOpen(true);
+  }, 100);
+};
+
+const closeUserMenu = () => {
+  clearTimeout(userHoverTimer.current);
+
+  userHoverTimer.current = setTimeout(() => {
+    setUserMenuOpen(false);
+  }, 100);
+};
+
+const openCartSlowly = () => {
+  clearTimeout(cartHoverTimer.current);
+  cartHoverTimer.current = setTimeout(() => {
+    setCartHoverOpen(true);
+  }, 100);
+};
+
+const closeCart = () => {
+  clearTimeout(cartHoverTimer.current);
+  setCartHoverOpen(false);
+};
 
   const isAuthPage =
     location.pathname === "/login" ||
     location.pathname === "/register" ||
     location.pathname === "/verify-email";
+
+    useEffect(() => {
+      const handleClickOutside = (e) => {
+        if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+          setUserMenuOpen(false);
+        }
+      };
+    
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []); 
 
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)
@@ -116,8 +158,79 @@ export default function Header() {
       ? `${user?.first_name || ""} ${user?.last_name || ""}`.trim()
       : user?.full_name || "";
 
+      function CartDropdown({ cartItems, API_URL, onClose }) {
+        const subtotal = cartItems.reduce(
+          (sum, item) =>
+            sum + Number(item.quantity || 0) * Number(item.unit_price || 0),
+          0
+        );
+      
+        return (
+          <div className="absolute right-0 top-full w-80 bg-white border-x border-b border-gray-200 shadow-xl z-[9999]">
+            <div className="p-4">
+              <h3 className="font-bold text-[#071b3a]">
+                Basket ({cartItems.length})
+              </h3>
+            </div>
+      
+            <div className="max-h-80 overflow-y-auto">
+              {cartItems.length === 0 ? (
+                <p className="p-4 text-sm text-gray-500">Your basket is empty</p>
+              ) : (
+                cartItems.slice(0, 5).map((item) => (
+                  <div key={item.cart_item_id} className="flex gap-3 p-4">
+                    {item.image_url && (
+                      <img
+                        src={
+                          item.image_url.startsWith("http")
+                            ? item.image_url
+                            : `${API_URL}${item.image_url}`
+                        }
+                        alt={item.product_name}
+                        className="w-14 h-14 object-contain"
+                      />
+                    )}
+      
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-[#071b3a]">
+                        {item.product_name}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Qty: {item.quantity}
+                      </p>
+                      <p className="text-sm font-bold mt-1">
+                        £
+                        {(
+                          Number(item.quantity || 0) *
+                          Number(item.unit_price || 0)
+                        ).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+      
+            <div className="p-4">
+              <div className="flex justify-between font-bold text-[#071b3a] mb-4">
+                <span>Subtotal</span>
+                <span>£{subtotal.toFixed(2)}</span>
+              </div>
+      
+              <Link
+                to="/cart"
+                onClick={onClose}
+                className="block w-full text-center bg-green-700 text-white font-bold py-3 hover:bg-green-800"
+              >
+                View Basket
+              </Link>
+            </div>
+          </div>
+        );
+      }    
+
   return (
-    <header className="bg-white">
+    <header className="bg-[#f3f4f6]">
       {/* TOP DELIVERY BAR */}
       <div className="bg-[#062b63] text-white text-sm">
         <div className="max-w-7xl mx-auto px-4 h-9 flex items-center justify-between">
@@ -126,7 +239,7 @@ export default function Header() {
           </span>
 
           <span className="hidden md:flex items-center gap-2">
-            <Truck size={16} /> Free Delivery over £20
+            <Truck size={16} /> Free Delivery for all orders
           </span>
 
           <Link to="/contact" className="flex items-center gap-2">
@@ -137,7 +250,7 @@ export default function Header() {
 
       {/* DESKTOP HEADER */}
       <div className="hidden md:block max-w-7xl mx-auto px-4">
-        <div className="h-24 flex items-center justify-between gap-6">
+        <div className="h-26 flex items-center justify-between gap-6">
         <Link
           to="/"
           state={{ resetHero: true }}
@@ -147,7 +260,7 @@ export default function Header() {
             <img
               src="/logo.png"
               alt="SARA Wholesale"
-              className="h-16 w-auto"
+              className="h-14 w-auto"
             />
           </Link>
 
@@ -179,11 +292,20 @@ export default function Header() {
             )}
 
             {isLoggedIn ? (
-              <div className="relative">
+              <div
+                ref={userMenuRef}
+                className={`relative z-[9999] ${
+                  userMenuOpen ? "bg-white" : "hover:bg-white"
+                }`}
+                onMouseEnter={openUserMenuSlowly}
+                onMouseLeave={closeUserMenu}
+              >
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-2 font-semibold text-[#062b63]"
+                  className={`h-[58px] px-5 flex items-center gap-2 font-semibold text-[#062b63] cursor-pointer hover:text-green-700 ${
+                    userMenuOpen ? "bg-white" : "hover:bg-white"
+                  }`}
                 >
                   <User size={20} />
                   <span>{displayName}</span>
@@ -210,21 +332,39 @@ export default function Header() {
               </Link>
             )}
 
-            <Link
-              to="/cart"
-              onClick={closeMenus}
-              className="relative flex items-center gap-2 text-[#071b3a] font-semibold hover:text-green-700 transition"
+            <div
+              className={`relative z-[9999] ${
+                cartHoverOpen ? "bg-white" : "hover:bg-white"
+              }`}
+              onMouseEnter={openCartSlowly}
+              onMouseLeave={closeCart}
             >
-              <div className="relative">
-                <ShoppingCart size={24} />
+              <Link
+                to="/cart"
+                onClick={closeMenus}
+                className={`h-[58px] px-5 relative flex items-center gap-2 text-[#071b3a] font-semibold hover:text-green-700 transition cursor-pointer ${
+                  cartHoverOpen ? "bg-white" : "hover:bg-white"
+                }`}
+              >
+                <div className="relative">
+                  <ShoppingCart size={24} />
 
-                {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
-                    {cartItemCount}
-                  </span>
-                )}
-              </div>
-            </Link>
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </div>
+              </Link>
+
+              {cartHoverOpen && (
+                <CartDropdown
+                  cartItems={cartItems}
+                  API_URL={API_URL}
+                  onClose={() => setCartHoverOpen(false)}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -282,7 +422,7 @@ export default function Header() {
                     ? setUserMenuOpen((prev) => !prev)
                     : navigate("/login", { state: { from: location.pathname } })
                 }
-                className="relative flex flex-col items-center justify-center border-r border-gray-200"
+                className="relative flex flex-col items-center justify-center border-r border-gray-200 cursor-pointer"
               >
                 <User size={24} />
                 <span className="text-[10px] font-semibold mt-1">Account</span>
@@ -595,10 +735,10 @@ export default function Header() {
 
 function UserDropdown({ user, fullName, onLogout, onClose }) {
   return (
-    <div className="absolute right-0 top-9 w-52 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
-      <div className="px-4 py-2 border-b">
+    <div className="absolute right-0 top-full w-72 bg-white border-x border-b border-gray-200 shadow-lg py-2 z-[9999]">
+      <div className="px-4 py-3">
         <p className="font-bold text-[#071b3a] text-sm">{fullName}</p>
-        <p className="text-xs text-gray-500">{user?.email}</p>
+        <p className="text-xs text-gray-500 mt-1">{user?.email}</p>
       </div>
 
       <Link
