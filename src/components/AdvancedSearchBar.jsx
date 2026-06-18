@@ -23,19 +23,16 @@ export default function AdvancedSearchBar() {
   }, [query]);
 
   useEffect(() => {
-    const handleClick = (e) => {
+    const handleClickOutside = (e) => {
       if (boxRef.current && !boxRef.current.contains(e.target)) {
         setOpen(false);
-        inputRef.current?.blur();
       }
     };
 
-    document.addEventListener("mousedown", handleClick);
-    document.addEventListener("touchstart", handleClick);
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("touchstart", handleClick);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -74,22 +71,8 @@ export default function AdvancedSearchBar() {
     inputRef.current?.blur();
     setOpen(false);
 
-    setTimeout(() => {
-      navigate(`/search?q=${encodeURIComponent(searchValue)}`);
-    }, 50);
+    navigate(`/search?q=${encodeURIComponent(searchValue)}`);
   };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      inputRef.current?.blur();
-    };
-  
-    window.addEventListener("scroll", handleScroll, { passive: true });
-  
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
 
   return (
     <div ref={boxRef} className="relative w-full">
@@ -107,7 +90,9 @@ export default function AdvancedSearchBar() {
             setQuery(e.target.value);
             setOpen(true);
           }}
-          onFocus={() => query.trim().length >= 2 && setOpen(true)}
+          onFocus={() => {
+            if (query.trim().length >= 2) setOpen(true);
+          }}
           placeholder="Search products, SKU, category..."
           className="w-full h-12 pl-5 pr-24 rounded-lg border border-gray-300 text-[16px] focus:outline-none focus:ring-2 focus:ring-green-600"
         />
@@ -136,10 +121,7 @@ export default function AdvancedSearchBar() {
       </form>
 
       {open && query.trim().length >= 2 && (
-        <div
-          
-          className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] overflow-hidden"
-        >
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] overflow-hidden">
           <div className="max-h-[70vh] overflow-y-auto">
             {loading && (
               <div className="px-5 py-3 text-[16px] text-gray-500">
