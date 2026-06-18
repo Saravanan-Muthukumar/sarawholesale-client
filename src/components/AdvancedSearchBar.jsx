@@ -14,6 +14,9 @@ export default function AdvancedSearchBar() {
   const boxRef = useRef(null);
   const inputRef = useRef(null);
 
+  const touchStartY = useRef(0);
+  const isScrolling = useRef(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchSuggestions();
@@ -72,6 +75,25 @@ export default function AdvancedSearchBar() {
     setOpen(false);
 
     navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+  };
+
+  const handleSuggestionTouchStart = (e) => {
+    touchStartY.current = e.touches[0].clientY;
+    isScrolling.current = false;
+  };
+
+  const handleSuggestionTouchMove = (e) => {
+    const diff = Math.abs(e.touches[0].clientY - touchStartY.current);
+
+    if (diff > 10) {
+      isScrolling.current = true;
+    }
+  };
+
+  const handleSuggestionTouchEnd = (keyword) => {
+    if (!isScrolling.current) {
+      submitSearch(keyword);
+    }
   };
 
   return (
@@ -135,9 +157,13 @@ export default function AdvancedSearchBar() {
                   <button
                     key={item.keyword}
                     type="button"
-                    onPointerDown={(e) => {
-                      e.preventDefault();
-                      submitSearch(item.keyword);
+                    onTouchStart={handleSuggestionTouchStart}
+                    onTouchMove={handleSuggestionTouchMove}
+                    onTouchEnd={() => handleSuggestionTouchEnd(item.keyword)}
+                    onClick={() => {
+                      if (!("ontouchstart" in window)) {
+                        submitSearch(item.keyword);
+                      }
                     }}
                     className="w-full text-left px-6 py-3 text-[16px] hover:bg-gray-50 text-gray-900"
                   >
@@ -156,10 +182,7 @@ export default function AdvancedSearchBar() {
 
           <button
             type="button"
-            onPointerDown={(e) => {
-              e.preventDefault();
-              submitSearch();
-            }}
+            onClick={() => submitSearch()}
             className="w-full px-6 py-3 bg-gray-50 hover:bg-green-50 text-sm font-semibold text-green-700 border-t border-gray-100"
           >
             View all results for "{query}"
