@@ -13,20 +13,6 @@ export default function AdvancedSearchBar() {
   const navigate = useNavigate();
   const boxRef = useRef(null);
   const inputRef = useRef(null);
-  const ignoreTap = useRef(false);
-
-  const touchStartY = useRef(0);
-  const isScrolling = useRef(false);
-
-  const handleDropdownScroll = () => {
-    ignoreTap.current = true;
-    isScrolling.current = true;
-    inputRef.current?.blur();
-  
-    setTimeout(() => {
-      ignoreTap.current = false;
-    }, 300);
-  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -40,6 +26,7 @@ export default function AdvancedSearchBar() {
     const handleClickOutside = (e) => {
       if (boxRef.current && !boxRef.current.contains(e.target)) {
         setOpen(false);
+        inputRef.current?.blur();
       }
     };
 
@@ -86,26 +73,6 @@ export default function AdvancedSearchBar() {
     setOpen(false);
 
     navigate(`/search?q=${encodeURIComponent(searchValue)}`);
-  };
-
-  const handleSuggestionTouchStart = (e) => {
-    touchStartY.current = e.touches[0].clientY;
-    isScrolling.current = false;
-  };
-
-  const handleSuggestionTouchMove = (e) => {
-    const diff = Math.abs(e.touches[0].clientY - touchStartY.current);
-  
-    if (diff > 8) {
-      isScrolling.current = true;
-      ignoreTap.current = true;
-      inputRef.current?.blur();
-    }
-  };
-
-  const handleSuggestionTouchEnd = (keyword) => {
-    if (ignoreTap.current || isScrolling.current) return;
-    submitSearch(keyword);
   };
 
   return (
@@ -156,10 +123,7 @@ export default function AdvancedSearchBar() {
 
       {open && query.trim().length >= 2 && (
         <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] overflow-hidden">
-          <div
-                onScroll={handleDropdownScroll}
-                className="max-h-[70vh] overflow-y-auto"
-                >
+          <div className="max-h-[70vh] overflow-y-auto">
             {loading && (
               <div className="px-5 py-3 text-[16px] text-gray-500">
                 Searching...
@@ -172,15 +136,8 @@ export default function AdvancedSearchBar() {
                   <button
                     key={item.keyword}
                     type="button"
-                    onTouchStart={handleSuggestionTouchStart}
-                    onTouchMove={handleSuggestionTouchMove}
-                    onTouchEnd={() => handleSuggestionTouchEnd(item.keyword)}
-                    onClick={() => {
-                      if (!("ontouchstart" in window)) {
-                        submitSearch(item.keyword);
-                      }
-                    }}
-                    className="w-full text-left px-6 py-3 text-[16px] hover:bg-gray-50 text-gray-900"
+                    onClick={() => submitSearch(item.keyword)}
+                    className="w-full text-left px-6 py-3 text-[16px] active:bg-gray-100 hover:bg-gray-50 text-gray-900"
                   >
                     {item.keyword}
                   </button>
@@ -198,7 +155,7 @@ export default function AdvancedSearchBar() {
           <button
             type="button"
             onClick={() => submitSearch()}
-            className="w-full px-6 py-3 bg-gray-50 hover:bg-green-50 text-sm font-semibold text-green-700 border-t border-gray-100"
+            className="w-full px-6 py-3 bg-gray-50 active:bg-green-50 hover:bg-green-50 text-sm font-semibold text-green-700 border-t border-gray-100"
           >
             View all results for "{query}"
           </button>
