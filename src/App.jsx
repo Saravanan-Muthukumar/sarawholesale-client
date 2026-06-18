@@ -34,7 +34,7 @@ import AdminFlyerBuilderPage from "./pages/admin/AdminFlyerBuilderPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
 import ScrollToTop from "./components/ScrollToTop";
 import WhatsAppChatButton from "./components/WhatsAppButton";
-import OrderDetailsPage from "./pages/orderDetailsPage";
+import OrderDetailsPage from "./pages/OrderDetailsPage";
 
 
 export default function App() {
