@@ -79,6 +79,18 @@ export default function AdvancedSearchBar() {
     }, 50);
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      inputRef.current?.blur();
+    };
+  
+    window.addEventListener("scroll", handleScroll, { passive: true });
+  
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <div ref={boxRef} className="relative w-full">
       <form
@@ -125,7 +137,7 @@ export default function AdvancedSearchBar() {
 
       {open && query.trim().length >= 2 && (
         <div
-          onTouchMove={() => inputRef.current?.blur()}
+          
           className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] overflow-hidden"
         >
           <div className="max-h-[70vh] overflow-y-auto">
