@@ -17,6 +17,10 @@ export default function AdvancedSearchBar() {
   const touchStartY = useRef(0);
   const isScrolling = useRef(false);
 
+  const handleDropdownScroll = () => {
+    inputRef.current?.blur();
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchSuggestions();
@@ -144,7 +148,10 @@ export default function AdvancedSearchBar() {
 
       {open && query.trim().length >= 2 && (
         <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] overflow-hidden">
-          <div className="max-h-[70vh] overflow-y-auto">
+          <div
+                onScroll={handleDropdownScroll}
+                className="max-h-[70vh] overflow-y-auto"
+                >
             {loading && (
               <div className="px-5 py-3 text-[16px] text-gray-500">
                 Searching...
