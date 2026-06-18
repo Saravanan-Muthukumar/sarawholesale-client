@@ -34,14 +34,13 @@ export default function SubCategoryPage() {
   };
 
   return (
-    <main className="bg-[#fbfcfe] min-h-screen">
+    <main className="bg-[#f7f8fb] min-h-screen">
       <div className="hidden md:block">
         <CategoryMenu categories={categories} />
       </div>
 
       <section className="max-w-7xl mx-auto px-4 py-5">
-        {/* DESKTOP BREADCRUMB */}
-        <div className="hidden md:block text-xs text-[#071b3a]/50 mb-3 mt-1">
+        <div className="hidden md:flex items-center text-xs text-[#071b3a]/50 mb-4">
           <Link to="/" className="hover:text-green-700">
             Home
           </Link>
@@ -58,62 +57,71 @@ export default function SubCategoryPage() {
 
           <span className="mx-2">›</span>
 
-          <span>{parent?.category_name}</span>
+          <span className="text-[#071b3a]/70">
+            {parent?.category_name || "Subcategories"}
+          </span>
         </div>
 
-        {/* MOBILE BACK NAVIGATION */}
-        <div className="md:hidden mb-3">
+        <div className="md:hidden mb-4">
           <button
             type="button"
             onClick={goToCategories}
-            className="inline-flex items-center gap-2 text-sm font-medium text-[#071b3a]/60 hover:text-green-700"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[#071b3a]/70"
           >
-            <ArrowLeft size={16} />
-            Categories
+            <ArrowLeft size={17} />
+            Previous Page
           </button>
         </div>
 
-        <h1 className="text-xl font-bold text-[#071b3a]">
-          {parent?.category_name}
-        </h1>
+        <div className="bg-white border border-[#e6edf5] px-5 py-5 shadow-sm">
+          <h1 className="text-xl md:text-2xl font-bold text-[#071b3a]">
+            {parent?.category_name || "Subcategories"}
+          </h1>
 
-        <p className="text-sm text-[#071b3a]/60 mt-1">
-          Select a subcategory
-        </p>
+          <p className="text-sm text-[#071b3a]/60 mt-1">
+            Select a subcategory to view products
+          </p>
+        </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 pb-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-          {subCategories.map((sub) => (
-            <Link
-              key={sub.category_id}
-              to={`/subcategory/${sub.slug}`}
-              className="bg-white border border-[#edf1f7] rounded-2xl p-4 shadow-sm hover:shadow-md transition group"
-            >
-              <div className="aspect-square flex items-center justify-center">
-                {getImage(sub.image_url) ? (
-                  <img
-                    src={getImage(sub.image_url)}
-                    alt={sub.category_name}
-                    className="w-full h-full object-contain group-hover:scale-105 transition"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#f8fafc] rounded-xl" />
-                )}
-              </div>
+      <section className="max-w-7xl mx-auto px-4 pb-10">
+        {subCategories.length === 0 ? (
+          <div className="bg-white border border-[#e6edf5] p-6 text-sm text-[#071b3a]/60">
+            No subcategories found.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 md:gap-4">
+            {subCategories.map((sub) => (
+              <Link
+                key={sub.category_id}
+                to={`/subcategory/${sub.slug}`}
+                className="bg-white border border-[#e6edf5] p-3 md:p-4 shadow-sm hover:shadow-md hover:border-[#cbd8e8] transition group"
+              >
+                <div className="aspect-square bg-[#f8fafc] flex items-center justify-center p-2">
+                  {getImage(sub.image_url) ? (
+                    <img
+                      src={getImage(sub.image_url)}
+                      alt={sub.category_name}
+                      className="w-full h-full object-contain group-hover:scale-105 transition"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[#eef3f8]" />
+                  )}
+                </div>
 
-              <div className="mt-3">
-                <h3 className="text-xs font-semibold text-[#071b3a] leading-snug line-clamp-2 min-h-8">
-                  {sub.category_name}
-                </h3>
+                <div className="pt-3">
+                  <h3 className="text-xs md:text-sm font-semibold text-[#071b3a] leading-snug line-clamp-2 min-h-9">
+                    {sub.category_name}
+                  </h3>
 
-                <p className="text-[11px] text-[#071b3a]/50 mt-1">
-                  View Products
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
+                  <p className="text-[11px] text-green-700 font-medium mt-1">
+                    View products
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );

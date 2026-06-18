@@ -16,6 +16,7 @@ export default function CartPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const [showMobileStickyCheckout, setShowMobileStickyCheckout] = useState(true);
   const [deleteItemId, setDeleteItemId] = useState(null);
+  const [itemsDraft, setItemsDraft] = useState({});
   
 
   const getImage = (imageUrl) => {
@@ -88,19 +89,25 @@ export default function CartPage() {
 
   const handleQtyChange = async (item, value) => {
     const id = getItemId(item);
-
+  
+    // allow empty while typing, do not update backend
     if (value === "") {
-      await updateCartItem(id, "");
+      setItemsDraft((prev) => ({
+        ...prev,
+        [id]: "",
+      }));
       return;
     }
-
+  
     const qty = Number(value);
-
-    if (qty <= 0) {
-      await updateCartItem(id, 1);
-      return;
-    }
-
+  
+    if (qty <= 0) return;
+  
+    setItemsDraft((prev) => ({
+      ...prev,
+      [id]: qty,
+    }));
+  
     setUpdatingId(id);
     await updateCartItem(id, qty);
     setUpdatingId(null);
@@ -192,13 +199,19 @@ export default function CartPage() {
                           </p>
 
                           <div className="flex items-center gap-3 mt-4">
-                            <QtyBox
-                              qty={item.quantity}
+                          <QtyBox
+                              qty={itemsDraft[id] ?? item.quantity}
                               onMinus={() => handleDecrease(item)}
                               onPlus={() => handleIncrease(item)}
-                              onChangeQty={(value) =>
-                                handleQtyChange(item, value)
-                              }
+                              onChangeQty={(value) => handleQtyChange(item, value)}
+                              onBlurQty={() => {
+                                if (itemsDraft[id] === "") {
+                                  setItemsDraft((prev) => ({
+                                    ...prev,
+                                    [id]: item.quantity || 1,
+                                  }));
+                                }
+                              }}
                               disabled={isUpdating}
                             />
 
@@ -373,7 +386,7 @@ function OrderSummary({
   );
 }
 
-function QtyBox({ qty, onMinus, onPlus, onChangeQty, disabled }) {
+function QtyBox({ qty, onMinus, onPlus, onChangeQty, onBlurQty, disabled }) {
   return (
     <div className="flex h-10 border border-gray-300 overflow-hidden bg-white">
       <button
@@ -400,14 +413,9 @@ function QtyBox({ qty, onMinus, onPlus, onChangeQty, disabled }) {
             return;
           }
 
-          const cleanValue = value.replace(/\D/g, "");
-          onChangeQty(cleanValue);
+          onChangeQty(value.replace(/\D/g, ""));
         }}
-        onBlur={() => {
-          if (!qty || Number(qty) <= 0) {
-            onChangeQty(1);
-          }
-        }}
+        onBlur={onBlurQty}
         inputMode="numeric"
         className="w-14 text-center text-black font-bold outline-none border-x border-gray-300 bg-white"
       />
