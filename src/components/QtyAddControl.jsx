@@ -1,95 +1,62 @@
-import { useState } from "react";
-import { ShoppingCart } from "lucide-react";
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 
-export default function QtyAddControl({
-  onAdd,
-  buttonText = "Add",
-  defaultQty = 1,
-  className = "",
-}) {
-  const [qty, setQty] = useState(String(defaultQty));
+export default function QtyAddControl({ value, onQtyChange, onAdd }) {
+  const qty = value === undefined || value === null ? "1" : value === "" ? "" : String(value);
 
-  const disabled = qty === "";
-
-  const updateQty = (value) => {
-    const clean = value.replace(/\D/g, "");
-
-    if (clean === "") {
-      setQty("");
+  const updateQty = (newValue) => {
+    if (newValue === "") {
+      onQtyChange("");
       return;
     }
 
-    if (Number(clean) <= 0) {
-      setQty("1");
+    const numberValue = Number(newValue);
+
+    if (Number.isNaN(numberValue)) return;
+    if (numberValue < 1) {
+      onQtyChange("1");
       return;
     }
 
-    setQty(clean);
-  };
-
-  const decrease = () => {
-    if (qty === "") {
-      setQty("1");
-      return;
-    }
-
-    setQty(String(Math.max(1, Number(qty) - 1)));
-  };
-
-  const increase = () => {
-    setQty(String(Number(qty || 0) + 1));
+    onQtyChange(String(numberValue));
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <div className="flex h-10 border border-gray-300 overflow-hidden bg-white">
+    <div className="flex items-center gap-2">
+      <div className="flex h-10 border border-gray-300 bg-white">
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            decrease();
-          }}
-          className="w-10 bg-gray-100 text-2xl font-bold text-gray-900 hover:bg-gray-200"
+          onClick={() => updateQty(Number(qty || 1) - 1)}
+          className="w-9 flex items-center justify-center hover:bg-gray-100"
         >
-          −
+          <Minus size={14} />
         </button>
 
         <input
-          type="text"
-          inputMode="numeric"
           value={qty}
-          onClick={(e) => e.stopPropagation()}
           onChange={(e) => updateQty(e.target.value)}
-          className="w-14 text-center text-black font-bold outline-none"
+          onBlur={() => {
+            if (qty === "" || Number(qty) < 1) onQtyChange("1");
+          }}
+          className="w-12 text-center border-x border-gray-300 outline-none"
         />
 
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            increase();
-          }}
-          className="w-10 bg-gray-100 text-2xl font-bold text-gray-900 hover:bg-gray-200"
+          onClick={() => updateQty(Number(qty || 0) + 1)}
+          className="w-9 flex items-center justify-center hover:bg-gray-100"
         >
-          +
+          <Plus size={14} />
         </button>
       </div>
 
       <button
         type="button"
-        disabled={disabled}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (!disabled) onAdd(Number(qty));
-        }}
-        className={`h-10 px-4 font-bold text-sm flex items-center gap-2 ${
-          disabled
-            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-            : "bg-green-700 text-white hover:bg-green-800"
-        }`}
+        disabled={qty === ""}
+        onClick={() => onAdd(Number(qty || 1))}
+        className="h-10 px-4 bg-green-700 text-white font-bold disabled:bg-gray-300 flex items-center gap-2"
       >
-        <ShoppingCart size={15} />
-        {buttonText}
+        <ShoppingCart size={16} />
+        Add
       </button>
     </div>
   );

@@ -1,18 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart } from "lucide-react";
-import { useState } from "react";
 import QtyAddControl from "./QtyAddControl";
+import { useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
-export default function ProductCard({
-  product,
-  qty = "",
-  activeTier = null,
-  onQtyChange,
-  onSlabClick,
-  onAddToCart,
-}) {
+export default function ProductCard({ product, onAddToCart }) {
   const navigate = useNavigate();
 
   const getImage = (imageUrl) => {
@@ -23,13 +15,20 @@ export default function ProductCard({
   const getSlabLabel = (tier) =>
     tier.max_qty ? `${tier.min_qty}-${tier.max_qty}` : `${tier.min_qty}+`;
 
+  const [qty, setQty] = useState("1");
+
+  const currentQty = Number(qty || 1);
+
+  const activeTier =
+    product.price_breaks?.find(
+      (tier) =>
+        currentQty >= Number(tier.min_qty) &&
+        (!tier.max_qty || currentQty <= Number(tier.max_qty))
+    ) || null;
+
   const unitPrice = activeTier
     ? Number(activeTier.price)
     : Number(product.from_price || product.price || 0);
-
-    const [localQty, setLocalQty] = useState("1");
-
-    const addDisabled = localQty === "";
 
   return (
     <div className="bg-white border border-gray-300 shadow-sm hover:shadow-md transition overflow-hidden">
@@ -64,12 +63,6 @@ export default function ProductCard({
                 ? `${product.parent_category_name} / ${product.category_name}`
                 : product.category_name}
             </p>
-
-            <ul className="text-sm text-gray-700 mt-3 list-disc ml-5">
-              <li>Trade price available</li>
-              <li>Bulk discount available</li>
-              <li>Fast UK delivery</li>
-            </ul>
           </div>
         </div>
 
@@ -81,7 +74,10 @@ export default function ProductCard({
             }}
           >
             {product.price_breaks.map((tier) => {
-              const isActive = activeTier === tier;
+              const isActive =
+                activeTier &&
+                Number(activeTier.min_qty) === Number(tier.min_qty) &&
+                Number(activeTier.max_qty || 0) === Number(tier.max_qty || 0);
 
               return (
                 <button
@@ -89,15 +85,15 @@ export default function ProductCard({
                   key={`${tier.min_qty}-${tier.max_qty}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onSlabClick(product.product_id, tier.min_qty);
+                    setQty(String(tier.min_qty));
                   }}
                   className={`border-r last:border-r-0 text-center min-w-0 ${
-                    isActive ? "bg-green-50" : "bg-white hover:bg-gray-50"
+                    isActive ? "bg-green-100" : "bg-white hover:bg-gray-50"
                   }`}
                 >
                   <div
                     className={`text-xs border-b border-gray-300 py-1 ${
-                      isActive ? "text-green-700" : "text-gray-600"
+                      isActive ? "text-green-700 font-bold" : "text-gray-600"
                     }`}
                   >
                     {getSlabLabel(tier)}
@@ -127,7 +123,9 @@ export default function ProductCard({
         </div>
 
         <QtyAddControl
-        onAdd={(quantity) => onAddToCart(product, quantity)}
+          value={qty}
+          onQtyChange={setQty}
+          onAdd={(quantity) => onAddToCart(product, quantity)}
         />
       </div>
     </div>

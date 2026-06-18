@@ -14,7 +14,7 @@ export default function ProductPage() {
 
   const [product, setProduct] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [qty, setQty] = useState("");
+  const [qty, setQty] = useState("1");
   const [added, setAdded] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
   const [allProducts, setAllProducts] = useState([]);
@@ -39,7 +39,7 @@ export default function ProductPage() {
       .then((data) => {
         setProduct(data);
         setSelectedImage(data?.images?.[0]?.image_url || data?.image_url || "");
-        setQty("");
+        setQty("1");
       })
       .catch(console.error);
   }, [slug]);
@@ -314,12 +314,6 @@ export default function ProductPage() {
                 {Number(product.stock_qty) < 1 ? "✓ In stock" : "Out of stock"}
               </p>
   
-              <div className="mt-5">
-                <p className="text-sm leading-6 text-[#3f4043] max-w-xl">
-                  {product.description || "No description available."}
-                </p>
-              </div>
-  
               {product.price_breaks?.length > 0 && (
                 <div className="mt-6">
                   <h2 className="text-sm font-bold text-blue-800 mb-3 uppercase">
@@ -355,36 +349,10 @@ export default function ProductPage() {
                 </div>
               )}
   
-              {product.specifications?.length > 0 && (
-                <div className="mt-6">
-                  <h2 className="font-bold text-blue-800 mb-3 uppercase text-sm">
-                    Product Specifications
-                  </h2>
-  
-                  <div className="border border-[#d9e2ef] max-w-lg">
-                    <table className="w-full text-sm">
-                      <tbody>
-                        {product.specifications.map((spec) => (
-                          <tr
-                            key={spec.spec_id || spec.spec_name}
-                            className="border-b border-[#edf1f7] last:border-b-0"
-                          >
-                            <td className="w-[40%] px-4 py-2 font-bold text-[#071b3a] bg-[#f5f7fb]">
-                              {spec.spec_name}
-                            </td>
-                            <td className="px-4 py-2 text-[#071b3a]/80">
-                              {spec.spec_value}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+              
   
               <p className="text-sm text-[#071b3a] mt-5">
-                <span className="font-bold">VAT rate:</span>{" "}
+                <span className="font-bold">VAT:</span>{" "}
                 {Number(product.vat_rate || 0).toFixed(0)}%
               </p>
   
@@ -419,6 +387,8 @@ export default function ProductPage() {
                   </p>
   
                   <QtyAddControl
+                    value={qty}
+                    onQtyChange={setQty}
                     onAdd={(quantity) => handleAddToCart(quantity)}
                   />
                 </div>
@@ -448,6 +418,40 @@ export default function ProductPage() {
             </aside>
           </div>
         </div>
+
+        <div className="mt-5">
+                <p className="text-sm leading-6 text-[#3f4043] max-w-xl">
+                  {product.description || "No description available."}
+                </p>
+              </div>
+
+        {product.specifications?.length > 0 && (
+                <div className="mt-6">
+                  <h2 className="font-bold text-blue-800 mb-3 uppercase text-sm">
+                    Product Specifications
+                  </h2>
+  
+                  <div className="border border-[#d9e2ef] max-w-lg">
+                    <table className="w-full text-sm">
+                      <tbody>
+                        {product.specifications.map((spec) => (
+                          <tr
+                            key={spec.spec_id || spec.spec_name}
+                            className="border-b border-[#edf1f7] last:border-b-0"
+                          >
+                            <td className="w-[40%] px-4 py-2 font-bold text-[#071b3a] bg-[#f5f7fb]">
+                              {spec.spec_name}
+                            </td>
+                            <td className="px-4 py-2 text-[#071b3a]/80">
+                              {spec.spec_value}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
   
         {relatedProducts.length > 0 && (
           <div className="mt-8">

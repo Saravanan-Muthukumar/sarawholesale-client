@@ -77,6 +77,9 @@ const closeCart = () => {
 
     useEffect(() => {
       const handleClickOutside = (e) => {
+        // Do not run desktop outside-click logic on mobile
+        if (window.innerWidth < 768) return;
+    
         if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
           setUserMenuOpen(false);
         }
@@ -84,7 +87,7 @@ const closeCart = () => {
     
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []); 
+    }, []);
 
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)
@@ -414,26 +417,21 @@ const closeCart = () => {
                 <Search size={24} />
                 <span className="text-[10px] font-semibold mt-1">Search</span>
               </button>
-
+              <div className="relative border-r border-gray-200">
               <button
                 type="button"
                 onClick={() =>
                   isLoggedIn
-                    ? setUserMenuOpen((prev) => !prev)
+                    ? setUserMenuOpen(true)
                     : navigate("/login", { state: { from: location.pathname } })
                 }
-                className="relative flex flex-col items-center justify-center border-r border-gray-200 cursor-pointer"
+                className="w-full h-[62px] flex flex-col items-center justify-center"
               >
                 <User size={24} />
                 <span className="text-[10px] font-semibold mt-1">Account</span>
-
-                {isLoggedIn && userMenuOpen && (
-                  <MobileUserDropdown
-                    onClose={() => setUserMenuOpen(false)}
-                    onLogout={handleLogout}
-                  />
-                )}
               </button>
+
+            </div>
 
               <Link
                 to="/cart"
@@ -465,6 +463,7 @@ const closeCart = () => {
         )}
       </div>
       {/* STICKY MOBILE MENU AFTER SCROLL */}
+
 {!isAuthPage && hideMobileLogo && (
   <div
     className="md:hidden fixed top-0 left-0 right-0 z-[9998] bg-white border-b border-gray-200 shadow-sm"
@@ -478,7 +477,7 @@ const closeCart = () => {
       <button
         type="button"
         onClick={() => setMenuOpen(true)}
-        className="flex flex-col items-center justify-center border-r border-gray-200"
+        className="w-full h-[62px] flex flex-col items-center justify-center border-r border-gray-200"
       >
         <Menu size={24} />
         <span className="text-[10px] font-semibold mt-1">Browse</span>
@@ -500,17 +499,10 @@ const closeCart = () => {
             ? setUserMenuOpen((prev) => !prev)
             : navigate("/login", { state: { from: location.pathname } })
         }
-        className="relative flex flex-col items-center justify-center border-r border-gray-200"
+        className="w-full h-[62px] flex flex-col items-center justify-center"
       >
         <User size={24} />
         <span className="text-[10px] font-semibold mt-1">Account</span>
-
-        {isLoggedIn && userMenuOpen && (
-          <MobileUserDropdown
-            onClose={() => setUserMenuOpen(false)}
-            onLogout={handleLogout}
-          />
-        )}
       </button>
 
       <Link
@@ -539,6 +531,27 @@ const closeCart = () => {
         </div>
       </div>
     )}
+  </div>
+)}
+
+{isLoggedIn && userMenuOpen && (
+  <div className="md:hidden fixed inset-0 z-[100000]">
+    <button
+      type="button"
+      onClick={() => setUserMenuOpen(false)}
+      className="absolute inset-0"
+    />
+
+    <div
+      className={`absolute right-0 w-64 bg-white border-l border-b border-gray-200 shadow-xl ${
+        hideMobileLogo ? "top-[62px]" : "top-[115px]"
+      }`}
+    >
+      <MobileUserDropdown
+        onClose={() => setUserMenuOpen(false)}
+        onLogout={handleLogout}
+      />
+    </div>
   </div>
 )}
 
@@ -786,59 +799,53 @@ function UserDropdown({ user, fullName, onLogout, onClose }) {
 
 function MobileUserDropdown({ onClose, onLogout }) {
   return (
-    <div className="absolute right-0 top-14 w-[300px] max-w-[calc(100vw-24px)] bg-white border border-[#edf1f7] rounded-2xl shadow-2xl z-[9999]">
-      <div className="px-6 pt-6 pb-3">
-        <h3 className="text-2xl font-bold text-[#071b3a]">My Account</h3>
-      </div>
+    <div className="py-2">
+      <Link
+        to="/account"
+        onClick={onClose}
+        className="flex items-center gap-3 px-4 py-3 text-sm text-[#071b3a] hover:bg-gray-50"
+      >
+        <Home size={18} />
+        Dashboard
+      </Link>
 
-      <div className="px-3 pb-3">
-        <Link
-          to="/account"
-          onClick={onClose}
-          className="flex items-center gap-5 px-5 py-4 rounded-xl text-[#071b3a] text-base font-semibold"
-        >
-          <Home size={22} strokeWidth={2} />
-          Dashboard
-        </Link>
+      <Link
+        to="/account/orders"
+        onClick={onClose}
+        className="flex items-center gap-3 px-4 py-3 text-sm text-[#071b3a] hover:bg-gray-50"
+      >
+        <ClipboardList size={18} />
+        My Orders
+      </Link>
 
-        <Link
-          to="/account/orders"
-          onClick={onClose}
-          className="flex items-center gap-5 px-5 py-4 rounded-xl bg-green-50 text-green-700 text-base font-semibold"
-        >
-          <ClipboardList size={22} strokeWidth={2} />
-          My Orders
-        </Link>
+      <Link
+        to="/account/details"
+        onClick={onClose}
+        className="flex items-center gap-3 px-4 py-3 text-sm text-[#071b3a] hover:bg-gray-50"
+      >
+        <User size={18} />
+        Customer Details
+      </Link>
 
-        <Link
-          to="/account/details"
-          onClick={onClose}
-          className="flex items-center gap-5 px-5 py-4 rounded-xl text-[#071b3a] text-base font-semibold"
-        >
-          <User size={22} strokeWidth={2} />
-          Customer Details
-        </Link>
+      <Link
+        to="/account/change-password"
+        onClick={onClose}
+        className="flex items-center gap-3 px-4 py-3 text-sm text-[#071b3a] hover:bg-gray-50"
+      >
+        <Lock size={18} />
+        Change Password
+      </Link>
 
-        <Link
-          to="/account/change-password"
-          onClick={onClose}
-          className="flex items-center gap-5 px-5 py-4 rounded-xl text-[#071b3a] text-base font-semibold"
-        >
-          <Lock size={22} strokeWidth={2} />
-          Change Password
-        </Link>
+      <div className="border-t border-gray-200 my-2" />
 
-        <div className="border-t border-[#edf1f7] my-2" />
-
-        <button
-          type="button"
-          onClick={onLogout}
-          className="w-full flex items-center gap-5 px-5 py-4 rounded-xl text-left text-[#071b3a] text-base font-semibold cursor-pointer"
-        >
-          <LogOut size={22} strokeWidth={2} />
-          Logout
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onLogout}
+        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
+      >
+        <LogOut size={18} />
+        Logout
+      </button>
     </div>
   );
 }
