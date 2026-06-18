@@ -16,29 +16,29 @@ export default function AdvancedSearchBar() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchSuggestions();
+      fetchSuggestions(query);
     }, 250);
 
     return () => clearTimeout(timer);
   }, [query]);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handlePointerDown = (e) => {
       if (boxRef.current && !boxRef.current.contains(e.target)) {
         setOpen(false);
         inputRef.current?.blur();
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("pointerdown", handlePointerDown);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("pointerdown", handlePointerDown);
     };
   }, []);
 
-  const fetchSuggestions = async () => {
-    const searchValue = query.trim();
+  const fetchSuggestions = async (value) => {
+    const searchValue = value.trim();
 
     if (searchValue.length < 2) {
       setSuggestions([]);
@@ -69,10 +69,15 @@ export default function AdvancedSearchBar() {
     const searchValue = value.trim();
     if (!searchValue) return;
 
-    inputRef.current?.blur();
     setOpen(false);
+    inputRef.current?.blur();
 
     navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+  };
+
+  const handleSuggestionSelect = (value) => {
+    setQuery(value);
+    submitSearch(value);
   };
 
   return (
@@ -101,7 +106,8 @@ export default function AdvancedSearchBar() {
         {query && (
           <button
             type="button"
-            onClick={() => {
+            onPointerDown={(e) => {
+              e.preventDefault();
               setQuery("");
               setSuggestions([]);
               setOpen(false);
@@ -123,7 +129,7 @@ export default function AdvancedSearchBar() {
 
       {open && query.trim().length >= 2 && (
         <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] overflow-hidden">
-          <div className="max-h-[70vh] overflow-y-auto">
+          <div className="max-h-[60vh] overflow-y-auto overscroll-contain">
             {loading && (
               <div className="px-5 py-3 text-[16px] text-gray-500">
                 Searching...
@@ -136,7 +142,10 @@ export default function AdvancedSearchBar() {
                   <button
                     key={item.keyword}
                     type="button"
-                    onClick={() => submitSearch(item.keyword)}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      handleSuggestionSelect(item.keyword);
+                    }}
                     className="w-full text-left px-6 py-3 text-[16px] active:bg-gray-100 hover:bg-gray-50 text-gray-900"
                   >
                     {item.keyword}
@@ -154,7 +163,10 @@ export default function AdvancedSearchBar() {
 
           <button
             type="button"
-            onClick={() => submitSearch()}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              submitSearch();
+            }}
             className="w-full px-6 py-3 bg-gray-50 active:bg-green-50 hover:bg-green-50 text-sm font-semibold text-green-700 border-t border-gray-100"
           >
             View all results for "{query}"
