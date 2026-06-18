@@ -13,8 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
+import CategoryMenu from "../components/CategoryMenu";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -26,6 +25,16 @@ export default function CheckoutPage() {
   const [details, setDetails] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [showStickySubmit, setShowStickySubmit] = useState(true);
+  const [categories, setCategories] = useState([]);
+
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/categories`)
+      .then((res) => res.json())
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -39,7 +48,7 @@ export default function CheckoutPage() {
       })
       .then((data) => setDetails(data))
       .catch(() => setDetails(null));
-  }, [isLoggedIn]);
+  }, [isLoggedIn, API_URL]);
 
   const customer = details || user;
 
@@ -49,17 +58,16 @@ export default function CheckoutPage() {
     0
   );
 
-  const deliveryFee = subtotal >= 20 ? 0 : 2;
-  const estimatedTotal = subtotal + deliveryFee;
-
   const totalItems = cartItems.reduce(
     (sum, item) => sum + Number(item.quantity || 0),
     0
   );
 
-  const hasContactDetails = customer?.email && customer?.phone;
-  const hasDeliveryAddress =
-    customer?.address_line1 && customer?.city && customer?.postcode;
+  const hasContactDetails = Boolean(customer?.email && customer?.phone);
+
+  const hasDeliveryAddress = Boolean(
+    customer?.address_line1 && customer?.city && customer?.postcode
+  );
 
   const canSubmit = isLoggedIn && hasContactDetails && hasDeliveryAddress;
 
@@ -93,13 +101,13 @@ export default function CheckoutPage() {
         return;
       }
 
-      if (!canSubmit) {
-        goToDetails();
+      if (!cartItems.length) {
+        navigate("/cart");
         return;
       }
 
-      if (!cartItems.length) {
-        navigate("/cart");
+      if (!canSubmit) {
+        goToDetails();
         return;
       }
 
@@ -114,8 +122,8 @@ export default function CheckoutPage() {
 
   if (!isLoggedIn) {
     return (
-      <main className="bg-white border-t border-[#edf1f7] px-4 py-8">
-        <section className="max-w-xl mx-auto border border-[#edf1f7] rounded-xl p-6 text-center shadow-sm">
+      <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] px-4 py-8">
+        <section className="max-w-xl mx-auto bg-white border border-[#edf1f7] rounded-xl p-6 text-center shadow-sm">
           <AlertCircle className="mx-auto text-red-600 mb-3" size={30} />
 
           <h1 className="text-xl font-bold text-[#071b3a] mb-2">
@@ -128,7 +136,7 @@ export default function CheckoutPage() {
 
           <button
             onClick={() => navigate("/login", { state: { from: "/checkout" } })}
-            className="h-10 px-6 bg-green-700 text-white rounded-lg font-bold text-sm"
+            className="h-10 px-6 bg-green-700 text-white font-bold text-sm hover:bg-green-800"
             type="button"
           >
             Login to Continue
@@ -139,118 +147,158 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="bg-white border-t border-[#edf1f7] pb-28 md:pb-0">
+    <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] pb-28 md:pb-0">
+      <div className="hidden md:block mb-5">
+        <CategoryMenu categories={categories} />
+      </div>
       <section className="max-w-7xl mx-auto px-4 py-5">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#071b3a] hover:text-green-700"
-        >
-          <ArrowLeft size={18} />
-          Previous page
-        </button>
-
-        <h1 className="text-lg md:text-xl font-bold text-[#071b3a] mb-1">
-          Checkout
-        </h1>
-
-        <p className="text-xs text-[#071b3a]/70 mb-5">
-          Please check your contact and delivery details before submitting your
-          order request.
-        </p>
-
-        <div className="grid lg:grid-cols-[1fr_320px] gap-7">
-          <div className="space-y-4">
-            <DetailsCard
-              title="Contact Details"
-              icon={<User size={18} />}
-              complete={hasContactDetails}
-              onEdit={goToDetails}
-            >
-              <DetailRow
-                icon={<User size={14} />}
-                text={`${customer?.first_name || ""} ${
-                  customer?.last_name || ""
-                }`}
-              />
-
-              <DetailRow
-                icon={<Building2 size={14} />}
-                text={customer?.business_name || "Business name not added"}
-              />
-
-              <DetailRow
-                icon={<Mail size={14} />}
-                text={customer?.email || "Email not added"}
-              />
-
-              <DetailRow
-                icon={<Phone size={14} />}
-                text={customer?.phone || "Phone not added"}
-              />
-            </DetailsCard>
-
-            <DetailsCard
-              title="Delivery Address"
-              icon={<MapPin size={18} />}
-              complete={hasDeliveryAddress}
-              onEdit={goToDetails}
-            >
-              <p>{customer?.address_line1 || "Address line 1 not added"}</p>
-              {customer?.address_line2 && <p>{customer.address_line2}</p>}
-              <p>{customer?.city || "City not added"}</p>
-              <p>{customer?.postcode || "Postcode not added"}</p>
-            </DetailsCard>
-
-            {!canSubmit && (
-              <div className="border border-red-100 bg-red-50 rounded-xl p-4 text-xs text-red-700">
-                Please complete your contact and delivery details before
-                submitting your order.
-              </div>
-            )}
-
-            <Link
-              to="/cart"
-              className="inline-flex items-center gap-2 text-xs font-bold text-[#071b3a]"
-            >
-              <ArrowLeft size={15} />
-              Back to Cart
-            </Link>
-
-            <div className="md:hidden border border-[#edf1f7] rounded-xl p-5 shadow-sm">
-              <OrderSummary
-                totalItems={totalItems}
-                subtotal={subtotal}
-                deliveryFee={deliveryFee}
-                estimatedTotal={estimatedTotal}
-                submitting={submitting}
-                onSubmit={handleSubmitOrder}
-                submitRef={bottomSubmitRef}
-              />
-            </div>
-          </div>
-
-          <aside className="space-y-4">
-            <div className="hidden md:block border border-[#edf1f7] rounded-xl p-5 shadow-sm">
-              <OrderSummary
-                totalItems={totalItems}
-                subtotal={subtotal}
-                deliveryFee={deliveryFee}
-                estimatedTotal={estimatedTotal}
-                submitting={submitting}
-                onSubmit={handleSubmitOrder}
-              />
-            </div>
-
-            <div className="border border-[#edf1f7] rounded-xl p-4 flex gap-3 text-[#071b3a]">
-              <ShieldCheck size={22} />
-              <div>
-                <p className="font-bold text-sm">Secure & Trusted</p>
-                <p className="text-xs">Your information is safe with us.</p>
-              </div>
-            </div>
-          </aside>
+        <div className="sticky top-0 z-30 bg-[#f4f6f9]/95 backdrop-blur py-3 -mx-4 px-4 mb-4 border-b border-[#e5eaf2] md:static md:bg-transparent md:border-0 md:p-0 md:mx-0">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-sm font-semibold text-[#071b3a] hover:text-green-700"
+          >
+            <ArrowLeft size={18} />
+            Previous page
+          </button>
         </div>
+
+        <div className="mb-5">
+          <h1 className="text-xl md:text-2xl font-bold text-[#071b3a]">
+            Checkout{" "}
+            <span className="text-sm font-semibold">{totalItems} Items</span>
+          </h1>
+
+          <p className="text-xs text-[#071b3a]/70 mt-1">
+            Please check your contact and delivery details before submitting your
+            order request.
+          </p>
+        </div>
+
+        {cartItems.length === 0 ? (
+          <div className="bg-white border border-[#edf1f7] rounded-xl p-6">
+            <p className="font-semibold text-[#071b3a] mb-4">
+              Your basket is empty.
+            </p>
+
+            <button
+              onClick={() => navigate("/")}
+              className="bg-green-700 text-white px-5 h-10 font-bold text-sm hover:bg-green-800"
+              type="button"
+            >
+              Continue Shopping
+            </button>
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-[1fr_330px] gap-7">
+            <div className="space-y-4">
+              <div className="bg-white border border-[#edf1f7] rounded-xl overflow-hidden">
+                <div className="bg-[#26343a] text-white px-4 py-3 flex justify-between text-sm font-bold">
+                  <span>Your Details</span>
+                  <span>{canSubmit ? "Ready" : "Incomplete"}</span>
+                </div>
+
+                <div className="p-4 md:p-5 space-y-4">
+                  <DetailsCard
+                    title="Contact Details"
+                    icon={<User size={18} />}
+                    complete={hasContactDetails}
+                    onEdit={goToDetails}
+                  >
+                    <DetailRow
+                      icon={<User size={14} />}
+                      text={`${customer?.first_name || ""} ${
+                        customer?.last_name || ""
+                      }`}
+                    />
+
+                    <DetailRow
+                      icon={<Building2 size={14} />}
+                      text={customer?.business_name || "Business name not added"}
+                    />
+
+                    <DetailRow
+                      icon={<Mail size={14} />}
+                      text={customer?.email || "Email not added"}
+                    />
+
+                    <DetailRow
+                      icon={<Phone size={14} />}
+                      text={customer?.phone || "Phone not added"}
+                    />
+                  </DetailsCard>
+
+                  <DetailsCard
+                    title="Delivery Address"
+                    icon={<MapPin size={18} />}
+                    complete={hasDeliveryAddress}
+                    onEdit={goToDetails}
+                  >
+                    <p>
+                      {customer?.address_line1 || "Address line 1 not added"}
+                    </p>
+
+                    {customer?.address_line2 && (
+                      <p>{customer.address_line2}</p>
+                    )}
+
+                    <p>{customer?.city || "City not added"}</p>
+                    <p>{customer?.postcode || "Postcode not added"}</p>
+                  </DetailsCard>
+
+                  {!canSubmit && (
+                    <div className="border border-red-100 bg-red-50 p-4 text-xs text-red-700 font-semibold">
+                      Please complete your contact and delivery details before
+                      submitting your order.
+                    </div>
+                  )}
+
+                  <Link
+                    to="/cart"
+                    className="inline-flex items-center gap-2 text-xs font-bold text-[#071b3a] hover:text-green-700"
+                  >
+                    <ArrowLeft size={15} />
+                    Back to Cart
+                  </Link>
+                </div>
+              </div>
+
+              <div className="md:hidden bg-white border border-[#edf1f7] rounded-xl p-5">
+                <OrderSummary
+                  totalItems={totalItems}
+                  subtotal={subtotal}
+                  submitting={submitting}
+                  onSubmit={handleSubmitOrder}
+                  submitRef={bottomSubmitRef}
+                />
+              </div>
+            </div>
+
+            <aside className="hidden lg:block">
+              <div className="sticky top-24 space-y-4">
+                <div className="border border-[#edf1f7] rounded-xl p-5 shadow-sm bg-white">
+                  <OrderSummary
+                    totalItems={totalItems}
+                    subtotal={subtotal}
+                    submitting={submitting}
+                    onSubmit={handleSubmitOrder}
+                  />
+                </div>
+
+                <div className="border border-[#edf1f7] rounded-xl p-4 gap-3 text-[#071b3a] bg-white flex">
+                  <ShieldCheck size={22} />
+
+                  <div>
+                    <p className="font-bold text-sm">Secure checkout</p>
+                    <p className="text-xs">
+                      Your order request is safely submitted.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        )}
       </section>
 
       {cartItems.length > 0 && showStickySubmit && (
@@ -260,20 +308,24 @@ export default function CheckoutPage() {
               <p className="text-xs text-[#071b3a]/60 font-semibold">
                 Estimated Total
               </p>
+
               <p className="text-xl font-bold text-[#071b3a]">
-                £{estimatedTotal.toFixed(2)}
+                £{subtotal.toFixed(2)}
               </p>
             </div>
 
             <p className="text-xs text-[#071b3a]/60 text-right">
-              Delivery {deliveryFee === 0 ? "FREE" : "£2.00"}
+              VAT at invoice stage
             </p>
           </div>
 
           <button
-            onClick={handleSubmitOrder}
+            onClick={() => {
+              if (submitting) return;
+              handleSubmitOrder();
+            }}
             disabled={submitting}
-            className="w-full h-12 bg-green-700 text-white rounded-lg font-bold text-sm disabled:opacity-70"
+            className="w-full h-12 bg-green-700 text-white font-bold text-sm hover:bg-green-800 disabled:opacity-70"
             type="button"
           >
             {submitting ? "Submitting..." : "Submit Order Request"}
@@ -287,47 +339,39 @@ export default function CheckoutPage() {
 function OrderSummary({
   totalItems,
   subtotal,
-  deliveryFee,
-  estimatedTotal,
   submitting,
   onSubmit,
   submitRef,
 }) {
   return (
     <>
-      <h2 className="text-base font-bold text-[#071b3a] mb-4">
-        Order Summary
-      </h2>
+      <h2 className="text-xl font-bold text-[#071b3a] mb-5">Order summary</h2>
 
       <SummaryRow label="Items" value={totalItems} />
       <SummaryRow label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
-      <SummaryRow
-        label="Delivery"
-        value={deliveryFee === 0 ? "FREE" : "£2.00"}
-        green={deliveryFee === 0}
-      />
+      <SummaryRow label="Estimated delivery" value="Free" green />
 
-      <p className="text-[11px] text-[#071b3a]/70 mb-4">
-        Free delivery above £20. Below £20 delivery fee is £2.
+      <p className="text-xs text-[#071b3a]/70 mb-4">
+        Delivery charges and VAT will be confirmed at invoice stage.
       </p>
 
       <div className="border-t border-[#edf1f7] pt-4">
-        <SummaryRow label="VAT" value="" />
-        <p className="text-[11px] text-[#071b3a]/70">
-          Calculated at invoice stage
-        </p>
+        <SummaryRow label="VAT" value="Invoice stage" />
       </div>
 
-      <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-lg text-[#071b3a]">
-        <span>Estimated Total</span>
-        <span>£{estimatedTotal.toFixed(2)}</span>
+      <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-xl text-[#071b3a]">
+        <span>Total</span>
+        <span>£{subtotal.toFixed(2)}</span>
       </div>
 
       <button
         ref={submitRef}
-        onClick={onSubmit}
+        onClick={() => {
+          if (submitting) return;
+          onSubmit();
+        }}
         disabled={submitting}
-        className="w-full h-11 bg-green-700 text-white rounded-lg font-bold text-sm mt-5 hover:bg-green-800 cursor-pointer transition disabled:opacity-70"
+        className="w-full h-12 bg-green-700 text-white font-bold text-sm mt-5 hover:bg-green-800 transition disabled:opacity-70"
         type="button"
       >
         {submitting ? "Submitting..." : "Submit Order Request"}
@@ -338,7 +382,7 @@ function OrderSummary({
 
 function DetailsCard({ title, icon, complete, onEdit, children }) {
   return (
-    <div className="border border-[#edf1f7] rounded-xl p-4 shadow-sm">
+    <div className="border border-[#edf1f7] bg-white p-4">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
           <span className="text-green-700">{icon}</span>
@@ -347,7 +391,7 @@ function DetailsCard({ title, icon, complete, onEdit, children }) {
 
         <button
           onClick={onEdit}
-          className="text-xs font-bold text-green-700"
+          className="text-xs font-bold text-green-700 hover:text-green-800"
           type="button"
         >
           Edit
@@ -388,9 +432,13 @@ function DetailRow({ icon, text }) {
 
 function SummaryRow({ label, value, green }) {
   return (
-    <div className="flex justify-between mb-3 text-[13px] text-[#071b3a]">
-      <span>{label}</span>
-      <span className={`font-bold ${green ? "text-green-700" : ""}`}>
+    <div className="flex justify-between mb-3 text-sm text-[#3f4043]">
+      <span className="font-semibold">{label}</span>
+      <span
+        className={`font-bold ${
+          green ? "text-green-700" : "text-[#071b3a]"
+        }`}
+      >
         {value}
       </span>
     </div>

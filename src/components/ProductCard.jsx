@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import QtyAddControl from "./QtyAddControl";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -11,6 +13,8 @@ export default function ProductCard({
   onSlabClick,
   onAddToCart,
 }) {
+  const navigate = useNavigate();
+
   const getImage = (imageUrl) => {
     if (!imageUrl) return "";
     return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
@@ -23,14 +27,18 @@ export default function ProductCard({
     ? Number(activeTier.price)
     : Number(product.from_price || product.price || 0);
 
+    const [localQty, setLocalQty] = useState("1");
+
+    const addDisabled = localQty === "";
+
   return (
     <div className="bg-white border border-gray-300 shadow-sm hover:shadow-md transition overflow-hidden">
       <div className="p-4">
-        <div className="grid grid-cols-[130px_1fr] gap-4">
-          <Link
-            to={`/product/${product.slug}`}
-            className="h-36 bg-gray-50 flex items-center justify-center overflow-hidden"
-          >
+        <div
+          className="grid grid-cols-[130px_1fr] gap-4 cursor-pointer"
+          onClick={() => navigate(`/product/${product.slug}`)}
+        >
+          <div className="h-36 bg-gray-50 flex items-center justify-center overflow-hidden">
             {product.image_url ? (
               <img
                 src={getImage(product.image_url)}
@@ -40,14 +48,12 @@ export default function ProductCard({
             ) : (
               <span className="text-gray-400 text-sm">No image</span>
             )}
-          </Link>
+          </div>
 
           <div className="min-w-0">
-            <Link to={`/product/${product.slug}`}>
-              <h2 className="font-bold text-gray-900 text-lg leading-snug line-clamp-2 break-words">
-                {product.product_name}
-              </h2>
-            </Link>
+            <h2 className="font-bold text-gray-900 text-lg leading-snug line-clamp-2 break-words hover:text-green-700">
+              {product.product_name}
+            </h2>
 
             <p className="text-sm text-gray-500 mt-1">
               SKU: {product.sku || "N/A"}
@@ -81,7 +87,10 @@ export default function ProductCard({
                 <button
                   type="button"
                   key={`${tier.min_qty}-${tier.max_qty}`}
-                  onClick={() => onSlabClick(product.product_id, tier.min_qty)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSlabClick(product.product_id, tier.min_qty);
+                  }}
                   className={`border-r last:border-r-0 text-center min-w-0 ${
                     isActive ? "bg-green-50" : "bg-white hover:bg-gray-50"
                   }`}
@@ -117,25 +126,9 @@ export default function ProductCard({
           <p className="text-xs text-gray-500">exc. VAT</p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            min="0"
-            value={qty || 1}
-            onChange={(e) => onQtyChange(product.product_id, e.target.value)}
-            placeholder="Qty"
-            className="w-20 h-10 border border-gray-300 text-center outline-none"
-          />
-
-          <button
-            type="button"
-            onClick={() => onAddToCart(product)}
-            className="h-10 px-4 bg-green-700 text-white font-bold text-sm hover:bg-green-800 flex items-center gap-2"
-          >
-            <ShoppingCart size={15} />
-            Add
-          </button>
-        </div>
+        <QtyAddControl
+        onAdd={(quantity) => onAddToCart(product, quantity)}
+        />
       </div>
     </div>
   );

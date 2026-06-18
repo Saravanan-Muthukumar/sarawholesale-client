@@ -16,68 +16,62 @@ export default function AdvancedSearchBar() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchSuggestions(query);
+      const value = query.trim();
+
+      if (value.length < 2) {
+        setSuggestions([]);
+        setOpen(false);
+        return;
+      }
+
+      fetch(`${API_URL}/api/search/keywords?q=${encodeURIComponent(value)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setSuggestions(Array.isArray(data) ? data : []);
+          setOpen(true);
+        })
+        .catch((err) => {
+          console.error("Search suggestion error:", err);
+          setSuggestions([]);
+        })
+        .finally(() => setLoading(false));
+
+      setLoading(true);
     }, 250);
 
     return () => clearTimeout(timer);
   }, [query]);
 
   useEffect(() => {
-    const handlePointerDown = (e) => {
+    const handleClickOutside = (e) => {
       if (boxRef.current && !boxRef.current.contains(e.target)) {
         setOpen(false);
-        inputRef.current?.blur();
       }
     };
 
-    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("touchstart", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-  const fetchSuggestions = async (value) => {
-    const searchValue = value.trim();
-
-    if (searchValue.length < 2) {
-      setSuggestions([]);
-      setOpen(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const res = await fetch(
-        `${API_URL}/api/search/keywords?q=${encodeURIComponent(searchValue)}`
-      );
-
-      const data = await res.json();
-
-      setSuggestions(Array.isArray(data) ? data : []);
-      setOpen(true);
-    } catch (err) {
-      console.error("Search suggestion error:", err);
-      setSuggestions([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const submitSearch = (value = query) => {
+  const goToSearch = (value = query) => {
     const searchValue = value.trim();
     if (!searchValue) return;
 
     setOpen(false);
     inputRef.current?.blur();
 
-    navigate(`/search?q=${encodeURIComponent(searchValue)}`);
-  };
+    const url = `/search?q=${encodeURIComponent(searchValue)}`;
 
-  const handleSuggestionSelect = (value) => {
-    setQuery(value);
-    submitSearch(value);
+    if (window.innerWidth < 768) {
+      window.location.href = url;
+    } else {
+      navigate(url);
+    }
   };
 
   return (
@@ -85,7 +79,7 @@ export default function AdvancedSearchBar() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          submitSearch();
+          goToSearch();
         }}
         className="relative"
       >
@@ -106,8 +100,7 @@ export default function AdvancedSearchBar() {
         {query && (
           <button
             type="button"
-            onPointerDown={(e) => {
-              e.preventDefault();
+            onClick={() => {
               setQuery("");
               setSuggestions([]);
               setOpen(false);
@@ -128,8 +121,12 @@ export default function AdvancedSearchBar() {
       </form>
 
       {open && query.trim().length >= 2 && (
-        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] overflow-hidden">
-          <div className="max-h-[60vh] overflow-y-auto overscroll-contain">
+        <div
+          onTouchStart={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[99999] overflow-hidden"
+        >
+          <div className="max-h-[60vh] overflow-y-auto">
             {loading && (
               <div className="px-5 py-3 text-[16px] text-gray-500">
                 Searching...
@@ -139,17 +136,22 @@ export default function AdvancedSearchBar() {
             {!loading && suggestions.length > 0 && (
               <div className="py-2">
                 {suggestions.slice(0, 12).map((item) => (
-                  <button
+                  <div
                     key={item.keyword}
-                    type="button"
-                    onPointerDown={(e) => {
+                    onTouchEnd={(e) => {
                       e.preventDefault();
-                      handleSuggestionSelect(item.keyword);
+                      e.stopPropagation();
+                      goToSearch(item.keyword);
                     }}
-                    className="w-full text-left px-6 py-3 text-[16px] active:bg-gray-100 hover:bg-gray-50 text-gray-900"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      goToSearch(item.keyword);
+                    }}
+                    className="w-full px-6 py-4 text-[16px] active:bg-gray-100 hover:bg-gray-50 text-gray-900 cursor-pointer"
                   >
                     {item.keyword}
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -161,16 +163,21 @@ export default function AdvancedSearchBar() {
             )}
           </div>
 
-          <button
-            type="button"
-            onPointerDown={(e) => {
+          <div
+            onTouchEnd={(e) => {
               e.preventDefault();
-              submitSearch();
+              e.stopPropagation();
+              goToSearch();
             }}
-            className="w-full px-6 py-3 bg-gray-50 active:bg-green-50 hover:bg-green-50 text-sm font-semibold text-green-700 border-t border-gray-100"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goToSearch();
+            }}
+            className="w-full px-6 py-4 bg-gray-50 active:bg-green-50 hover:bg-green-50 text-sm font-semibold text-green-700 border-t border-gray-100 cursor-pointer"
           >
             View all results for "{query}"
-          </button>
+          </div>
         </div>
       )}
     </div>

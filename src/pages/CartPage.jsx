@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, Trash2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Trash2 } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import CategoryMenu from "../components/CategoryMenu";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -10,20 +11,30 @@ export default function CartPage() {
 
   const navigate = useNavigate();
   const bottomCheckoutRef = useRef(null);
+  const [categories, setCategories] = useState([]);
 
-  const [updating, setUpdating] = useState(false);
+  const [updatingId, setUpdatingId] = useState(null);
   const [showMobileStickyCheckout, setShowMobileStickyCheckout] = useState(true);
-  const [deleteItem, setDeleteItem] = useState(null);
+  const [deleteItemId, setDeleteItemId] = useState(null);
 
   const getImage = (imageUrl) => {
     if (!imageUrl) return null;
     return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
   };
 
+  useEffect(() => {
+    fetch(`${API_URL}/api/categories`)
+      .then((res) => res.json())
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .catch(console.error);
+  }, []);
+
   const getProductLink = (item) => {
     const slug = item.slug || item.product_slug;
     return slug ? `/product/${slug}` : "#";
   };
+
+  const getItemId = (item) => item.cart_item_id || item.product_id;
 
   const getLineTotal = (item) =>
     Number(item.quantity || 0) * Number(item.unit_price || 0);
@@ -35,58 +46,63 @@ export default function CartPage() {
     if (!bottomCheckoutRef.current) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setShowMobileStickyCheckout(!entry.isIntersecting);
-      },
+      ([entry]) => setShowMobileStickyCheckout(!entry.isIntersecting),
       { threshold: 0.25 }
     );
 
     observer.observe(bottomCheckoutRef.current);
-
     return () => observer.disconnect();
   }, [cartItems.length]);
 
   const handleIncrease = async (item) => {
-    setUpdating(true);
-    await updateCartItem(
-      item.cart_item_id || item.product_id,
-      Number(item.quantity) + 1
-    );
-    setUpdating(false);
+    const id = getItemId(item);
+    setUpdatingId(id);
+    await updateCartItem(id, Number(item.quantity) + 1);
+    setUpdatingId(null);
   };
 
   const handleDecrease = async (item) => {
-    setUpdating(true);
-    const newQty = Number(item.quantity) - 1;
+    const qty = Number(item.quantity || 1);
+  
+    if (qty <= 1) {
+      setDeleteItemId(getItemId(item));
+      return;
+    }
+  
+    const id = getItemId(item);
+  
+    setUpdatingId(id);
+    await updateCartItem(id, qty - 1);
+    setUpdatingId(null);
+  };
 
-    if (newQty <= 0) {
-      setDeleteItem(item);
-      setUpdating(false);
+  const handleQtyChange = async (item, value) => {
+    const id = getItemId(item);
+
+    if (value === "") {
+      await updateCartItem(id, "");
       return;
     }
 
-    await updateCartItem(item.cart_item_id || item.product_id, newQty);
-    setUpdating(false);
-  };
+    const qty = Number(value);
 
+    if (qty <= 0) {
+      await updateCartItem(id, 1);
+      return;
+    }
 
-  const confirmRemove = async () => {
-    if (!deleteItem) return;
-  
-    setUpdating(true);
-  
-    await removeCartItem(
-      deleteItem.cart_item_id || deleteItem.product_id
-    );
-  
-    setUpdating(false);
-    setDeleteItem(null);
+    setUpdatingId(id);
+    await updateCartItem(id, qty);
+    setUpdatingId(null);
   };
 
   return (
     <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] pb-28 md:pb-0">
+      <div className="hidden md:block mb-5">
+        <CategoryMenu categories={categories} />
+      </div>
       <section className="max-w-7xl mx-auto px-4 py-5">
-        <div className="mb-4 md:mb-5">
+        <div className="sticky top-0 z-30 bg-[#f4f6f9]/95 backdrop-blur py-3 -mx-4 px-4 mb-4 border-b border-[#e5eaf2] md:static md:bg-transparent md:border-0 md:p-0 md:mx-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -97,171 +113,151 @@ export default function CartPage() {
           </button>
         </div>
 
-        <div className="mb-6 md:mb-5">
-          <h1 className="text-md md:text-xl font-bold text-[#071b3a]">
-            Cart ({totalItems} Items)
+        <div className="mb-5">
+          <h1 className="text-xl md:text-2xl font-bold text-[#071b3a]">
+            My Basket{" "}
+            <span className="text-sm font-semibold">{totalItems} Items</span>
           </h1>
         </div>
 
         {cartItems.length === 0 ? (
-          <button
-            onClick={() => {
-              if (window.history.length > 1) navigate(-1);
-              else navigate("/");
-            }}
-            className="text-green-700 font-bold hover:underline cursor-pointer"
-          >
-            Continue Shopping
-          </button>
-        ) : (
-          <div className="grid lg:grid-cols-[1fr_290px] gap-7">
-            <div>
-              <div className="hidden md:block border border-[#edf1f7] rounded-xl overflow-hidden bg-white">
-                <table className="w-full text-xs text-[#071b3a]">
-                  <thead className="bg-gray-50">
-                    <tr className="border-b border-[#edf1f7]">
-                      <th className="text-left p-3 text-[11px] font-semibold">
-                        Product
-                      </th>
-                      <th className="text-left p-3 text-[11px] font-semibold">
-                        Quantity
-                      </th>
-                      <th className="text-left p-3 text-[11px] font-semibold">
-                        Unit Price
-                      </th>
-                      <th className="text-left p-3 text-[11px] font-semibold">
-                        Total
-                      </th>
-                      <th className="text-left p-3 text-[11px] font-semibold">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
+          <div className="bg-white border border-[#edf1f7] rounded-xl p-6">
+            <p className="font-semibold text-[#071b3a] mb-4">
+              Your basket is empty.
+            </p>
 
-                  <tbody>
-                    {cartItems.map((item) => (
-                      <tr
-                        key={item.cart_item_id || item.product_id}
-                        className="border-t border-[#edf1f7] hover:bg-[#fbfcfe]"
-                      >
-                        <td className="p-3">
+            <button
+              onClick={() => navigate("/")}
+              className="bg-green-700 text-white px-5 h-10 font-bold text-sm hover:bg-green-800"
+              type="button"
+            >
+              Continue Shopping
+            </button>
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-[1fr_330px] gap-7">
+            <div className="space-y-4">
+              <div className="bg-white border border-[#edf1f7] rounded-xl overflow-hidden">
+                <div className="bg-[#26343a] text-white px-4 py-3 flex justify-between text-sm font-bold">
+                  <span>Your Items</span>
+                  <span>{cartItems.length} products</span>
+                </div>
+
+                {cartItems.map((item) => {
+                  const id = getItemId(item);
+                  const isUpdating = updatingId === id;
+
+                  return (
+                    <div
+                      key={id}
+                      className="p-4 md:p-5 border-b border-[#edf1f7] last:border-b-0"
+                    >
+                      <div className="grid grid-cols-[80px_1fr] md:grid-cols-[110px_1fr_120px] gap-4">
+                        <Link to={getProductLink(item)}>
+                          {getImage(item.image_url) ? (
+                            <img
+                              src={getImage(item.image_url)}
+                              alt={item.product_name}
+                              className="w-20 h-20 md:w-24 md:h-24 object-contain bg-white"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 bg-gray-100" />
+                          )}
+                        </Link>
+
+                        <div>
                           <Link
                             to={getProductLink(item)}
-                            className="flex items-center gap-3 hover:text-green-700 transition cursor-pointer"
+                            className="font-bold text-sm md:text-base text-[#071b3a] hover:text-green-700 leading-snug"
                           >
-                            {getImage(item.image_url) ? (
-                              <img
-                                src={getImage(item.image_url)}
-                                alt={item.product_name}
-                                className="w-14 h-14 object-contain"
-                              />
-                            ) : (
-                              <div className="w-14 h-14 bg-gray-100 rounded" />
-                            )}
-
-                            <div>
-                              <p className="font-semibold text-sm">
-                                {item.product_name}
-                              </p>
-                              <p className="text-[11px] text-[#071b3a]/60">
-                                SKU: {item.sku}
-                              </p>
-                            </div>
+                            {item.product_name}
                           </Link>
-                        </td>
 
-                        <td className="p-3">
-                          <QtyBox
-                            qty={item.quantity}
-                            onMinus={() => handleDecrease(item)}
-                            onPlus={() => handleIncrease(item)}
-                            disabled={updating}
-                          />
-                        </td>
+                          <p className="text-xs text-[#071b3a]/60 mt-1">
+                            SKU: {item.sku || "N/A"}
+                          </p>
 
-                        <td className="p-3 font-semibold text-sm">
-                          £{Number(item.unit_price || 0).toFixed(2)}
-                        </td>
+                          <p className="text-xs mt-3 text-green-700 font-bold">
+                            Available for delivery
+                          </p>
 
-                        <td className="p-3 font-semibold text-sm">
-                          £{getLineTotal(item).toFixed(2)}
-                        </td>
+                          <div className="flex items-center gap-3 mt-4">
+                            <QtyBox
+                              qty={item.quantity}
+                              onMinus={() => handleDecrease(item)}
+                              onPlus={() => handleIncrease(item)}
+                              onChangeQty={(value) =>
+                                handleQtyChange(item, value)
+                              }
+                              disabled={isUpdating}
+                            />
 
-                        <td className="p-3">
-                          <button
-                            onClick={() => setDeleteItem(item)}
-                            disabled={updating}
-                            className="text-[#071b3a] hover:text-red-600 cursor-pointer disabled:opacity-50"
-                            type="button"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                            <button
+                              onClick={() => setDeleteItemId(getItemId(item))}
+                              disabled={isUpdating}
+                              className="text-[#071b3a] hover:text-red-600 disabled:opacity-50"
+                              type="button"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
 
-              <div className="md:hidden space-y-3">
-                {cartItems.map((item) => (
-                  <div
-                    key={item.cart_item_id || item.product_id}
-                    className="bg-white border border-[#edf1f7] rounded-xl p-3 shadow-sm"
-                  >
-                    <Link
-                      to={getProductLink(item)}
-                      className="flex gap-3 hover:text-green-700 transition cursor-pointer"
-                    >
-                      {getImage(item.image_url) ? (
-                        <img
-                          src={getImage(item.image_url)}
-                          alt={item.product_name}
-                          className="w-14 h-14 object-contain"
-                        />
-                      ) : (
-                        <div className="w-14 h-14 bg-gray-100 rounded" />
-                      )}
+                        <div className="col-span-2 md:col-span-1 md:text-right">
+                          <p className="text-xs text-[#071b3a]/60">
+                            Unit price
+                          </p>
 
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm text-[#071b3a] leading-snug">
-                          {item.product_name}
-                        </p>
-                        <p className="text-[10px] text-[#071b3a]/60 mt-1">
-                          SKU: {item.sku}
-                        </p>
-                        <p className="text-xs mt-1">
-                          £{Number(item.unit_price || 0).toFixed(2)} each
-                        </p>
+                          <p className="font-bold text-[#071b3a]">
+                            £{Number(item.unit_price || 0).toFixed(2)}
+                          </p>
+
+                          <p className="text-xs text-[#071b3a]/60 mt-3">
+                            Line total
+                          </p>
+
+                          <p className="font-bold text-lg text-[#071b3a]">
+                            £{getLineTotal(item).toFixed(2)}
+                          </p>
+                        </div>
                       </div>
-                    </Link>
+                      {deleteItemId === id && (
+                  <div className="mt-4 bg-[#f5f7fb] border border-[#d9e2ef] p-4">
+                    <p className="font-semibold text-sm text-[#071b3a]">
+                      Remove this item from your basket?
+                    </p>
 
-                    <div className="flex items-center justify-between mt-3">
-                      <QtyBox
-                        qty={item.quantity}
-                        onMinus={() => handleDecrease(item)}
-                        onPlus={() => handleIncrease(item)}
-                        disabled={updating}
-                      />
-
-                      <p className="font-bold text-sm text-[#071b3a]">
-                        £{getLineTotal(item).toFixed(2)}
-                      </p>
+                    <div className="flex gap-3 mt-3">
+                      <button
+                        onClick={() => setDeleteItemId(null)}
+                        className="h-10 px-5 border border-gray-300 font-semibold text-sm bg-white"
+                      >
+                        Keep Item
+                      </button>
 
                       <button
-                        onClick={() => setDeleteItem(item)}
-                        disabled={updating}
-                        className="text-[#071b3a] hover:text-red-600 cursor-pointer disabled:opacity-50"
-                        type="button"
+                        onClick={async () => {
+                          setUpdatingId(id);
+                          await removeCartItem(id);
+                          setUpdatingId(null);
+                          setDeleteItemId(null);
+                        }}
+                        className="h-10 px-5 bg-red-600 text-white font-semibold text-sm hover:bg-red-700"
                       >
-                        <Trash2 size={15} />
+                        Remove Item
                       </button>
                     </div>
                   </div>
-                ))}
+                )}
+                    </div>
+                    
+                  );
+
+                })}
+
               </div>
 
-              <div className="md:hidden mt-5 bg-white border border-[#edf1f7] rounded-xl p-5 shadow-sm">
+              <div className="md:hidden bg-white border border-[#edf1f7] rounded-xl p-5">
                 <OrderSummary
                   totalItems={totalItems}
                   subtotal={subtotal}
@@ -269,33 +265,27 @@ export default function CartPage() {
                   checkoutRef={bottomCheckoutRef}
                 />
               </div>
-
-              <div className="hidden md:flex justify-start mt-5">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="h-9 px-5 border border-[#e5eaf2] rounded-lg font-bold flex items-center gap-2 text-xs text-[#071b3a] cursor-pointer hover:bg-gray-50"
-                  type="button"
-                >
-                  <ArrowLeft size={16} />
-                  Continue Shopping
-                </button>
-              </div>
             </div>
 
-            <aside className="space-y-4">
-              <div className="hidden md:block border border-[#edf1f7] rounded-xl p-5 shadow-sm bg-white">
-                <OrderSummary
-                  totalItems={totalItems}
-                  subtotal={subtotal}
-                  onCheckout={() => navigate("/checkout")}
-                />
-              </div>
+            <aside className="hidden lg:block">
+              <div className="sticky top-24 space-y-4">
+                <div className="border border-[#edf1f7] rounded-xl p-5 shadow-sm bg-white">
+                  <OrderSummary
+                    totalItems={totalItems}
+                    subtotal={subtotal}
+                    onCheckout={() => navigate("/checkout")}
+                  />
+                </div>
 
-              <div className="hidden md:flex border border-[#edf1f7] rounded-xl p-4 gap-3 text-[#071b3a] bg-white">
-                <ShieldCheck size={22} />
-                <div>
-                  <p className="font-bold text-sm">Secure & Trusted</p>
-                  <p className="text-xs">Your information is safe with us.</p>
+                <div className="border border-[#edf1f7] rounded-xl p-4 gap-3 text-[#071b3a] bg-white flex">
+                  <ShieldCheck size={22} />
+
+                  <div>
+                    <p className="font-bold text-sm">Secure checkout</p>
+                    <p className="text-xs">
+                      Your order request is safely submitted.
+                    </p>
+                  </div>
                 </div>
               </div>
             </aside>
@@ -310,6 +300,7 @@ export default function CartPage() {
               <p className="text-xs text-[#071b3a]/60 font-semibold">
                 Estimated Total
               </p>
+
               <p className="text-xl font-bold text-[#071b3a]">
                 £{subtotal.toFixed(2)}
               </p>
@@ -322,46 +313,14 @@ export default function CartPage() {
 
           <button
             onClick={() => navigate("/checkout")}
-            className="w-full h-12 bg-green-700 text-white rounded-lg font-bold text-sm"
+            className="w-full h-12 bg-green-700 text-white font-bold text-sm hover:bg-green-800"
             type="button"
           >
-            Proceed to Checkout
+            Go to checkout
           </button>
         </div>
       )}
-      {deleteItem && (
-  <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center px-4">
-    <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
-      <h3 className="text-lg font-bold text-[#071b3a]">
-        Remove Item?
-      </h3>
 
-      <p className="text-sm text-gray-600 mt-3">
-        Are you sure you want to remove:
-      </p>
-
-      <p className="font-semibold text-[#071b3a] mt-2">
-        {deleteItem.product_name}
-      </p>
-
-      <div className="flex gap-3 mt-6">
-        <button
-          onClick={() => setDeleteItem(null)}
-          className="flex-1 h-11 border border-gray-300 rounded-lg font-semibold text-[#071b3a]"
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={confirmRemove}
-          className="flex-1 h-11 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700"
-        >
-          Remove
-        </button>
-      </div>
-    </div>
-  </div>
-)}
     </main>
   );
 }
@@ -369,65 +328,83 @@ export default function CartPage() {
 function OrderSummary({ totalItems, subtotal, onCheckout, checkoutRef }) {
   return (
     <>
-      <h2 className="text-base font-bold text-[#071b3a] mb-4">
-        Order Summary
-      </h2>
+      <h2 className="text-xl font-bold text-[#071b3a] mb-5">Order summary</h2>
 
       <SummaryRow label="Items" value={totalItems} />
       <SummaryRow label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
-      <SummaryRow label="Delivery" value="FREE" green />
+      <SummaryRow label="Estimated delivery" value="Free" green />
 
-      <p className="text-[11px] text-[#071b3a]/70 mb-4">
-        Within 30 miles of Slough
+      <p className="text-xs text-[#071b3a]/70 mb-4">
+        Delivery charges and VAT will be confirmed at invoice stage.
       </p>
 
       <div className="border-t border-[#edf1f7] pt-4">
-        <SummaryRow label="VAT" value="" />
-        <p className="text-[11px] text-[#071b3a]/70">
-          Calculated at invoice stage
-        </p>
+        <SummaryRow label="VAT" value="Invoice stage" />
       </div>
 
-      <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-lg text-[#071b3a]">
-        <span>Estimated Total</span>
+      <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-xl text-[#071b3a]">
+        <span>Total</span>
         <span>£{subtotal.toFixed(2)}</span>
       </div>
 
       <button
         ref={checkoutRef}
         onClick={onCheckout}
-        className="w-full h-11 bg-green-700 text-white rounded-lg font-bold text-sm mt-5 hover:bg-green-800 cursor-pointer transition"
+        className="w-full h-12 bg-green-700 text-white font-bold text-sm mt-5 hover:bg-green-800 transition"
         type="button"
       >
-        Proceed to Checkout
+        Go to checkout
       </button>
     </>
   );
 }
 
-function QtyBox({ qty, onMinus, onPlus, disabled }) {
+function QtyBox({ qty, onMinus, onPlus, onChangeQty, disabled }) {
   return (
-    <div className="inline-flex h-9 border border-[#e5eaf2] rounded-lg overflow-hidden text-sm bg-white">
+    <div className="flex h-10 border border-gray-300 overflow-hidden bg-white">
       <button
         onClick={onMinus}
         disabled={disabled}
-        className="w-9 flex items-center justify-center hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        className={`w-10 text-2xl font-bold transition-colors disabled:opacity-50 ${
+          Number(qty) === 1
+            ? "bg-red-50 text-red-600 hover:bg-red-100"
+            : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+        }`}
         type="button"
       >
-        <Minus size={14} />
+        −
       </button>
 
-      <div className="w-12 flex items-center justify-center border-x border-[#e5eaf2]">
-        {qty}
-      </div>
+      <input
+        value={qty}
+        disabled={disabled}
+        onChange={(e) => {
+          const value = e.target.value;
+
+          if (value === "") {
+            onChangeQty("");
+            return;
+          }
+
+          const cleanValue = value.replace(/\D/g, "");
+          onChangeQty(cleanValue);
+        }}
+        onBlur={() => {
+          if (!qty || Number(qty) <= 0) {
+            onChangeQty(1);
+          }
+        }}
+        inputMode="numeric"
+        className="w-14 text-center text-black font-bold outline-none border-x border-gray-300 bg-white"
+      />
 
       <button
         onClick={onPlus}
         disabled={disabled}
-        className="w-9 flex items-center justify-center hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-10 bg-gray-100 text-2xl font-bold text-gray-900 hover:bg-gray-200 disabled:opacity-50"
         type="button"
       >
-        <Plus size={14} />
+        +
       </button>
     </div>
   );
@@ -435,9 +412,13 @@ function QtyBox({ qty, onMinus, onPlus, disabled }) {
 
 function SummaryRow({ label, value, green }) {
   return (
-    <div className="flex justify-between mb-3 text-[13px] text-[#3f4043]">
-      <span>{label}</span>
-      <span className={`font-bold ${green ? "text-green-700" : ""}`}>
+    <div className="flex justify-between mb-3 text-sm text-[#3f4043]">
+      <span className="font-semibold">{label}</span>
+      <span
+        className={`font-bold ${
+          green ? "text-green-700" : "text-[#071b3a]"
+        }`}
+      >
         {value}
       </span>
     </div>

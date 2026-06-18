@@ -21,6 +21,7 @@ export default function SearchResultsPage() {
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState({});
   const [addedProduct, setAddedProduct] = useState("");
+  
 
   const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [showMobileSort, setShowMobileSort] = useState(false);
@@ -78,7 +79,7 @@ export default function SearchResultsPage() {
 
     setQty((prev) => ({
       ...prev,
-      [productId]: Math.max(0, Number(value) || 0),
+      [productId]: Math.max(1, Number(value) || 1),
     }));
   };
 
@@ -90,7 +91,7 @@ export default function SearchResultsPage() {
   };
 
   const getActiveTier = (product) => {
-    const enteredQty = Number(qty[product.product_id] || 0);
+    const enteredQty = Number(qty[product.product_id] || 1);
 
     if (!enteredQty || !product.price_breaks?.length) return null;
 
@@ -114,12 +115,7 @@ export default function SearchResultsPage() {
   };
 
   const handleAddToCart = async (product) => {
-    const enteredQty = Number(qty[product.product_id] || 0);
-
-    if (enteredQty <= 0) {
-      alert("Please enter quantity");
-      return;
-    }
+    const enteredQty = Number(qty[product.product_id] || 1);
 
     const activeTier = getActiveTier(product);
 
@@ -279,7 +275,7 @@ export default function SearchResultsPage() {
                   <ProductCard
                     key={product.product_id}
                     product={product}
-                    qty={qty[product.product_id] ?? ""}
+                    qty={qty[product.product_id] ?? 1}
                     activeTier={getActiveTier(product)}
                     onQtyChange={updateQty}
                     onSlabClick={setQtyFromSlab}

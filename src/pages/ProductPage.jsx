@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import CategoryMenu from "../components/CategoryMenu";
+import QtyAddControl from "../components/QtyAddControl";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -145,10 +146,10 @@ export default function ProductPage() {
     });
   };
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (quantity) => {
     if (!product) return;
 
-    if (enteredQty <= 0) {
+    if (!quantity || Number(quantity) <= 0) {
       alert("Please enter quantity");
       return;
     }
@@ -159,7 +160,7 @@ export default function ProductPage() {
         product_name: product.product_name,
         sku: product.sku,
         image_url: selectedImage || product.image_url,
-        quantity: enteredQty,
+        quantity,
         unit_price: unitPrice,
         price: unitPrice,
       });
@@ -348,45 +349,41 @@ export default function ProductPage() {
               </div>
 
               <div className="mt-5 rounded-2xl border border-green-100 bg-green-50/40 p-4 max-w-xl">
-                <p className="text-lg font-bold text-green-700">
-                  £{Number(unitPrice).toFixed(2)}
-                  <span className="text-[11px] font-normal text-[#071b3a]/50 ml-1">
-                    per unit
-                  </span>
-                </p>
+                  <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-semibold text-[#071b3a]/55 mb-1">
+                        Unit price
+                      </p>
 
-                {qty > 0 && (
-                  <p className="text-xs text-[#071b3a]/60 mt-1">
-                    Total for {qty} units:
-                    <span className="font-semibold text-[#071b3a] ml-1">
-                      £{(Number(qty) * Number(unitPrice)).toFixed(2)}
-                    </span>
-                  </p>
-                )}
+                      <p className="text-2xl font-bold text-green-700 leading-none">
+                        £{Number(unitPrice).toFixed(2)}
+                      </p>
 
-                <div className="mt-4 flex items-center gap-3">
-                  <span className="text-sm font-semibold text-[#071b3a]">
-                    Qty
-                  </span>
+                      <p className="text-[11px] text-[#071b3a]/50 mt-1">
+                        per unit exc. VAT
+                      </p>
 
-                  <input
-                    type="number"
-                    min="0"
-                    value={qty}
-                    onChange={(e) => updateQty(e.target.value)}
-                    placeholder="Qty"
-                    className="w-20 h-9 border border-[#d7e7dc] rounded-lg text-center text-sm outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100 bg-white"
-                  />
+                      {qty > 0 && (
+                        <p className="text-xs text-[#071b3a]/60 mt-2">
+                          Total for {qty} units:
+                          <span className="font-semibold text-[#071b3a] ml-1">
+                            £{(Number(qty) * Number(unitPrice)).toFixed(2)}
+                          </span>
+                        </p>
+                      )}
+                    </div>
 
-                  <button
-                    type="button"
-                    onClick={handleAddToCart}
-                    className="flex-1 md:flex-none bg-green-700 text-white px-6 h-9 rounded-lg text-xs font-semibold hover:bg-green-800 transition"
-                  >
-                    Add to Cart
-                  </button>
+                    <div className="flex flex-col items-start md:items-end gap-2">
+                      <span className="text-xs font-semibold text-[#071b3a]/60">
+                        Quantity
+                      </span>
+
+                      <QtyAddControl
+                        onAdd={(quantity) => handleAddToCart(quantity)}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
 
               <div className="border-t border-[#edf1f7] my-6" />
 
