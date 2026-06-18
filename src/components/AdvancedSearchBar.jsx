@@ -12,6 +12,7 @@ export default function AdvancedSearchBar() {
 
   const navigate = useNavigate();
   const boxRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -25,11 +26,17 @@ export default function AdvancedSearchBar() {
     const handleClick = (e) => {
       if (boxRef.current && !boxRef.current.contains(e.target)) {
         setOpen(false);
+        inputRef.current?.blur();
       }
     };
 
     document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("touchstart", handleClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("touchstart", handleClick);
+    };
   }, []);
 
   const fetchSuggestions = async () => {
@@ -37,6 +44,7 @@ export default function AdvancedSearchBar() {
 
     if (searchValue.length < 2) {
       setSuggestions([]);
+      setOpen(false);
       return;
     }
 
@@ -61,11 +69,14 @@ export default function AdvancedSearchBar() {
 
   const submitSearch = (value = query) => {
     const searchValue = value.trim();
-
     if (!searchValue) return;
 
+    inputRef.current?.blur();
     setOpen(false);
-    navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+
+    setTimeout(() => {
+      navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+    }, 50);
   };
 
   return (
@@ -78,6 +89,7 @@ export default function AdvancedSearchBar() {
         className="relative"
       >
         <input
+          ref={inputRef}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -95,6 +107,7 @@ export default function AdvancedSearchBar() {
               setQuery("");
               setSuggestions([]);
               setOpen(false);
+              inputRef.current?.focus();
             }}
             className="absolute right-16 top-1/2 -translate-y-1/2 text-gray-500"
           >
@@ -111,10 +124,13 @@ export default function AdvancedSearchBar() {
       </form>
 
       {open && query.trim().length >= 2 && (
-        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
-          <div className="max-h-[960px] overflow-y-auto">
+        <div
+          onTouchMove={() => inputRef.current?.blur()}
+          className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] overflow-hidden"
+        >
+          <div className="max-h-[70vh] overflow-y-auto">
             {loading && (
-                <div className="px-5 py-3 text-[16px] text-gray-500">
+              <div className="px-5 py-3 text-[16px] text-gray-500">
                 Searching...
               </div>
             )}
@@ -125,8 +141,11 @@ export default function AdvancedSearchBar() {
                   <button
                     key={item.keyword}
                     type="button"
-                    onClick={() => submitSearch(item.keyword)}
-                    className="w-full text-left px-6 py-2.5 text-[16px] hover:bg-gray-50 text-gray-900"
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      submitSearch(item.keyword);
+                    }}
+                    className="w-full text-left px-6 py-3 text-[16px] hover:bg-gray-50 text-gray-900"
                   >
                     {item.keyword}
                   </button>
@@ -143,7 +162,10 @@ export default function AdvancedSearchBar() {
 
           <button
             type="button"
-            onClick={() => submitSearch()}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              submitSearch();
+            }}
             className="w-full px-6 py-3 bg-gray-50 hover:bg-green-50 text-sm font-semibold text-green-700 border-t border-gray-100"
           >
             View all results for "{query}"
