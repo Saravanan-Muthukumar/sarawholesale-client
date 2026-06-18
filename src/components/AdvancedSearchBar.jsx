@@ -13,12 +13,19 @@ export default function AdvancedSearchBar() {
   const navigate = useNavigate();
   const boxRef = useRef(null);
   const inputRef = useRef(null);
+  const ignoreTap = useRef(false);
 
   const touchStartY = useRef(0);
   const isScrolling = useRef(false);
 
   const handleDropdownScroll = () => {
+    ignoreTap.current = true;
+    isScrolling.current = true;
     inputRef.current?.blur();
+  
+    setTimeout(() => {
+      ignoreTap.current = false;
+    }, 300);
   };
 
   useEffect(() => {
@@ -88,16 +95,17 @@ export default function AdvancedSearchBar() {
 
   const handleSuggestionTouchMove = (e) => {
     const diff = Math.abs(e.touches[0].clientY - touchStartY.current);
-
-    if (diff > 10) {
+  
+    if (diff > 8) {
       isScrolling.current = true;
+      ignoreTap.current = true;
+      inputRef.current?.blur();
     }
   };
 
   const handleSuggestionTouchEnd = (keyword) => {
-    if (!isScrolling.current) {
-      submitSearch(keyword);
-    }
+    if (ignoreTap.current || isScrolling.current) return;
+    submitSearch(keyword);
   };
 
   return (
