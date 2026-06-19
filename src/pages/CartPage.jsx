@@ -115,7 +115,7 @@ export default function CartPage() {
 
   return (
     <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] pb-28 md:pb-0">
-      <div className="hidden md:block mb-5">
+      <div className="hidden md:block mb-5 sticky top-[0] z-[800]">
         <CategoryMenu categories={categories} />
       </div>
       <section className="max-w-7xl mx-auto px-4 py-5">

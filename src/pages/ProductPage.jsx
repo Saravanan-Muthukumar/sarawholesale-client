@@ -191,7 +191,9 @@ export default function ProductPage() {
         </div>
       )}
   
-      <CategoryMenu categories={categories} />
+      <div className="hidden md:block sticky top-[0] z-[800]">
+        <CategoryMenu categories={categories} />
+      </div>
   
       <section className="max-w-7xl mx-auto px-4 pb-10">
         <div className="hidden md:block text-xs font-semibold text-blue-800 mb-4 mt-4">

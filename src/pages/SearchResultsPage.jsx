@@ -146,11 +146,11 @@ export default function SearchResultsPage() {
         </div>
       )}
 
-      <div className="hidden md:block sticky top-0 z-[800] bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto">
-            <CategoryMenu categories={categories} />
-        </div>
-        </div>
+      <div className="hidden md:block sticky top-0 z-[800] bg-[#4f5961]">
+      <div className="hidden md:block sticky top-0 z-[800]">
+        <CategoryMenu categories={categories} />
+      </div>
+      </div>
 
         <div className="max-w-7xl mx-auto px-4 pt-6 pb-6">
         <div className="text-sm mb-2">
