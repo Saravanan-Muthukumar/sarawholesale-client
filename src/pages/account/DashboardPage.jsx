@@ -91,7 +91,7 @@ export default function DashboardPage() {
         Manage your wholesale account, order requests, and business details.
       </p>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
         <SummaryCard
           icon={<ClipboardList size={22} />}
           label="Total Orders"
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                   onClick={() =>
                     navigate(`/orders/${order.order_request_number}`)
                   }
-                  className="w-full border border-[#edf1f7] rounded-lg p-3 flex items-center justify-between text-left cursor-pointer hover:bg-gray-50"
+                  className="w-full border border-[#edf1f7] rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-left cursor-pointer hover:bg-gray-50"
                   type="button"
                 >
                   <div>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
                     <StatusBadge status={formatStatus(order.status)} />
                     <ChevronRight size={17} />
                   </div>
@@ -206,13 +206,15 @@ export default function DashboardPage() {
 
 function SummaryCard({ icon, label, value }) {
   return (
-    <div className="border border-[#edf1f7] rounded-xl p-4">
+    <div className="border border-[#edf1f7] rounded-xl p-3 md:p-4 bg-white">
       <div className="flex items-center justify-between">
         <div className="text-green-700">{icon}</div>
-        <p className="text-2xl font-bold text-[#071b3a]">{value}</p>
+        <p className="text-xl md:text-2xl font-bold text-[#071b3a]">{value}</p>
       </div>
 
-      <p className="text-sm text-[#071b3a]/70 mt-3">{label}</p>
+      <p className="text-xs md:text-sm text-[#071b3a]/70 mt-2 md:mt-3">
+        {label}
+      </p>
     </div>
   );
 }

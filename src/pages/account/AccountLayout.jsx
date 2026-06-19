@@ -93,7 +93,7 @@ export default function AccountLayout() {
           </div>
         </aside>
 
-        <section className="p-4 md:p-7">
+        <section className="p-4 md:p-7 min-w-0">
           <Outlet />
         </section>
       </section>

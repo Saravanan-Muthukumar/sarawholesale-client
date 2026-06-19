@@ -16,8 +16,6 @@ export default function CartPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const [showMobileStickyCheckout, setShowMobileStickyCheckout] = useState(true);
   const [deleteItemId, setDeleteItemId] = useState(null);
-  const [itemsDraft, setItemsDraft] = useState({});
-  
 
   const getImage = (imageUrl) => {
     if (!imageUrl) return null;
@@ -41,15 +39,10 @@ export default function CartPage() {
   const getLineTotal = (item) =>
     Number(item.quantity || 0) * Number(item.unit_price || 0);
 
-    const subtotal = cartItems.reduce(
-      (sum, item) => sum + getLineTotal(item),
-      0
-    );
-    
-    const vatAmount = subtotal * 0.2;
-    const totalAmount = subtotal + vatAmount;
-    const totalItems = cartItemCount; 
-
+  const subtotal = cartItems.reduce((sum, item) => sum + getLineTotal(item), 0);
+  const vatAmount = subtotal * 0.2;
+  const totalAmount = subtotal + vatAmount;
+  const totalItems = cartItemCount;
 
   useEffect(() => {
     if (!bottomCheckoutRef.current) return;
@@ -72,42 +65,25 @@ export default function CartPage() {
 
   const handleDecrease = async (item) => {
     const qty = Number(item.quantity || 1);
-  
+
     if (qty <= 1) {
       setDeleteItemId(getItemId(item));
       return;
     }
-  
+
     const id = getItemId(item);
-  
     setUpdatingId(id);
     await updateCartItem(id, qty - 1);
     setUpdatingId(null);
   };
 
-
-
   const handleQtyChange = async (item, value) => {
-    const id = getItemId(item);
-  
-    // allow empty while typing, do not update backend
-    if (value === "") {
-      setItemsDraft((prev) => ({
-        ...prev,
-        [id]: "",
-      }));
-      return;
-    }
-  
+    if (value === "") return;
+
     const qty = Number(value);
-  
     if (qty <= 0) return;
-  
-    setItemsDraft((prev) => ({
-      ...prev,
-      [id]: qty,
-    }));
-  
+
+    const id = getItemId(item);
     setUpdatingId(id);
     await updateCartItem(id, qty);
     setUpdatingId(null);
@@ -115,9 +91,10 @@ export default function CartPage() {
 
   return (
     <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] pb-28 md:pb-0">
-      <div className="hidden md:block mb-5 sticky top-[0] z-[800]">
+      <div className="hidden md:block mb-5">
         <CategoryMenu categories={categories} />
       </div>
+
       <section className="max-w-7xl mx-auto px-4 py-5">
         <div className="sticky top-0 z-30 bg-[#f4f6f9]/95 backdrop-blur py-3 -mx-4 px-4 mb-4 border-b border-[#e5eaf2] md:static md:bg-transparent md:border-0 md:p-0 md:mx-0">
           <button
@@ -132,8 +109,7 @@ export default function CartPage() {
 
         <div className="mb-5">
           <h1 className="text-xl md:text-2xl font-bold text-[#071b3a]">
-            My Basket{" "}
-            <span className="text-sm font-semibold">{totalItems} Items</span>
+            My Basket <span className="text-sm font-semibold">{totalItems} Items</span>
           </h1>
         </div>
 
@@ -167,117 +143,131 @@ export default function CartPage() {
                   return (
                     <div
                       key={id}
-                      className="p-4 md:p-5 border-b border-[#edf1f7] last:border-b-0"
+                      className="border-b border-[#c7d0dd] last:border-b-0 bg-white"
                     >
-                      <div className="grid grid-cols-[80px_1fr] md:grid-cols-[110px_1fr_120px] gap-4">
-                        <Link to={getProductLink(item)}>
-                          {getImage(item.image_url) ? (
-                            <img
-                              src={getImage(item.image_url)}
-                              alt={item.product_name}
-                              className="w-20 h-20 md:w-24 md:h-24 object-contain bg-white"
-                            />
-                          ) : (
-                            <div className="w-20 h-20 bg-gray-100" />
-                          )}
-                        </Link>
-
-                        <div>
-                          <Link
-                            to={getProductLink(item)}
-                            className="font-bold text-sm md:text-base text-[#071b3a] hover:text-green-700 leading-snug"
-                          >
-                            {item.product_name}
-                          </Link>
-
-                          <p className="text-xs text-[#071b3a]/60 mt-1">
-                            SKU: {item.sku || "N/A"}
+                      {deleteItemId === id ? (
+                        <div className="p-4 md:p-5 bg-gray-100 min-h-[155px] flex flex-col justify-center">
+                          <p className="font-semibold text-sm text-[#071b3a]">
+                            Remove this item from your basket?
                           </p>
 
-                          <p className="text-xs mt-3 text-green-700 font-bold">
-                            Available for delivery
-                          </p>
-
-                          <div className="flex items-center gap-3 mt-4">
-                          <QtyBox
-                              qty={itemsDraft[id] ?? item.quantity}
-                              onMinus={() => handleDecrease(item)}
-                              onPlus={() => handleIncrease(item)}
-                              onChangeQty={(value) => handleQtyChange(item, value)}
-                              onBlurQty={() => {
-                                if (itemsDraft[id] === "") {
-                                  setItemsDraft((prev) => ({
-                                    ...prev,
-                                    [id]: item.quantity || 1,
-                                  }));
-                                }
-                              }}
-                              disabled={isUpdating}
-                            />
-
+                          <div className="flex gap-3 mt-3">
                             <button
-                              onClick={() => setDeleteItemId(getItemId(item))}
-                              disabled={isUpdating}
-                              className="text-[#071b3a] hover:text-red-600 disabled:opacity-50"
+                              onClick={() => setDeleteItemId(null)}
+                              className="h-10 px-5 border border-gray-300 font-semibold text-sm bg-white"
                               type="button"
                             >
-                              <Trash2 size={18} />
+                              Keep Item
+                            </button>
+
+                            <button
+                              onClick={async () => {
+                                setUpdatingId(id);
+                                await removeCartItem(id);
+                                setUpdatingId(null);
+                                setDeleteItemId(null);
+                              }}
+                              className="h-10 px-5 bg-red-600 text-white font-semibold text-sm hover:bg-red-700"
+                              type="button"
+                            >
+                              Remove Item
                             </button>
                           </div>
                         </div>
+                      ) : (
+                        <div className="p-4 md:p-5">
+                          <div className="grid grid-cols-[80px_1fr] md:grid-cols-[110px_1fr_120px] gap-4">
+                            <Link to={getProductLink(item)}>
+                              {getImage(item.image_url) ? (
+                                <img
+                                  src={getImage(item.image_url)}
+                                  alt={item.product_name}
+                                  className="w-20 h-20 md:w-24 md:h-24 object-contain bg-white"
+                                />
+                              ) : (
+                                <div className="w-20 h-20 bg-gray-100" />
+                              )}
+                            </Link>
 
-                        <div className="col-span-2 md:col-span-1 md:text-right">
-                          <p className="text-xs text-[#071b3a]/60">
-                            Unit price
-                          </p>
+                            <div>
+                              <Link
+                                to={getProductLink(item)}
+                                className="font-bold text-sm md:text-base text-[#071b3a] hover:text-green-700 leading-snug"
+                              >
+                                {item.product_name}
+                              </Link>
 
-                          <p className="font-bold text-[#071b3a]">
-                            £{Number(item.unit_price || 0).toFixed(2)}
-                          </p>
+                              <p className="text-xs text-[#071b3a]/60 mt-1">
+                                SKU: {item.sku || "N/A"}
+                              </p>
 
-                          <p className="text-xs text-[#071b3a]/60 mt-3">
-                            Line total
-                          </p>
+                              <p className="text-xs mt-3 text-green-700 font-bold">
+                                Available for delivery
+                              </p>
 
-                          <p className="font-bold text-lg text-[#071b3a]">
-                            £{getLineTotal(item).toFixed(2)}
-                          </p>
+                              <div className="grid grid-cols-2 gap-4 mt-3 md:hidden">
+                                <div>
+                                  <p className="text-xs text-[#071b3a]/60">
+                                    Unit price
+                                  </p>
+                                  <p className="font-bold text-[#071b3a]">
+                                    £{Number(item.unit_price || 0).toFixed(2)}
+                                  </p>
+                                </div>
+
+                                <div>
+                                  <p className="text-xs text-[#071b3a]/60">
+                                    Line total
+                                  </p>
+                                  <p className="font-bold text-[#071b3a]">
+                                    £{getLineTotal(item).toFixed(2)}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-3 mt-4">
+                                <QtyBox
+                                  qty={item.quantity}
+                                  onMinus={() => handleDecrease(item)}
+                                  onPlus={() => handleIncrease(item)}
+                                  onChangeQty={(value) => handleQtyChange(item, value)}
+                                  disabled={isUpdating}
+                                />
+
+                                <button
+                                  onClick={() => setDeleteItemId(id)}
+                                  disabled={isUpdating}
+                                  className="text-[#071b3a] hover:text-red-600 disabled:opacity-50"
+                                  type="button"
+                                >
+                                  <Trash2 size={18} />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="hidden md:block text-right">
+                              <p className="text-xs text-[#071b3a]/60">
+                                Unit price
+                              </p>
+
+                              <p className="font-bold text-[#071b3a]">
+                                £{Number(item.unit_price || 0).toFixed(2)}
+                              </p>
+
+                              <p className="text-xs text-[#071b3a]/60 mt-3">
+                                Line total
+                              </p>
+
+                              <p className="font-bold text-lg text-[#071b3a]">
+                                £{getLineTotal(item).toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      {deleteItemId === id && (
-                  <div className="mt-4 bg-[#f5f7fb] border border-[#d9e2ef] p-4">
-                    <p className="font-semibold text-sm text-[#071b3a]">
-                      Remove this item from your basket?
-                    </p>
-
-                    <div className="flex gap-3 mt-3">
-                      <button
-                        onClick={() => setDeleteItemId(null)}
-                        className="h-10 px-5 border border-gray-300 font-semibold text-sm bg-white"
-                      >
-                        Keep Item
-                      </button>
-
-                      <button
-                        onClick={async () => {
-                          setUpdatingId(id);
-                          await removeCartItem(id);
-                          setUpdatingId(null);
-                          setDeleteItemId(null);
-                        }}
-                        className="h-10 px-5 bg-red-600 text-white font-semibold text-sm hover:bg-red-700"
-                      >
-                        Remove Item
-                      </button>
+                      )}
                     </div>
-                  </div>
-                )}
-                    </div>
-                    
                   );
-
                 })}
-
               </div>
 
               <div className="md:hidden bg-white border border-[#edf1f7] rounded-xl p-5">
@@ -347,7 +337,6 @@ export default function CartPage() {
           </button>
         </div>
       )}
-
     </main>
   );
 }
@@ -386,7 +375,7 @@ function OrderSummary({
   );
 }
 
-function QtyBox({ qty, onMinus, onPlus, onChangeQty, onBlurQty, disabled }) {
+function QtyBox({ qty, onMinus, onPlus, onChangeQty, disabled }) {
   return (
     <div className="flex h-10 border border-gray-300 overflow-hidden bg-white">
       <button
@@ -415,7 +404,11 @@ function QtyBox({ qty, onMinus, onPlus, onChangeQty, onBlurQty, disabled }) {
 
           onChangeQty(value.replace(/\D/g, ""));
         }}
-        onBlur={onBlurQty}
+        onBlur={() => {
+          if (!qty || Number(qty) <= 0) {
+            onChangeQty(1);
+          }
+        }}
         inputMode="numeric"
         className="w-14 text-center text-black font-bold outline-none border-x border-gray-300 bg-white"
       />
@@ -436,11 +429,7 @@ function SummaryRow({ label, value, green }) {
   return (
     <div className="flex justify-between mb-3 text-sm text-[#3f4043]">
       <span className="font-semibold">{label}</span>
-      <span
-        className={`font-bold ${
-          green ? "text-green-700" : "text-[#071b3a]"
-        }`}
-      >
+      <span className={`font-bold ${green ? "text-green-700" : "text-[#071b3a]"}`}>
         {value}
       </span>
     </div>

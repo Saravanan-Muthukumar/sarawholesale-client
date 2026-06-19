@@ -114,11 +114,16 @@ export default function SearchResultsPage() {
     );
   };
 
-  const handleAddToCart = async (product) => {
-    const enteredQty = Number(qty[product.product_id] || 1);
-
-    const activeTier = getActiveTier(product);
-
+  const handleAddToCart = async (product, quantity) => {
+    const enteredQty = Number(quantity || 1);
+  
+    const activeTier =
+      product.price_breaks?.find(
+        (tier) =>
+          enteredQty >= Number(tier.min_qty) &&
+          (!tier.max_qty || enteredQty <= Number(tier.max_qty))
+      ) || null;
+  
     try {
       await addToCart({
         product_id: product.product_id,
@@ -129,7 +134,7 @@ export default function SearchResultsPage() {
         unit_price: activeTier ? Number(activeTier.price) : 0,
         price: activeTier ? Number(activeTier.price) : 0,
       });
-
+  
       setAddedProduct(product.product_name);
       setTimeout(() => setAddedProduct(""), 2000);
     } catch (err) {

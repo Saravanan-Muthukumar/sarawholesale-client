@@ -105,8 +105,8 @@ export default function ProductListPage() {
     );
   };
 
-  const handleAddToCart = async (product) => {
-    const enteredQty = Number(qty[product.product_id] || 1);
+  const handleAddToCart = async (product, quantity) => {
+    const enteredQty = Number(quantity || 1);
     const activeTier = getActiveTier(product);
   
     try {
