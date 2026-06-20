@@ -18,6 +18,7 @@ export default function ProductPage() {
   const [added, setAdded] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
   const [allProducts, setAllProducts] = useState([]);
+  const [activeTab, setActiveTab] = useState("description");
 
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)
@@ -191,7 +192,7 @@ export default function ProductPage() {
         </div>
       )}
   
-      <div className="hidden md:block sticky top-[0] z-[800]">
+      <div className="hidden md:block sticky top-0 z-800">
         <CategoryMenu categories={categories} />
       </div>
   
@@ -242,7 +243,7 @@ export default function ProductPage() {
         <div className="bg-white border border-[#dfe5ee] shadow-md">
           <div className="grid grid-cols-1 lg:grid-cols-[390px_1fr_330px] gap-0">
             <div className="p-5 md:p-7 border-b lg:border-b-0 lg:border-r border-[#edf1f7]">
-              <div className="h-80 md:h-[420px] flex items-center justify-center bg-white">
+              <div className="h-80 md:h-105 flex items-center justify-center bg-white">
                 {mainImageSrc ? (
                   <img
                     src={mainImageSrc}
@@ -413,48 +414,83 @@ export default function ProductPage() {
   
                 <div className="mt-5 border border-[#d9e2ef] bg-[#f8fafc] p-4 space-y-3 text-sm text-[#071b3a]">
                   <p className="font-semibold">✓ Trade price available</p>
-                  <p className="font-semibold">✓ VAT calculated at invoice stage</p>
-                  <p className="font-semibold">✓ Order request safely submitted</p>
+                  {/* <p className="font-semibold">✓ VAT calculated at invoice stage</p>
+                  <p className="font-semibold">✓ Order request safely submitted</p> */}
                 </div>
               </div>
             </aside>
           </div>
         </div>
 
-        <div className="mt-5">
-                <p className="text-sm leading-6 text-[#3f4043] max-w-xl">
-                  {product.description || "No description available."}
-                </p>
-              </div>
 
-        {product.specifications?.length > 0 && (
-                <div className="mt-6">
-                  <h2 className="font-bold text-blue-800 mb-3 uppercase text-sm">
-                    Product Specifications
-                  </h2>
-  
-                  <div className="border border-[#d9e2ef] max-w-lg">
-                    <table className="w-full text-sm">
-                      <tbody>
-                        {product.specifications.map((spec) => (
-                          <tr
-                            key={spec.spec_id || spec.spec_name}
-                            className="border-b border-[#edf1f7] last:border-b-0"
-                          >
-                            <td className="w-[40%] px-4 py-2 font-bold text-[#071b3a] bg-[#f5f7fb]">
-                              {spec.spec_name}
-                            </td>
-                            <td className="px-4 py-2 text-[#071b3a]/80">
-                              {spec.spec_value}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              <div className="mt-6 bg-white border border-[#d9e2ef] shadow-sm">
+
+                  {/* Tabs */}
+                  <div className="flex border-b border-[#d9e2ef]">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("description")}
+                      className={`px-6 py-4 font-bold text-sm transition ${
+                        activeTab === "description"
+                          ? "bg-white text-blue-800 border-b-2 border-green-600"
+                          : "bg-[#f5f7fb] text-[#071b3a]/60"
+                      }`}
+                    >
+                      Description
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("specifications")}
+                      className={`px-6 py-4 font-bold text-sm transition ${
+                        activeTab === "specifications"
+                          ? "bg-white text-blue-800 border-b-2 border-green-600"
+                          : "bg-[#f5f7fb] text-[#071b3a]/60"
+                      }`}
+                    >
+                      Product Specifications
+                    </button>
                   </div>
-                </div>
-              )}
-  
+
+                  {/* Description Tab */}
+                  {activeTab === "description" && (
+                    <div className="p-6">
+                      <p className="text-sm leading-7 text-[#3f4043] whitespace-pre-line">
+                        {product.description || "No description available."}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Specification Tab */}
+                  {activeTab === "specifications" && (
+                    <div>
+                      {product.specifications?.length > 0 ? (
+                        <table className="w-full text-sm">
+                          <tbody>
+                            {product.specifications.map((spec) => (
+                              <tr
+                                key={spec.spec_id || spec.spec_name}
+                                className="border-b border-[#edf1f7] last:border-b-0"
+                              >
+                                <td className="w-[30%] px-4 py-3 font-bold bg-[#f5f7fb]">
+                                  {spec.spec_name}
+                                </td>
+
+                                <td className="px-4 py-3 text-[#071b3a]/80">
+                                  {spec.spec_value}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <div className="p-6 text-sm text-[#071b3a]/60">
+                          No specifications available.
+                        </div>
+                      )}
+                    </div>
+                  )}
+              </div>
         {relatedProducts.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
@@ -499,7 +535,7 @@ export default function ProductPage() {
                   <Link
                     key={item.product_id}
                     to={`/product/${item.slug}`}
-                    className="shrink-0 w-[220px] md:w-[240px] bg-white border border-[#d9e2ef] shadow-sm p-4 hover:border-green-500 transition"
+                    className="shrink-0 w-55 md:w-60 bg-white border border-[#d9e2ef] shadow-sm p-4 hover:border-green-500 transition"
                   >
                     <div className="h-36 bg-white flex items-center justify-center mb-3">
                       {imageUrl ? (

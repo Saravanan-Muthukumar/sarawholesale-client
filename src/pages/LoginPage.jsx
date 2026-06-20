@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, Eye, UserPlus, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import CategoryMenu from "../components/CategoryMenu";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -35,7 +36,9 @@ export default function LoginPage() {
 
   return (
     <main className="bg-white px-4 pt-5 pb-7 md:pt-8 md:pb-8">
+
       <section className="max-w-105 mx-auto">
+      
         <div className="text-center mb-4">
           <h1 className="text-[23px] md:text-[28px] font-bold text-[#071b3a]">
             Welcome Back

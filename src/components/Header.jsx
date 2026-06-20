@@ -169,7 +169,7 @@ const closeCart = () => {
         );
       
         return (
-          <div className="absolute right-0 top-full w-80 bg-white border-x border-b border-gray-200 shadow-xl z-[9999]">
+          <div className="absolute right-0 top-full w-80 bg-white border-x border-b border-gray-200 shadow-xl z-9999">
             <div className="p-4">
               <h3 className="font-bold text-[#071b3a]">
                 Basket ({cartItems.length})
@@ -238,7 +238,7 @@ const closeCart = () => {
       <div className="bg-[#062b63] text-white text-sm">
         <div className="max-w-7xl mx-auto px-4 h-9 flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <Truck size={16} /> Next Day Delivery - Order by 1pm
+            <Truck size={16} /> Same day and next day Delivery 
           </span>
 
           <span className="hidden md:flex items-center gap-2">
@@ -297,7 +297,7 @@ const closeCart = () => {
             {isLoggedIn ? (
               <div
                 ref={userMenuRef}
-                className={`relative z-[9999] ${
+                className={`relative z-9999 ${
                   userMenuOpen ? "bg-white" : "hover:bg-white"
                 }`}
                 onMouseEnter={openUserMenuSlowly}
@@ -306,7 +306,7 @@ const closeCart = () => {
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen((prev) => !prev)}
-                  className={`h-[58px] px-5 flex items-center gap-2 font-semibold text-[#062b63] cursor-pointer hover:text-green-700 ${
+                  className={`h-14.5 px-5 flex items-center gap-2 font-semibold text-[#062b63] cursor-pointer hover:text-green-700 ${
                     userMenuOpen ? "bg-white" : "hover:bg-white"
                   }`}
                 >
@@ -336,7 +336,7 @@ const closeCart = () => {
             )}
 
             <div
-              className={`relative z-[9999] ${
+              className={`relative z-9999 ${
                 cartHoverOpen ? "bg-white" : "hover:bg-white"
               }`}
               onMouseEnter={openCartSlowly}
@@ -345,7 +345,7 @@ const closeCart = () => {
               <Link
                 to="/cart"
                 onClick={closeMenus}
-                className={`h-[58px] px-5 relative flex items-center gap-2 text-[#071b3a] font-semibold hover:text-green-700 transition cursor-pointer ${
+                className={`h-14.5 px-5 relative flex items-center gap-2 text-[#071b3a] font-semibold hover:text-green-700 transition cursor-pointer ${
                   cartHoverOpen ? "bg-white" : "hover:bg-white"
                 }`}
               >
@@ -353,7 +353,7 @@ const closeCart = () => {
                   <ShoppingCart size={24} />
 
                   {cartItemCount > 0 && (
-                    <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                    <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                       {cartItemCount}
                     </span>
                   )}
@@ -374,7 +374,7 @@ const closeCart = () => {
 
       {/* MOBILE HEADER */}
       <div
-        className="md:hidden sticky top-0 z-[9998] bg-white border-b border-gray-200 shadow-sm"
+        className="md:hidden sticky top-0 z-9998 bg-white border-b border-gray-200 shadow-sm"
         onBlur={(e) => {
           if (!e.currentTarget.contains(e.relatedTarget)) {
             setMobileSearchOpen(false);
@@ -399,7 +399,7 @@ const closeCart = () => {
 
         {!isAuthPage && (
           <>
-            <div className="grid grid-cols-4 h-[62px] text-[#00539f]">
+            <div className="grid grid-cols-4 h-15.5 text-[#00539f]">
               <button
                 type="button"
                 onClick={() => setMenuOpen(true)}
@@ -425,7 +425,7 @@ const closeCart = () => {
                     ? setUserMenuOpen(true)
                     : navigate("/login", { state: { from: location.pathname } })
                 }
-                className="w-full h-[62px] flex flex-col items-center justify-center"
+                className="w-full h-15.5 flex flex-col items-center justify-center"
               >
                 <User size={24} />
                 <span className="text-[10px] font-semibold mt-1">Account</span>
@@ -442,7 +442,7 @@ const closeCart = () => {
                   <ShoppingCart size={24} />
 
                   {cartItemCount > 0 && (
-                    <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                    <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                       {cartItemCount}
                     </span>
                   )}
@@ -466,18 +466,18 @@ const closeCart = () => {
 
 {!isAuthPage && hideMobileLogo && (
   <div
-    className="md:hidden fixed top-0 left-0 right-0 z-[9998] bg-white border-b border-gray-200 shadow-sm"
+    className="md:hidden fixed top-0 left-0 right-0 z-9998 bg-white border-b border-gray-200 shadow-sm"
     onBlur={(e) => {
       if (!e.currentTarget.contains(e.relatedTarget)) {
         setMobileSearchOpen(false);
       }
     }}
   >
-    <div className="grid grid-cols-4 h-[62px] text-[#00539f]">
+    <div className="grid grid-cols-4 h-15.5 text-[#00539f]">
       <button
         type="button"
         onClick={() => setMenuOpen(true)}
-        className="w-full h-[62px] flex flex-col items-center justify-center border-r border-gray-200"
+        className="w-full h-15.5 flex flex-col items-center justify-center border-r border-gray-200"
       >
         <Menu size={24} />
         <span className="text-[10px] font-semibold mt-1">Browse</span>
@@ -499,7 +499,7 @@ const closeCart = () => {
             ? setUserMenuOpen((prev) => !prev)
             : navigate("/login", { state: { from: location.pathname } })
         }
-        className="w-full h-[62px] flex flex-col items-center justify-center"
+        className="w-full h-15.5 flex flex-col items-center justify-center"
       >
         <User size={24} />
         <span className="text-[10px] font-semibold mt-1">Account</span>
@@ -514,7 +514,7 @@ const closeCart = () => {
           <ShoppingCart size={24} />
 
           {cartItemCount > 0 && (
-            <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+            <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
               {cartItemCount}
             </span>
           )}
@@ -535,7 +535,7 @@ const closeCart = () => {
 )}
 
 {isLoggedIn && userMenuOpen && (
-  <div className="md:hidden fixed inset-0 z-[100000]">
+  <div className="md:hidden fixed inset-0 z-100000">
     <button
       type="button"
       onClick={() => setUserMenuOpen(false)}
@@ -544,7 +544,7 @@ const closeCart = () => {
 
     <div
       className={`absolute right-0 w-64 bg-white border-l border-b border-gray-200 shadow-xl ${
-        hideMobileLogo ? "top-[62px]" : "top-[115px]"
+        hideMobileLogo ? "top-15.5" : "top-28.75"
       }`}
     >
       <MobileUserDropdown
@@ -556,7 +556,7 @@ const closeCart = () => {
 )}
 
       {cartPreviewOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 px-4">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/45 px-4">
           <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl p-6 md:p-8">
             <button
               type="button"
@@ -637,7 +637,7 @@ const closeCart = () => {
       )}
 
       {menuOpen && (
-        <div className="fixed inset-0 z-[9999] md:hidden">
+        <div className="fixed inset-0 z-9999 md:hidden">
           <button
             type="button"
             onClick={closeMenus}
@@ -748,7 +748,7 @@ const closeCart = () => {
 
 function UserDropdown({ user, fullName, onLogout, onClose }) {
   return (
-    <div className="absolute right-0 top-full w-72 bg-white border-x border-b border-gray-200 shadow-lg py-2 z-[9999]">
+    <div className="absolute right-0 top-full w-72 bg-white border-x border-b border-gray-200 shadow-lg py-2 z-9999">
       <div className="px-4 py-3">
         <p className="font-bold text-[#071b3a] text-sm">{fullName}</p>
         <p className="text-xs text-gray-500 mt-1">{user?.email}</p>
