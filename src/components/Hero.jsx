@@ -153,7 +153,7 @@ export default function Hero({ onShopNow, categories = [] }) {
     <section className="bg-[#f3f4f6] px-4 py-5">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-5">
         {/* LEFT SLIDER */}
-        <div className="relative overflow-hidden bg-linear-to-r from-[#062b63] via-[#06499c] to-[#0877d8] text-white min-h-[430px]">
+        <div className="relative overflow-hidden bg-linear-to-r from-[#062b63] via-[#06499c] to-[#0877d8] text-white min-h-107.5">
           <button
             type="button"
             onClick={prevSlide}
@@ -299,7 +299,7 @@ export default function Hero({ onShopNow, categories = [] }) {
     {visibleCategories.map((category) => (
       <Link
         key={category.category_id}
-        to={`/category/${category.slug}`}
+        to={`/subcategory/${category.slug}`}
         className="block border border-[#edf1f7] bg-white hover:shadow-md transition"
       >
         <div className="h-32 bg-[#f5f7fb] flex items-center justify-center overflow-hidden">

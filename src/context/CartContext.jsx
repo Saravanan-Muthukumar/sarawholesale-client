@@ -10,29 +10,54 @@ export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const [cartLoading, setCartLoading] = useState(false);
 
+  const mergeGuestCartToUserCart = async () => {
+    const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
+  
+    if (!guestCart.length) return;
+  
+    for (const item of guestCart) {
+      await fetch(`${API_URL}/api/cart/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          product_id: item.product_id,
+          quantity: item.quantity || 1,
+          unit_price: item.unit_price || item.price || 0,
+        }),
+      });
+    }
+  
+    localStorage.removeItem("guestCart");
+  };
+  
   const loadCart = async () => {
     if (authLoading) return;
-
+  
     try {
       setCartLoading(true);
-
+  
       if (isLoggedIn) {
+        await mergeGuestCartToUserCart();
+  
         const res = await fetch(`${API_URL}/api/cart`, {
           credentials: "include",
         });
-
+  
         const data = await res.json();
-
+  
         if (res.ok) {
           setCartItems(data);
         } else {
           setCartItems([]);
         }
-
+  
         return;
       }
-
-      const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+  
+      const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
       setCartItems(guestCart);
     } catch (error) {
       console.error("Load cart error:", error);

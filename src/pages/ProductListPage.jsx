@@ -260,14 +260,14 @@ export default function ProductListPage() {
         <h2 className="text-xl font-bold text-blue-800">Filters</h2>
 
         {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="text-xs font-bold text-red-600 underline"
-          >
-            Clear
-          </button>
-        )}
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded hover:bg-red-700 cursor-pointer transition-colors"
+            >
+              Reset Filters
+            </button>
+          )}
       </div>
 
 
