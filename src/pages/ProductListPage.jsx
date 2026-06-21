@@ -328,7 +328,7 @@ export default function ProductListPage() {
         </div>
 
         {hasFilterOptions && mobileFilterOpen && (
-          <div className="fixed inset-0 z-50 bg-black/40 lg:hidden">
+          <div className="fixed inset-0 z-[9999] bg-black/40 lg:hidden">
             <div className="absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white overflow-y-auto">
               <div className="flex items-center justify-between border-b border-gray-300 p-4">
                 <h2 className="text-lg font-bold text-blue-800">
