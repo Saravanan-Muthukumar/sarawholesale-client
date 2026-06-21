@@ -3,9 +3,26 @@ import { Link } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function FeaturedProducts({ products = [] }) {
-  const displayProducts = [...products]
-    .sort((a, b) => (a.product_name || "").localeCompare(b.product_name || ""))
-    .slice(0, 15);
+  const shuffleArray = (array) => {
+    return [...array].sort(() => Math.random() - 0.5);
+  };
+  
+  const displayProducts = Object.values(
+    products.reduce((acc, product) => {
+      const categoryKey = product.category_id || product.category_name;
+  
+      if (!acc[categoryKey]) {
+        acc[categoryKey] = [];
+      }
+  
+      acc[categoryKey].push(product);
+      return acc;
+    }, {})
+  )
+    .map((categoryProducts) => shuffleArray(categoryProducts)[0])
+    .filter(Boolean);
+  
+  const shuffledDisplayProducts = shuffleArray(displayProducts).slice(0, 15);
 
   const getLowestPrice = (product) => {
     if (!product.price_breaks?.length) return "0.00";
@@ -32,7 +49,7 @@ export default function FeaturedProducts({ products = [] }) {
         </div>
 
         <div className="grid grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-          {displayProducts.map((product) => {
+        {shuffledDisplayProducts.map((product) => {
             const imageSrc = product.image_url?.startsWith("http")
               ? product.image_url
               : `${API_URL}${product.image_url}`;
@@ -41,7 +58,7 @@ export default function FeaturedProducts({ products = [] }) {
               <Link
                 key={product.product_id}
                 to={`/product/${product.slug}`}
-                className="bg-white border border-[#d9e2ef] shadow-sm hover:border-green-500 hover:shadow-md transition p-3 md:p-4 flex flex-col min-h-[220px] md:min-h-[320px]"
+                className="bg-white border border-[#d9e2ef] shadow-sm hover:border-green-500 hover:shadow-md transition p-3 md:p-4 flex flex-col min-h-55 md:min-h-80"
               >
                 {product.image_url ? (
                   <img
@@ -55,7 +72,7 @@ export default function FeaturedProducts({ products = [] }) {
                   </div>
                 )}
 
-                <h3 className="text-[11px] md:text-sm font-extrabold text-blue-800 leading-tight line-clamp-2 uppercase min-h-[34px] md:min-h-[42px]">
+                <h3 className="text-[11px] md:text-sm font-extrabold text-blue-800 leading-tight line-clamp-2 uppercase min-h-8.5 md:min-h-10.5">
                   {product.product_name}
                 </h3>
 

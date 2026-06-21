@@ -1,9 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import CategoryMenu from "../components/CategoryMenu";
 import ProductCard from "../components/ProductCard";
-import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -17,6 +23,9 @@ export default function ProductListPage() {
   const [qty, setQty] = useState({});
   const [addedProduct, setAddedProduct] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [filters, setFilters] = useState({});
+  const hasActiveFilters = Object.values(filters).some(Boolean);
 
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)
@@ -26,11 +35,82 @@ export default function ProductListPage() {
   }, []);
 
   useEffect(() => {
+    setFilters({});
+    setMobileFilterOpen(false);
+
     fetch(`${API_URL}/api/products/category/${slug}`)
       .then((res) => res.json())
       .then((data) => setProducts(Array.isArray(data) ? data : []))
       .catch(console.error);
   }, [slug]);
+
+  const normalise = (value) => String(value || "").trim();
+
+  const uniqueSorted = (items) =>
+    [...new Set(items.filter(Boolean))].sort((a, b) =>
+      String(a).localeCompare(String(b), undefined, { numeric: true })
+    );
+
+  const getProductSpecsObject = (product) => {
+    const specs = {};
+
+    if (Array.isArray(product.specifications)) {
+      product.specifications.forEach((spec) => {
+        if (spec.spec_name && spec.spec_value) {
+          specs[String(spec.spec_name).trim()] = String(spec.spec_value).trim();
+        }
+      });
+    }
+
+    return specs;
+  };
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const specs = getProductSpecsObject(product);
+  
+      return Object.entries(filters).every(([filterName, filterValue]) => {
+        if (!filterValue) return true;
+  
+        return normalise(specs[filterName]) === normalise(filterValue);
+      });
+    });
+  }, [products, filters]);
+  
+  const filterOptions = useMemo(() => {
+    const specOptions = {};
+  
+    products.forEach((product) => {
+      if (!Array.isArray(product.specifications)) return;
+  
+      product.specifications.forEach((spec) => {
+        const specName = normalise(spec.spec_name);
+        const specValue = normalise(spec.spec_value);
+  
+        if (!specName || !specValue) return;
+  
+        if (!specOptions[specName]) {
+          specOptions[specName] = new Set();
+        }
+  
+        specOptions[specName].add(specValue);
+      });
+    });
+  
+    const specs = Object.entries(specOptions).map(([name, values]) => ({
+      name,
+      options: uniqueSorted([...values]),
+    }));
+  
+    return { specs };
+  }, [products]);
+
+  const hasFilterOptions =
+  filterOptions.specs.length > 0;
+
+  const clearFilters = () => {
+    setFilters({});
+  };
 
   const currentCategory = categories.find((cat) => cat.slug === slug);
 
@@ -108,7 +188,7 @@ export default function ProductListPage() {
   const handleAddToCart = async (product, quantity) => {
     const enteredQty = Number(quantity || 1);
     const activeTier = getActiveTier(product);
-  
+
     try {
       await addToCart({
         product_id: product.product_id,
@@ -119,7 +199,7 @@ export default function ProductListPage() {
         unit_price: activeTier ? Number(activeTier.price) : 0,
         price: activeTier ? Number(activeTier.price) : 0,
       });
-  
+
       setAddedProduct(product.product_name);
       setTimeout(() => setAddedProduct(""), 2000);
     } catch (err) {
@@ -127,6 +207,63 @@ export default function ProductListPage() {
       setTimeout(() => setErrorMessage(""), 2500);
     }
   };
+
+  const FilterSelect = ({ label, value, options, onChange }) => {
+    if (!options.length) return null;
+
+    return (
+      <div>
+        <label className="block text-xs font-bold text-gray-600 mb-1 uppercase">
+          {label}
+        </label>
+
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-700"
+        >
+          <option value="">All</option>
+
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  };
+
+  const FilterBox = () => (
+    <div className="bg-white border border-gray-300 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-blue-800">Filters</h2>
+
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-xs font-bold text-red-600 underline"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+
+      {filterOptions.specs.map((spec) => (
+        <FilterSelect
+          key={spec.name}
+          label={spec.name}
+          value={filters[spec.name] || ""}
+          options={spec.options}
+          onChange={(value) =>
+            setFilters((prev) => ({ ...prev, [spec.name]: value }))
+          }
+        />
+      ))}
+    </div>
+  );
 
   return (
     <main className="bg-gray-100 min-h-screen">
@@ -136,17 +273,15 @@ export default function ProductListPage() {
           <p className="text-xs text-[#071b3a]/55 mt-1">{addedProduct}</p>
         </div>
       )}
+
       {errorMessage && (
         <div className="fixed top-5 right-5 z-50 bg-red-50 border border-red-200 shadow-lg rounded-xl px-5 py-4">
-          <p className="text-sm font-semibold text-red-700">
-            {errorMessage}
-          </p>
+          <p className="text-sm font-semibold text-red-700">{errorMessage}</p>
         </div>
       )}
 
-      {/* Category menu below header - not sticky */}
-      <div className="hidden md:block sticky top-0 z-[900] bg-[#4a5358]">
-      <CategoryMenu categories={categories} />
+      <div className="hidden md:block sticky top-0 z-900 bg-[#4a5358]">
+        <CategoryMenu categories={categories} />
       </div>
 
       <section className="max-w-7xl mx-auto px-4 pt-6 pb-6">
@@ -171,7 +306,7 @@ export default function ProductListPage() {
           <span>{currentCategory?.category_name || "Products"}</span>
         </div>
 
-        <div className="md:hidden mb-4">
+        <div className="md:hidden mb-4 flex items-center justify-between">
           <Link
             to={parentCategory ? `/category/${parentCategory.slug}` : "/"}
             className="inline-flex items-center gap-2 text-sm font-medium text-gray-600"
@@ -179,19 +314,71 @@ export default function ProductListPage() {
             <ArrowLeft size={16} />
             {parentCategory?.category_name || "Categories"}
           </Link>
+
+          {hasFilterOptions && (
+            <button
+              type="button"
+              onClick={() => setMobileFilterOpen(true)}
+              className="inline-flex items-center gap-1 border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-blue-800"
+            >
+              <SlidersHorizontal size={16} />
+              Filter
+            </button>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-5">
-        <aside className="hidden lg:block space-y-4 sticky top-[70px] h-fit">
+        {hasFilterOptions && mobileFilterOpen && (
+          <div className="fixed inset-0 z-50 bg-black/40 lg:hidden">
+            <div className="absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-gray-300 p-4">
+                <h2 className="text-lg font-bold text-blue-800">
+                  Filter Products
+                </h2>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(false)}
+                >
+                  <X size={22} />
+                </button>
+              </div>
+
+              <div className="p-4">
+                <FilterBox />
+
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(false)}
+                  className="mt-4 w-full bg-blue-800 text-white py-3 font-bold"
+                >
+                  Show Products
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div
+          className={`grid grid-cols-1 gap-5 ${
+            hasFilterOptions
+              ? "lg:grid-cols-[260px_minmax(0,1fr)]"
+              : "lg:grid-cols-[260px_minmax(0,1fr)]"
+          }`}
+        >
+          <aside className="hidden lg:block space-y-4 sticky top-17.5 h-fit">
             <div className="bg-white border border-gray-300 p-4">
               <h1 className="text-2xl font-bold text-blue-800 uppercase leading-tight">
                 {currentCategory?.category_name || "Products"}
               </h1>
 
               <p className="text-sm text-blue-700 font-semibold mt-1">
-                {products.length} products
+                {hasActiveFilters
+                  ? `${filteredProducts.length} of ${products.length} products`
+                  : `${products.length} products`}
               </p>
             </div>
+
+            {hasFilterOptions && <FilterBox />}
 
             <div className="bg-white border border-gray-300 p-4">
               <h2 className="text-xl font-bold text-blue-800 mb-3">
@@ -219,19 +406,21 @@ export default function ProductListPage() {
               </h1>
 
               <p className="text-sm text-blue-700 font-semibold">
-                {products.length} products
+                {hasActiveFilters
+                  ? `${filteredProducts.length} of ${products.length} products`
+                  : `${products.length} products`}
               </p>
             </div>
 
-            {products.length === 0 && (
+            {filteredProducts.length === 0 && (
               <div className="bg-white border border-gray-300 p-6">
                 No products found.
               </div>
             )}
 
-            {products.length > 0 && (
+            {filteredProducts.length > 0 && (
               <div className="grid grid-cols-1 2xl:grid-cols-2 gap-5">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.product_id}
                     product={product}
@@ -270,7 +459,7 @@ export default function ProductListPage() {
                       <Link
                         key={cat.category_id}
                         to={`/subcategory/${cat.slug}`}
-                        className="shrink-0 w-[210px] bg-white border border-gray-300 p-3 hover:shadow-sm transition"
+                        className="shrink-0 w-52.5 bg-white border border-gray-300 p-3 hover:shadow-sm transition"
                       >
                         <div className="h-36 bg-gray-50 flex items-center justify-center mb-3">
                           {cat.image_url && (

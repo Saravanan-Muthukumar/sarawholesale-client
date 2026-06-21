@@ -79,14 +79,14 @@ export default function HomePage() {
       )}
 
       {showStickyMenu && (
-        <div className="hidden md:block fixed top-0 left-0 right-0 z-[999] bg-white border-b border-[#d9e2ef] shadow-md">
+        <div className="hidden md:block fixed top-0 left-0 right-0 z-999 bg-white border-b border-[#d9e2ef] shadow-md">
           <CategoryMenu categories={categories} sticky />
         </div>
       )}
 
       {!heroHidden && (
         <div id="home-hero-section">
-          <Hero onShopNow={handleShopNow} />
+        <Hero onShopNow={handleShopNow} categories={categories} />
         </div>
       )}
 
