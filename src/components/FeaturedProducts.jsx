@@ -40,12 +40,12 @@ export default function FeaturedProducts({ products = [] }) {
             Popular Products
           </h2>
 
-          <Link
+          {/* <Link
             to="/products"
             className="text-sm font-bold text-green-700 hover:text-green-800"
           >
             View All →
-          </Link>
+          </Link> */}
         </div>
 
         <div className="grid grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">

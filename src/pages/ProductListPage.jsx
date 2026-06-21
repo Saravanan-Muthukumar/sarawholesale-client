@@ -78,32 +78,52 @@ export default function ProductListPage() {
   }, [products, filters]);
   
   const filterOptions = useMemo(() => {
-    const specOptions = {};
+    const allSpecNames = new Set();
   
     products.forEach((product) => {
       if (!Array.isArray(product.specifications)) return;
   
       product.specifications.forEach((spec) => {
         const specName = normalise(spec.spec_name);
-        const specValue = normalise(spec.spec_value);
-  
-        if (!specName || !specValue) return;
-  
-        if (!specOptions[specName]) {
-          specOptions[specName] = new Set();
-        }
-  
-        specOptions[specName].add(specValue);
+        if (specName) allSpecNames.add(specName);
       });
     });
   
-    const specs = Object.entries(specOptions).map(([name, values]) => ({
-      name,
-      options: uniqueSorted([...values]),
-    }));
+    const specs = [...allSpecNames]
+      .map((currentSpecName) => {
+        const matchingProducts = products.filter((product) => {
+          const productSpecs = getProductSpecsObject(product);
+  
+          return Object.entries(filters).every(([filterName, filterValue]) => {
+            if (!filterValue) return true;
+            if (filterName === currentSpecName) return true;
+  
+            return normalise(productSpecs[filterName]) === normalise(filterValue);
+          });
+        });
+  
+        const values = new Set();
+  
+        matchingProducts.forEach((product) => {
+          const productSpecs = getProductSpecsObject(product);
+          const value = normalise(productSpecs[currentSpecName]);
+  
+          if (value) values.add(value);
+        });
+  
+        const uniqueValues = uniqueSorted([...values]);
+  
+        if (uniqueValues.length <= 1) return null;
+  
+        return {
+          name: currentSpecName,
+          options: uniqueValues,
+        };
+      })
+      .filter(Boolean);
   
     return { specs };
-  }, [products]);
+  }, [products, filters]);
 
   const hasFilterOptions =
   filterOptions.specs.length > 0;
