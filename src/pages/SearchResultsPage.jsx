@@ -48,6 +48,7 @@ export default function SearchResultsPage() {
       );
 
       const data = await res.json();
+      
 
       setProducts(data.products || []);
       setSubCategories(data.categories || []);
@@ -58,6 +59,8 @@ export default function SearchResultsPage() {
       setLoading(false);
     }
   };
+
+  
 
   const updateFilter = (key, value) => {
     const params = new URLSearchParams(searchParams);
@@ -151,8 +154,8 @@ export default function SearchResultsPage() {
         </div>
       )}
 
-      <div className="hidden md:block sticky top-0 z-[800] bg-[#4f5961]">
-      <div className="hidden md:block sticky top-0 z-[800]">
+      <div className="hidden md:block sticky top-0 z-800 bg-[#4f5961]">
+      <div className="hidden md:block sticky top-0 z-800">
         <CategoryMenu categories={categories} />
       </div>
       </div>
@@ -294,13 +297,13 @@ export default function SearchResultsPage() {
       </div>
 
       {showMobileFilter && (
-        <div className="fixed inset-0 z-[9999] md:hidden">
+        <div className="fixed inset-0 z-9999 md:hidden">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowMobileFilter(false)}
           />
 
-          <div className="absolute left-0 top-0 h-full w-[86%] max-w-[340px] bg-white shadow-xl flex flex-col">
+          <div className="absolute left-0 top-0 h-full w-[86%] max-w-85 bg-white shadow-xl flex flex-col">
             <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-300">
               <button
                 type="button"
@@ -358,7 +361,7 @@ export default function SearchResultsPage() {
       )}
 
       {showMobileSort && (
-        <div className="fixed inset-0 z-[9999] md:hidden">
+        <div className="fixed inset-0 z-9999 md:hidden">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowMobileSort(false)}

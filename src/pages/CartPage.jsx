@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function CartPage() {
   const { cartItemCount, cartItems, updateCartItem, removeCartItem } = useCart();
+  console.log(cartItems)
 
   const navigate = useNavigate();
   const bottomCheckoutRef = useRef(null);
@@ -16,6 +17,36 @@ export default function CartPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const [showMobileStickyCheckout, setShowMobileStickyCheckout] = useState(true);
   const [deleteItemId, setDeleteItemId] = useState(null);
+  const [editingQty, setEditingQty] = useState({});
+  
+
+   const handleQtyBlur = async (item) => {
+    const id = getItemId(item);
+    const typedQty = editingQty[id];
+  
+    if (typedQty === undefined) return;
+  
+    const cleanQty = Number(typedQty);
+  
+    if (!cleanQty || cleanQty <= 0) {
+      setEditingQty((prev) => {
+        const copy = { ...prev };
+        delete copy[id];
+        return copy;
+      });
+      return;
+    }
+  
+    setUpdatingId(id);
+    await updateCartItem(id, cleanQty);
+    setUpdatingId(null);
+  
+    setEditingQty((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
+  };
 
   const getImage = (imageUrl) => {
     if (!imageUrl) return null;
@@ -38,6 +69,7 @@ export default function CartPage() {
 
   const getLineTotal = (item) =>
     Number(item.quantity || 0) * Number(item.unit_price || 0);
+  const getUnit = (item) => item.unit || "Unit";
 
   const subtotal = cartItems.reduce((sum, item) => sum + getLineTotal(item), 0);
   const vatAmount = subtotal * 0.2;
@@ -77,16 +109,14 @@ export default function CartPage() {
     setUpdatingId(null);
   };
 
-  const handleQtyChange = async (item, value) => {
-    if (value === "") return;
-
-    const qty = Number(value);
-    if (qty <= 0) return;
-
+  const handleQtyChange = (item, value) => {
     const id = getItemId(item);
-    setUpdatingId(id);
-    await updateCartItem(id, qty);
-    setUpdatingId(null);
+    const cleanValue = value.replace(/\D/g, "");
+  
+    setEditingQty((prev) => ({
+      ...prev,
+      [id]: cleanValue,
+    }));
   };
 
   return (
@@ -146,7 +176,7 @@ export default function CartPage() {
                       className="border-b border-[#c7d0dd] last:border-b-0 bg-white"
                     >
                       {deleteItemId === id ? (
-                        <div className="p-4 md:p-5 bg-gray-100 min-h-[155px] flex flex-col justify-center">
+                        <div className="p-4 md:p-5 bg-gray-100 min-h-38.75 flex flex-col justify-center">
                           <p className="font-semibold text-sm text-[#071b3a]">
                             Remove this item from your basket?
                           </p>
@@ -207,18 +237,18 @@ export default function CartPage() {
 
                               <div className="grid grid-cols-2 gap-4 mt-3 md:hidden">
                                 <div>
-                                  <p className="text-xs text-[#071b3a]/60">
-                                    Unit price
-                                  </p>
+                                <p className="text-xs text-[#071b3a]/60">
+                                  Price per {getUnit(item)}
+                                </p>
                                   <p className="font-bold text-[#071b3a]">
                                     £{Number(item.unit_price || 0).toFixed(2)}
                                   </p>
                                 </div>
 
                                 <div>
-                                  <p className="text-xs text-[#071b3a]/60">
-                                    Line total
-                                  </p>
+                                <p className="text-xs text-[#071b3a]/60">
+                                  Total for {item.quantity} {Number(item.quantity) === 1 ? getUnit(item) : `${getUnit(item)}s`}
+                                </p>
                                   <p className="font-bold text-[#071b3a]">
                                     £{getLineTotal(item).toFixed(2)}
                                   </p>
@@ -226,11 +256,12 @@ export default function CartPage() {
                               </div>
 
                               <div className="flex items-center gap-3 mt-4">
-                                <QtyBox
-                                  qty={item.quantity}
+                              <QtyBox
+                                  qty={editingQty[id] ?? item.quantity}
                                   onMinus={() => handleDecrease(item)}
                                   onPlus={() => handleIncrease(item)}
                                   onChangeQty={(value) => handleQtyChange(item, value)}
+                                  onBlurQty={() => handleQtyBlur(item)}
                                   disabled={isUpdating}
                                 />
 
@@ -247,7 +278,7 @@ export default function CartPage() {
 
                             <div className="hidden md:block text-right">
                               <p className="text-xs text-[#071b3a]/60">
-                                Unit price
+                                Price per {getUnit(item)}
                               </p>
 
                               <p className="font-bold text-[#071b3a]">
@@ -255,7 +286,10 @@ export default function CartPage() {
                               </p>
 
                               <p className="text-xs text-[#071b3a]/60 mt-3">
-                                Line total
+                                Total for {item.quantity}{" "}
+                                {Number(item.quantity) === 1
+                                  ? getUnit(item)
+                                  : `${getUnit(item)}s`}
                               </p>
 
                               <p className="font-bold text-lg text-[#071b3a]">

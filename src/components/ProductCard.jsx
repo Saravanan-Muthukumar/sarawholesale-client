@@ -15,9 +15,28 @@ export default function ProductCard({ product, onAddToCart }) {
   const getSlabLabel = (tier) =>
     tier.max_qty ? `${tier.min_qty}-${tier.max_qty}` : `${tier.min_qty}+`;
 
+    const getSpecValue = (name) => {
+      const spec = product.specifications?.find(
+        (item) =>
+          String(item.spec_name || "").trim().toLowerCase() ===
+          String(name || "").trim().toLowerCase()
+      );
+    
+      return String(spec?.spec_value || "").trim();
+    };
+    
+    const unit = getSpecValue("Unit") || "unit";  
+
+
+
   const [qty, setQty] = useState("1");
 
   const currentQty = Number(qty || 1);
+
+  const unitLabel =
+  Number(currentQty || 1) === 1
+    ? unit.toLowerCase()
+    : `${unit.toLowerCase()}s`;  
 
   const activeTier =
     product.price_breaks?.find(
@@ -50,7 +69,7 @@ export default function ProductCard({ product, onAddToCart }) {
           </div>
 
           <div className="min-w-0">
-            <h2 className="font-bold text-gray-900 text-lg leading-snug line-clamp-2 break-words hover:text-green-700">
+            <h2 className="font-bold text-gray-900 text-lg leading-snug line-clamp-2 wrap-break-word hover:text-green-700">
               {product.product_name}
             </h2>
 
@@ -113,21 +132,43 @@ export default function ProductCard({ product, onAddToCart }) {
         )}
       </div>
 
-      <div className="border-t border-gray-300 p-4 flex items-end justify-between gap-3">
-        <div>
-          <p className="text-xs text-gray-500">Unit price</p>
-          <p className="text-2xl font-bold text-green-700">
-            £{unitPrice.toFixed(2)}
-          </p>
-          <p className="text-xs text-gray-500">exc. VAT</p>
-        </div>
+      <div className="border-t border-gray-300 p-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+  <div className="w-full sm:w-auto">
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-xs font-semibold text-gray-500">
+          Price per {unit.toLowerCase()}
+        </p>
 
-        <QtyAddControl
-          value={qty}
-          onQtyChange={setQty}
-          onAdd={(quantity) => onAddToCart(product, quantity)}
-        />
+        <p className="text-lg sm:text-lg font-extrabold text-green-700">
+          £{unitPrice.toFixed(2)}
+        </p>
       </div>
+
+      <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between gap-4">
+        <p className="text-xs font-semibold text-gray-500">
+          Price for {currentQty} {unitLabel}
+        </p>
+
+        <p className="text-sm sm:text-base font-bold text-gray-900">
+          £{(unitPrice * currentQty).toFixed(2)}
+        </p>
+      </div>
+
+      <p className="text-[11px] text-gray-400 mt-1 text-right">
+        exc. VAT
+      </p>
+    </div>
+  </div>
+
+  <div className="shrink-0">
+    <QtyAddControl
+      value={qty}
+      onQtyChange={setQty}
+      onAdd={(quantity) => onAddToCart(product, quantity)}
+    />
+  </div>
+</div>
     </div>
   );
 }

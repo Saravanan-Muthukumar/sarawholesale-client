@@ -71,6 +71,25 @@ export default function ProductPage() {
   const mainImageSrc = getImageSrc(selectedImage || productImages[0]?.image_url);
   const enteredQty = Number(qty || 0);
 
+  const getSpecValue = (name) => {
+    const spec = product?.specifications?.find(
+      (item) =>
+        String(item.spec_name || "").trim().toLowerCase() ===
+        String(name || "").trim().toLowerCase()
+    );
+  
+    return String(spec?.spec_value || "").trim();
+  };
+  
+  const unit = getSpecValue("Unit") || "Unit";
+  
+  const unitLabel =
+    Number(qty || 1) === 1
+      ? unit
+      : unit.toLowerCase() === "box"
+      ? "Boxes"
+      : `${unit}s`;
+
   const currentCategory = categories.find(
     (cat) =>
       cat.category_id === product?.category_id ||
@@ -379,7 +398,7 @@ export default function ProductPage() {
                 </p>
   
                 <p className="text-xs font-bold text-[#071b3a]/60 mt-1">
-                  EXC. VAT
+                  Price per {unit}  Exc. VAT
                 </p>
   
                 <div className="border-t border-[#edf1f7] my-5" />
@@ -398,7 +417,7 @@ export default function ProductPage() {
   
                 {qty > 0 && (
                   <p className="text-xs text-[#071b3a]/60 mb-4">
-                    Total for {qty} units:
+                  Total for {qty} {unitLabel}:
                     <span className="font-bold text-[#071b3a] ml-1">
                       £{(Number(qty) * Number(unitPrice)).toFixed(2)}
                     </span>
