@@ -235,7 +235,7 @@ export default function ProductPage() {
       name: product.product_name,
       sku: product.sku,
       description: product.description,
-      image: mainImage,
+      image: mainImageSrc,
     
       brand: {
         "@type": "Brand",
