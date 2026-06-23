@@ -221,19 +221,35 @@ export default function ProductPage() {
     );
   }
 
-  const productSchema =
-  product && {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.product_name,
-    sku: product.sku,
-    description: product.meta_description,
-    image: product.images?.[0]?.image_url,
-    brand: {
-      "@type": "Brand",
-      name: "Sara Wholesale",
-    },
-  };
+  const lowestPrice =
+  product.price_breaks?.length
+    ? Math.min(
+        ...product.price_breaks.map((p) => Number(p.price || 0))
+      )
+    : 0;
+
+    const productSchema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+    
+      name: product.product_name,
+      sku: product.sku,
+      description: product.description,
+      image: mainImage,
+    
+      brand: {
+        "@type": "Brand",
+        name: "Sara Wholesale",
+      },
+    
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "GBP",
+        price: lowestPrice.toFixed(2),
+        availability: "https://schema.org/InStock",
+        url: window.location.href,
+      },
+    };
   const breadcrumbSchema =
   product && {
     "@context": "https://schema.org",
