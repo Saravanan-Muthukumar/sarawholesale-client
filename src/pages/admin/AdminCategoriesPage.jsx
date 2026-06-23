@@ -8,6 +8,9 @@ const emptyForm = {
   category_name: "",
   slug: "",
   parent_category_id: "",
+  meta_title: "",
+  meta_description: "",
+  seo_content: "",
   is_active: 1,
   image: null,
 };
@@ -71,6 +74,9 @@ export default function AdminCategoriesPage() {
       category_name: category.category_name || "",
       slug: category.slug || "",
       parent_category_id: category.parent_category_id || "",
+      meta_title: category.meta_title || "",
+      meta_description: category.meta_description || "",
+      seo_content: category.seo_content || "",
       is_active: category.is_active ?? 1,
       image: null,
     });
@@ -94,6 +100,9 @@ export default function AdminCategoriesPage() {
     formData.append("category_name", form.category_name);
     formData.append("slug", form.slug);
     formData.append("parent_category_id", form.parent_category_id || "");
+    formData.append("meta_title", form.meta_title || "");
+    formData.append("meta_description", form.meta_description || "");
+    formData.append("seo_content", form.seo_content || "");
     formData.append("is_active", form.is_active);
 
     if (form.image) {
@@ -252,10 +261,10 @@ export default function AdminCategoriesPage() {
       </section>
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/35 z-50 flex items-center justify-center px-4">
+        <div className="fixed inset-0 bg-black/35 z-[9999] flex items-start sm:items-center justify-center px-3 sm:px-4 py-4 overflow-y-auto">
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-xl w-full max-w-lg p-5 shadow-xl"
+            className="bg-white rounded-xl w-full max-w-lg sm:max-w-xl p-4 sm:p-5 shadow-xl max-h-[calc(100vh-32px)] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#071b3a]">
@@ -339,8 +348,50 @@ export default function AdminCategoriesPage() {
                 </select>
               </div>
             </div>
+            <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Meta Title
+                </label>
 
-            <div className="flex justify-end gap-2 mt-5">
+                <textarea
+                  name="meta_title"
+                  value={form.meta_title}
+                  onChange={handleChange}
+                  rows="3"
+                  maxLength="500"
+                  className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-[#071b3a]"
+                />
+              </div>
+            <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Meta Description
+                </label>
+
+                <textarea
+                  name="meta_description"
+                  value={form.meta_description}
+                  onChange={handleChange}
+                  rows="3"
+                  maxLength="5000"
+                  className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-[#071b3a]"
+                />
+              </div>
+            <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  SEO Content
+                </label>
+
+                <textarea
+                  name="seo_content"
+                  value={form.seo_content}
+                  onChange={handleChange}
+                  rows="3"
+                  maxLength="5000"
+                  className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-[#071b3a]"
+                />
+              </div>
+
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-5">
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}

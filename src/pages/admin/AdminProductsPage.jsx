@@ -10,6 +10,9 @@ const emptyForm = {
   product_name: "",
   slug: "",
   description: "",
+  meta_title: "",
+  meta_description: "",
+  seo_content: "",
   is_active: 1,
   images: [],
   price_breaks: [{ min_qty: "1", max_qty: "", price: "" }],
@@ -148,7 +151,7 @@ export default function AdminProductsPage() {
     }
 
     return (
-      <div className="w-full max-w-[540px]">
+      <div className="w-full max-w-135">
         <div
           className="grid text-center text-[12px] font-semibold text-[#071b3a] border-b border-green-600 pb-1"
           style={{
@@ -207,6 +210,9 @@ export default function AdminProductsPage() {
       product_name: product.product_name || "",
       slug: product.slug || "",
       description: product.description || "",
+      meta_title: product.meta_title || "",
+      meta_description: product.meta_description || "",
+      seo_content: product.seo_content || "",
       is_active: product.is_active ?? 1,
       images: [],
       price_breaks:
@@ -254,6 +260,9 @@ export default function AdminProductsPage() {
     formData.append("product_name", form.product_name);
     formData.append("slug", form.slug);
     formData.append("description", form.description);
+    formData.append("meta_title", form.meta_title);
+    formData.append("meta_description", form.meta_description);
+    formData.append("seo_content", form.seo_content);
     formData.append("is_active", form.is_active);
     formData.append("price_breaks", JSON.stringify(validPriceBreaks));
     formData.append("specifications", JSON.stringify(validSpecs));
@@ -358,10 +367,10 @@ export default function AdminProductsPage() {
             <thead className="bg-gray-50 text-[#071b3a]">
               <tr>
                 <th className="p-3 text-left font-semibold w-24">Image</th>
-                <th className="p-3 text-left font-semibold w-[230px]">
+                <th className="p-3 text-left font-semibold w-57.5">
                   Product
                 </th>
-                <th className="p-3 text-left font-semibold w-[140px]">
+                <th className="p-3 text-left font-semibold w-35">
                   Category
                 </th>
                 <th className="p-3 text-left font-semibold">
@@ -409,7 +418,7 @@ export default function AdminProductsPage() {
                         )}
                       </td>
 
-                      <td className="p-3 max-w-[230px]">
+                      <td className="p-3 max-w-57.5">
                         <p className="font-semibold text-[#071b3a] leading-snug line-clamp-2">
                           {product.product_name}
                         </p>
@@ -472,7 +481,7 @@ export default function AdminProductsPage() {
       </section>
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/35 z-50 flex items-center justify-center px-4">
+        <div className="fixed inset-0 bg-black/35 z-[9999] flex items-center justify-center px-4">
           <form
             onSubmit={handleSubmit}
             className="bg-white rounded-xl w-full max-w-4xl p-5 max-h-[88vh] overflow-y-auto shadow-xl"
@@ -574,6 +583,41 @@ export default function AdminProductsPage() {
                   value={form.description}
                   onChange={handleChange}
                   rows="3"
+                  className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-[#071b3a]"
+                />
+              </div>
+              <Input
+                label="SEO Meta Title"
+                name="meta_title"
+                value={form.meta_title}
+                onChange={handleChange}
+              />
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  SEO Meta Description
+                </label>
+
+                <textarea
+                  name="meta_description"
+                  value={form.meta_description}
+                  onChange={handleChange}
+                  rows="3"
+                  maxLength="500"
+                  className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-[#071b3a]"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  SEO Content
+                </label>
+
+                <textarea
+                  name="seo_content"
+                  value={form.seo_content}
+                  onChange={handleChange}
+                  rows="3"
+                  maxLength="5000"
                   className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm outline-none focus:border-[#071b3a]"
                 />
               </div>

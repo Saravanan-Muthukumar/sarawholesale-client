@@ -166,6 +166,27 @@ export default function ProductPage() {
     });
   };
 
+  useEffect(() => {
+    if (!product) return;
+  
+    document.title =
+      product.meta_title || `${product.product_name} | Sara Wholesale`;
+  
+    let meta = document.querySelector('meta[name="description"]');
+  
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "description";
+      document.head.appendChild(meta);
+    }
+  
+    meta.setAttribute(
+      "content",
+      product.meta_description ||
+        `${product.product_name}. Buy online from Sara Wholesale.`
+    );
+  }, [product]);
+
   const handleAddToCart = async (quantity) => {
     if (!product) return;
 
@@ -200,8 +221,77 @@ export default function ProductPage() {
     );
   }
 
+  const productSchema =
+  product && {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.product_name,
+    sku: product.sku,
+    description: product.meta_description,
+    image: product.images?.[0]?.image_url,
+    brand: {
+      "@type": "Brand",
+      name: "Sara Wholesale",
+    },
+  };
+  const breadcrumbSchema =
+  product && {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://www.sarawholesale.co.uk",
+      },
+      ...(parentCategory
+        ? [
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: parentCategory.category_name,
+              item: `https://www.sarawholesale.co.uk/category/${parentCategory.slug}`,
+            },
+          ]
+        : []),
+      ...(currentCategory
+        ? [
+            {
+              "@type": "ListItem",
+              position: parentCategory ? 3 : 2,
+              name: currentCategory.category_name,
+              item: `https://www.sarawholesale.co.uk/subcategory/${currentCategory.slug}`,
+            },
+          ]
+        : []),
+      {
+        "@type": "ListItem",
+        position: parentCategory ? 4 : 3,
+        name: product.product_name,
+        item: `https://www.sarawholesale.co.uk/product/${product.slug}`,
+      },
+    ],
+  };
+
   return (
     <main className="bg-[#f3f4f6] min-h-screen">
+    {productSchema && (
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify(productSchema),
+    }}
+  />
+)}
+{breadcrumbSchema && (
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify(breadcrumbSchema),
+    }}
+  />
+)}
       {added && (
         <div className="fixed top-5 right-5 z-50 bg-white border border-green-100 shadow-lg rounded-xl px-5 py-4">
           <p className="text-sm font-semibold text-green-700">Added to cart</p>
@@ -510,6 +600,18 @@ export default function ProductPage() {
                     </div>
                   )}
               </div>
+
+              {product.seo_content && (
+  <div className="mt-8 border-t pt-6">
+    <h2 className="text-xl font-semibold mb-3">
+      Product Information
+    </h2>
+
+    <p className="text-gray-700 leading-relaxed">
+      {product.seo_content}
+    </p>
+  </div>
+)}
         {relatedProducts.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
@@ -592,6 +694,7 @@ export default function ProductPage() {
           </div>
         )}
       </section>
+      
     </main>
   );
 }

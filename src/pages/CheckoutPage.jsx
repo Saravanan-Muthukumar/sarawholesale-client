@@ -361,7 +361,7 @@ function OrderSummary({
       <SummaryRow label="Items" value={totalItems} />
       <SummaryRow label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
       <SummaryRow label="VAT (20%)" value={`£${vatAmount.toFixed(2)}`} />
-      <SummaryRow label="Estimated delivery" value="Free" green />
+      <SummaryRow label="Estimated delivery charge" value="Free" green />
 
       <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-xl text-[#071b3a]">
         <span>Total incl. VAT</span>

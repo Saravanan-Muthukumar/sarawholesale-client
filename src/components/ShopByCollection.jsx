@@ -6,7 +6,7 @@ export default function ShopByCollection() {
       title: "Cable Ties & Fixings",
       text: "Strong, reliable and built to last.",
       image: "/collections/cable-ties.png",
-      link: "/subcategory/cable-tie",
+      link: "/subcategory/cable-ties",
       bg: "from-[#062b63] to-[#074ba3]",
     },
     {
@@ -20,7 +20,7 @@ export default function ShopByCollection() {
       title: "Postal Bags & Envelopes",
       text: "Secure, durable and perfect for mailing.",
       image: "/collections/postal-bags.png",
-      link: "/subcategory/postal-bags",
+      link: "/subcategory/grey-mailing-bags",
       bg: "from-[#062b63] to-[#0756b8]",
     },
   ];
@@ -37,7 +37,7 @@ export default function ShopByCollection() {
             <Link
                 key={item.title}
                 to={item.link}
-                className={`relative overflow-hidden rounded-xl bg-gradient-to-r ${item.bg} min-h-[170px] p-5 text-white shadow-sm hover:shadow-md transition`}
+                className={`relative overflow-hidden rounded-xl bg-linear-to-r ${item.bg} min-h-42.5 p-5 text-white shadow-sm hover:shadow-md transition`}
                 >
                 <div className="relative z-10 max-w-[52%] h-full flex flex-col">
                     <h3 className="text-lg font-bold leading-tight">
