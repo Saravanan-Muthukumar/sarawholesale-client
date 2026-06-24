@@ -197,7 +197,7 @@ export default function ProductPage() {
   if (!product) {
     return (
       <main className="bg-[#fbfcfe] min-h-screen px-4 py-10">
-        <p className="text-sm text-[#071b3a]/60">Loading product...</p>
+        <p className="text-sm text-[#071b3a]/60">Loading product....</p>
       </main>
     );
   }
