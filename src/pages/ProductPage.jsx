@@ -185,6 +185,20 @@ export default function ProductPage() {
       product.meta_description ||
         `${product.product_name}. Buy online from Sara Wholesale.`
     );
+  
+    // Canonical URL
+    let canonical = document.querySelector("link[rel='canonical']");
+  
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+  
+    canonical.setAttribute(
+      "href",
+      `https://www.sarawholesale.co.uk/product/${product.slug}`
+    );
   }, [product]);
 
   const handleAddToCart = async (quantity) => {
@@ -247,7 +261,7 @@ export default function ProductPage() {
         priceCurrency: "GBP",
         price: lowestPrice.toFixed(2),
         availability: "https://schema.org/InStock",
-        url: window.location.href,
+        url: `https://www.sarawholesale.co.uk/product/${product.slug}`,
       },
     };
   const breadcrumbSchema =

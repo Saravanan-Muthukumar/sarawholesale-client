@@ -254,6 +254,22 @@ export default function ProductListPage() {
     );
   };
 
+  useEffect(() => {
+    if (!slug) return;
+  
+    let canonical = document.querySelector("link[rel='canonical']");
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+  
+    canonical.setAttribute(
+      "href",
+      `https://www.sarawholesale.co.uk/subcategory/${slug}`
+    );
+  }, [slug]);
+
   const FilterBox = () => (
     <div className="bg-white border border-gray-300 p-4 space-y-3">
       <div className="flex items-center justify-between">

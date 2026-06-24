@@ -18,6 +18,17 @@ export default function HomePage() {
   const location = useLocation();
 
   useEffect(() => {
+    let canonical = document.querySelector("link[rel='canonical']");
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+  
+    canonical.setAttribute("href", "https://www.sarawholesale.co.uk/");
+  }, []);
+
+  useEffect(() => {
     if (location.state?.hideHero) {
       setHeroHidden(true);
 
