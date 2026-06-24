@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import CategoryMenu from "../components/CategoryMenu";
+import { Helmet } from "react-helmet-async";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -33,8 +34,34 @@ export default function SubCategoryPage() {
     navigate("/", { state: { hideHero: true } });
   };
 
+  const pageTitle =
+  parent?.meta_title ||
+  `${parent?.category_name || "Categories"} | SARA WHOLESALE`;
+
+const pageDescription =
+  parent?.meta_description ||
+  `Browse ${parent?.category_name || "business supplies"} at SARA WHOLESALE. Quality wholesale packaging, office and business supplies across the UK.`;
+
+const canonicalUrl = `https://www.sarawholesale.co.uk/category/${slug}`;
+
   return (
     <main className="bg-[#f7f8fb] min-h-screen">
+      <Helmet>
+        <title>{pageTitle}</title>
+
+        <meta name="description" content={pageDescription} />
+
+        <link rel="canonical" href={canonicalUrl} />
+
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:type" content="website" />
+
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+      </Helmet>
       <div className="hidden md:block">
         <CategoryMenu categories={categories} />
       </div>

@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import CategoryMenu from "../components/CategoryMenu";
 import QtyAddControl from "../components/QtyAddControl";
+import { Helmet } from "react-helmet-async";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -166,40 +167,6 @@ export default function ProductPage() {
     });
   };
 
-  useEffect(() => {
-    if (!product) return;
-  
-    document.title =
-      product.meta_title || `${product.product_name} | Sara Wholesale`;
-  
-    let meta = document.querySelector('meta[name="description"]');
-  
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.appendChild(meta);
-    }
-  
-    meta.setAttribute(
-      "content",
-      product.meta_description ||
-        `${product.product_name}. Buy online from Sara Wholesale.`
-    );
-  
-    // Canonical URL
-    let canonical = document.querySelector("link[rel='canonical']");
-  
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.setAttribute("rel", "canonical");
-      document.head.appendChild(canonical);
-    }
-  
-    canonical.setAttribute(
-      "href",
-      `https://www.sarawholesale.co.uk/product/${product.slug}`
-    );
-  }, [product]);
 
   const handleAddToCart = async (quantity) => {
     if (!product) return;
@@ -306,6 +273,48 @@ export default function ProductPage() {
 
   return (
     <main className="bg-[#f3f4f6] min-h-screen">
+    <Helmet>
+  <title>
+    {product.meta_title ||
+      `${product.product_name} | SARA WHOLESALE`}
+  </title>
+
+  <meta
+    name="description"
+    content={
+      product.meta_description ||
+      `${product.product_name}. Available from SARA WHOLESALE with competitive trade pricing and UK delivery.`
+    }
+  />
+
+  <link
+    rel="canonical"
+    href={`https://www.sarawholesale.co.uk/product/${product.slug}`}
+  />
+
+  <meta
+    property="og:title"
+    content={
+      product.meta_title ||
+      `${product.product_name} | SARA WHOLESALE`
+    }
+  />
+
+  <meta
+    property="og:description"
+    content={
+      product.meta_description ||
+      `${product.product_name}. Available from SARA WHOLESALE.`
+    }
+  />
+
+  <meta
+    property="og:url"
+    content={`https://www.sarawholesale.co.uk/product/${product.slug}`}
+  />
+
+  <meta property="og:type" content="product" />
+</Helmet>
     {productSchema && (
   <script
     type="application/ld+json"

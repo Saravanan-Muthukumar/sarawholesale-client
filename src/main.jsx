@@ -5,9 +5,11 @@ import { AuthProvider } from "./context/AuthContext";
 import App from "./App";
 import "./index.css";
 import { CartProvider } from "./context/CartContext";
+import { HelmetProvider } from "react-helmet-async";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
+    <HelmetProvider>
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
@@ -15,5 +17,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>
+    </HelmetProvider>
   </React.StrictMode>
 );

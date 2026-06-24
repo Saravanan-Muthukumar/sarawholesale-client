@@ -1,9 +1,18 @@
 {
-  "rewrites": [
+  "redirects": [
     {
-      "source": "/sitemap.xml",
-      "destination": "https://api.sarawholesale.co.uk/sitemap.xml"
-    },
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "sarawholesale.co.uk"
+        }
+      ],
+      "destination": "https://www.sarawholesale.co.uk/:path*",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/"
