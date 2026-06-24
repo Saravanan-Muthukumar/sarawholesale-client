@@ -301,6 +301,28 @@ export default function ProductListPage() {
     </div>
   );
 
+  useEffect(() => {
+    if (!currentCategory) return;
+  
+    document.title =
+      currentCategory.meta_title ||
+      `${currentCategory.category_name} | Sara Wholesale`;
+  
+    let meta = document.querySelector('meta[name="description"]');
+  
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "description";
+      document.head.appendChild(meta);
+    }
+  
+    meta.setAttribute(
+      "content",
+      currentCategory.meta_description ||
+        `Browse ${currentCategory.category_name} from Sara Wholesale.`
+    );
+  }, [currentCategory]);
+
   return (
     <main className="bg-gray-100 min-h-screen">
       {addedProduct && (
@@ -523,9 +545,28 @@ export default function ProductListPage() {
                       <ChevronRight size={30} />
                     </button>
                   )}
+                  
                 </div>
+                      
               </div>
             )}
+            {currentCategory?.seo_content && (
+                        <div className="mt-8 bg-white border border-gray-300 p-6 md:p-8">
+                          <div
+                            className="
+                              text-[#333] text-sm md:text-base leading-7
+                              [&_h2]:text-2xl [&_h2]:font-extrabold [&_h2]:text-blue-800 [&_h2]:mb-4
+                              [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-blue-800 [&_h3]:mt-6 [&_h3]:mb-3
+                              [&_p]:mb-4
+                              [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4
+                              [&_li]:mb-1
+                            "
+                            dangerouslySetInnerHTML={{
+                              __html: currentCategory.seo_content,
+                            }}
+                          />
+                        </div>
+                      )}
           </section>
         </div>
       </section>
