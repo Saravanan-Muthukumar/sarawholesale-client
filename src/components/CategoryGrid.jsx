@@ -44,8 +44,8 @@ export default function CategoryGrid({ categories = [] }) {
                 hover:shadow-md
                 hover:border-green-500
                 transition
-                min-h-[140px]
-                md:min-h-[220px]
+                min-h-35
+                md:min-h-55
                 p-3
                 md:p-4
                 flex

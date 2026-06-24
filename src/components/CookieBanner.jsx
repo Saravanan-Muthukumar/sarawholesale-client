@@ -26,7 +26,7 @@ export default function CookieBanner() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 shadow-2xl">
+    <div className="fixed bottom-0 left-0 right-0 z-9999 bg-white border-t border-gray-200 shadow-2xl">
       <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center gap-4">
         <div className="flex-1">
           <h3 className="font-bold text-[#071b3a] text-sm mb-1">

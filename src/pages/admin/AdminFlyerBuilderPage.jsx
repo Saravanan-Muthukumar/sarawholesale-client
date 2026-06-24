@@ -290,7 +290,7 @@ export default function AdminFlyerBuilderPage() {
     </button>
   </div>
 
-  <div className="max-h-[420px] overflow-y-auto space-y-2 pr-1">
+  <div className="max-h-105 overflow-y-auto space-y-2 pr-1">
     {filteredProducts.map((product) => {
       const checked = checkedProducts.includes(product.product_id);
       const alreadyAdded = selectedProducts.some(
@@ -432,11 +432,11 @@ function FlyerPreview({
         <table className="w-full text-xs border border-gray-200">
           <thead>
             <tr className="bg-[#0b376d] text-white">
-              <th className="p-2 text-left w-[70px]">Image</th>
+              <th className="p-2 text-left w-17.5">Image</th>
               <th className="p-2 text-left">Product</th>
               <th className="p-2 text-left">Price Slabs</th>
-              <th className="p-2 text-right w-[90px]">From</th>
-              <th className="no-print p-2 w-[40px]"></th>
+              <th className="p-2 text-right w-22.5">From</th>
+              <th className="no-print p-2 w-10"></th>
             </tr>
           </thead>
 

@@ -1,6 +1,6 @@
 export default function PriceMatchBanner() {
     return (
-      <section className="relative overflow-hidden bg-gradient-to-r from-green-700 via-green-600 to-green-700 text-white">
+      <section className="relative overflow-hidden bg-linear-to-r from-green-700 via-green-600 to-green-700 text-white">
         {/* Animated Shine */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 -left-40 h-full w-32 bg-white/10 rotate-12 animate-[shine_5s_linear_infinite]" />
@@ -10,7 +10,7 @@ export default function PriceMatchBanner() {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
             
             {/* Badge */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <div className="h-16 w-16 rounded-full bg-white text-green-700 flex items-center justify-center font-black text-3xl animate-pulse shadow-lg">
                 £
               </div>

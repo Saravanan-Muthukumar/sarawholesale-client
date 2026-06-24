@@ -106,7 +106,7 @@ export default function MyOrdersPage() {
             type="button"
           >
               <Filter size={14} />
-                <span className="max-w-[120px] truncate">
+                <span className="max-w-30 truncate">
                   {activeFilter}
                 </span>
                 <ChevronDown size={14} />
