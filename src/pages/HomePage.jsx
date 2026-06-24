@@ -7,6 +7,7 @@ import WhyChooseUs from "../components/WhyChooseUs";
 import ShopByCollection from "../components/ShopByCollection";
 import PriceMatchBanner from "../components/PriceMatchBanner";
 import { useLocation } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -83,6 +84,21 @@ export default function HomePage() {
 
   return (
     <main className="bg-[#f3f4f6] min-h-screen">
+        <Helmet>
+      <title>
+        SARA Wholesale Supplies | Packaging & Business Supplies UK
+      </title>
+
+      <meta
+        name="description"
+        content="Quality packaging supplies and business essentials for retail and wholesale customers across the UK. Fast delivery and competitive wholesale pricing."
+      />
+
+      <link
+        rel="canonical"
+        href="https://www.sarawholesale.co.uk/"
+      />
+    </Helmet>
       {!heroHidden && (
         <div className="hidden md:block bg-white border-b border-[#d9e2ef]">
           <CategoryMenu categories={categories} />
