@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Edit, Plus, Trash2, X } from "lucide-react";
+import { Edit, Plus, Trash2, X, Star, ArrowUp, ArrowDown } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -15,6 +15,7 @@ const emptyForm = {
   seo_content: "",
   is_active: 1,
   images: [],
+  existing_images: [],
   price_breaks: [{ min_qty: "1", max_qty: "", price: "" }],
   specifications: [{ spec_name: "", spec_value: "" }],
 };
@@ -215,6 +216,7 @@ export default function AdminProductsPage() {
       seo_content: product.seo_content || "",
       is_active: product.is_active ?? 1,
       images: [],
+      existing_images: product.images || [],
       price_breaks:
         product.price_breaks && product.price_breaks.length
           ? product.price_breaks.map((price) => ({
@@ -231,7 +233,7 @@ export default function AdminProductsPage() {
             }))
           : [{ spec_name: "", spec_value: "" }],
     });
-
+  
     setEditing(true);
     setModalOpen(true);
   };
@@ -293,6 +295,109 @@ export default function AdminProductsPage() {
 
     setModalOpen(false);
     setForm(emptyForm);
+    loadData();
+  };
+
+  const handleMakeMainImage = async (imageId) => {
+    if (!form.product_id || !imageId) return;
+  
+    const res = await fetch(`${API_URL}/api/products/image/main`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        product_id: form.product_id,
+        image_id: imageId,
+      }),
+    });
+  
+    if (!res.ok) {
+      alert("Failed to update main image");
+      return;
+    }
+  
+    setForm((prev) => ({
+      ...prev,
+      existing_images: prev.existing_images.map((img) => ({
+        ...img,
+        is_main: img.image_id === imageId ? 1 : 0,
+      })),
+    }));
+  
+    loadData();
+  };
+  
+  const saveImageOrder = async (updatedImages) => {
+    const res = await fetch(`${API_URL}/api/products/image/order`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        product_id: form.product_id,
+        images: updatedImages.map((img, index) => ({
+          image_id: img.image_id,
+          sort_order: index,
+        })),
+      }),
+    });
+  
+    if (!res.ok) {
+      alert("Failed to update image order");
+      return false;
+    }
+  
+    return true;
+  };
+  
+  const handleMoveImage = async (index, direction) => {
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+  
+    if (newIndex < 0 || newIndex >= form.existing_images.length) return;
+  
+    const updatedImages = [...form.existing_images];
+    const temp = updatedImages[index];
+    updatedImages[index] = updatedImages[newIndex];
+    updatedImages[newIndex] = temp;
+  
+    const saved = await saveImageOrder(updatedImages);
+  
+    if (!saved) return;
+  
+    setForm((prev) => ({
+      ...prev,
+      existing_images: updatedImages.map((img, idx) => ({
+        ...img,
+        sort_order: idx,
+      })),
+    }));
+  
+    loadData();
+  };
+  
+  const handleDeleteImage = async (imageId) => {
+    if (!confirm("Delete this image?")) return;
+  
+    const res = await fetch(`${API_URL}/api/products/image/${imageId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+  
+    if (!res.ok) {
+      alert("Failed to delete image");
+      return;
+    }
+  
+    setForm((prev) => ({
+      ...prev,
+      existing_images: prev.existing_images.filter(
+        (img) => img.image_id !== imageId
+      ),
+    }));
+  
     loadData();
   };
 
@@ -546,6 +651,77 @@ export default function AdminProductsPage() {
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Product Images
                 </label>
+
+                {editing && form.existing_images.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                    {form.existing_images.map((image, index) => (
+                      <div
+                        key={image.image_id}
+                        className={`border rounded-lg p-2 bg-white ${
+                          image.is_main
+                            ? "border-green-600 ring-1 ring-green-600"
+                            : "border-gray-200"
+                        }`}
+                      >
+                        <div className="relative">
+                          <img
+                            src={getImageSrc(image.image_url)}
+                            alt={image.alt_text || form.product_name}
+                            className="w-full h-24 object-contain bg-gray-50 rounded-md border border-gray-100"
+                          />
+
+                          {image.is_main ? (
+                            <span className="absolute top-1 left-1 bg-green-700 text-white text-[10px] px-2 py-0.5 rounded-full">
+                              Main
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-1 mt-2">
+                          <button
+                            type="button"
+                            onClick={() => handleMakeMainImage(image.image_id)}
+                            disabled={image.is_main}
+                            className="h-7 rounded border border-gray-200 text-yellow-600 hover:bg-yellow-50 disabled:opacity-40 flex items-center justify-center"
+                            title="Make main"
+                          >
+                            <Star size={13} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleMoveImage(index, "up")}
+                            disabled={index === 0}
+                            className="h-7 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 flex items-center justify-center"
+                            title="Move up"
+                          >
+                            <ArrowUp size={13} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleMoveImage(index, "down")}
+                            disabled={index === form.existing_images.length - 1}
+                            className="h-7 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 flex items-center justify-center"
+                            title="Move down"
+                          >
+                            <ArrowDown size={13} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteImage(image.image_id)}
+                            className="h-7 rounded border border-red-200 text-red-500 hover:bg-red-50 flex items-center justify-center"
+                            title="Delete image"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <input
                   type="file"
                   name="images"
@@ -554,9 +730,10 @@ export default function AdminProductsPage() {
                   onChange={handleChange}
                   className="w-full border border-gray-200 rounded-md px-3 py-1.5 text-sm"
                 />
+
                 <p className="text-[11px] text-gray-400 mt-1">
-                  You can select multiple images. First selected image will be
-                  the main image.
+                  Upload more images. If this is a new product, the first selected image will
+                  be the main image.
                 </p>
 
                 {form.images.length > 0 && (
@@ -566,7 +743,7 @@ export default function AdminProductsPage() {
                         key={`${image.name}-${index}`}
                         className="border border-gray-200 rounded-md px-2 py-1 text-[11px] text-gray-600 bg-gray-50"
                       >
-                        {index === 0 ? "Main: " : ""}
+                        {index === 0 && !editing ? "Main: " : ""}
                         {image.name}
                       </div>
                     ))}

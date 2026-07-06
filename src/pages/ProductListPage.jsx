@@ -5,8 +5,10 @@ import CategoryMenu from "../components/CategoryMenu";
 import ProductCard from "../components/ProductCard";
 import {
   ArrowLeft,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   SlidersHorizontal,
   X,
 } from "lucide-react";
@@ -25,7 +27,15 @@ export default function ProductListPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
-  const hasActiveFilters = Object.values(filters).some(Boolean);
+  const [expandedFilters, setExpandedFilters] = useState({});
+  const [sortBy, setSortBy] = useState("relevance");
+
+  const appliedFilterCount = Object.values(filters).reduce((total, values) => {
+    if (!Array.isArray(values)) return total;
+    return total + values.length;
+  }, 0);
+
+  const hasActiveFilters = appliedFilterCount > 0;
 
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)
@@ -36,7 +46,9 @@ export default function ProductListPage() {
 
   useEffect(() => {
     setFilters({});
+    setExpandedFilters({});
     setMobileFilterOpen(false);
+    setSortBy("relevance");
 
     fetch(`${API_URL}/api/products/category/${slug}`)
       .then((res) => res.json())
@@ -68,68 +80,148 @@ export default function ProductListPage() {
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const specs = getProductSpecsObject(product);
-  
-      return Object.entries(filters).every(([filterName, filterValue]) => {
-        if (!filterValue) return true;
-  
-        return normalise(specs[filterName]) === normalise(filterValue);
+
+      return Object.entries(filters).every(([filterName, selectedValues]) => {
+        if (!Array.isArray(selectedValues) || selectedValues.length === 0) {
+          return true;
+        }
+
+        return selectedValues.includes(normalise(specs[filterName]));
       });
     });
   }, [products, filters]);
-  
+
+  const getLowestPrice = (product) => {
+    if (!Array.isArray(product.price_breaks) || product.price_breaks.length === 0) {
+      return 0;
+    }
+
+    return Math.min(...product.price_breaks.map((tier) => Number(tier.price || 0)));
+  };
+
+  const sortedProducts = useMemo(() => {
+    const list = [...filteredProducts];
+
+    switch (sortBy) {
+      case "price-asc":
+        return list.sort((a, b) => getLowestPrice(a) - getLowestPrice(b));
+
+      case "price-desc":
+        return list.sort((a, b) => getLowestPrice(b) - getLowestPrice(a));
+
+      case "name-asc":
+        return list.sort((a, b) =>
+          String(a.product_name || "").localeCompare(String(b.product_name || ""))
+        );
+
+      case "name-desc":
+        return list.sort((a, b) =>
+          String(b.product_name || "").localeCompare(String(a.product_name || ""))
+        );
+
+      default:
+        return list;
+    }
+  }, [filteredProducts, sortBy]);
+
+  const getOptionQty = (specName, option) => {
+    return products.filter((product) => {
+      const specs = getProductSpecsObject(product);
+
+      return Object.entries(filters).every(([filterName, selectedValues]) => {
+        if (!Array.isArray(selectedValues) || selectedValues.length === 0) {
+          return normalise(specs[specName]) === normalise(option);
+        }
+
+        if (filterName === specName) {
+          return normalise(specs[specName]) === normalise(option);
+        }
+
+        return (
+          selectedValues.includes(normalise(specs[filterName])) &&
+          normalise(specs[specName]) === normalise(option)
+        );
+      });
+    }).length;
+  };
+
   const filterOptions = useMemo(() => {
     const allSpecNames = new Set();
-  
+
     products.forEach((product) => {
       if (!Array.isArray(product.specifications)) return;
-  
+
       product.specifications.forEach((spec) => {
         const specName = normalise(spec.spec_name);
         if (specName) allSpecNames.add(specName);
       });
     });
-  
+
     const specs = [...allSpecNames]
       .map((currentSpecName) => {
         const matchingProducts = products.filter((product) => {
           const productSpecs = getProductSpecsObject(product);
-  
-          return Object.entries(filters).every(([filterName, filterValue]) => {
-            if (!filterValue) return true;
+
+          return Object.entries(filters).every(([filterName, selectedValues]) => {
+            if (!Array.isArray(selectedValues) || selectedValues.length === 0) {
+              return true;
+            }
+
             if (filterName === currentSpecName) return true;
-  
-            return normalise(productSpecs[filterName]) === normalise(filterValue);
+
+            return selectedValues.includes(normalise(productSpecs[filterName]));
           });
         });
-  
+
         const values = new Set();
-  
+
         matchingProducts.forEach((product) => {
           const productSpecs = getProductSpecsObject(product);
           const value = normalise(productSpecs[currentSpecName]);
-  
+
           if (value) values.add(value);
         });
-  
+
         const uniqueValues = uniqueSorted([...values]);
-  
+
         if (uniqueValues.length <= 1) return null;
-  
+
         return {
           name: currentSpecName,
           options: uniqueValues,
         };
       })
       .filter(Boolean);
-  
+
     return { specs };
   }, [products, filters]);
 
-  const hasFilterOptions =
-  filterOptions.specs.length > 0;
+  const hasFilterOptions = filterOptions.specs.length > 0;
 
   const clearFilters = () => {
     setFilters({});
+  };
+
+  const toggleFilterOption = (specName, option) => {
+    setFilters((prev) => {
+      const currentValues = Array.isArray(prev[specName]) ? prev[specName] : [];
+
+      const nextValues = currentValues.includes(option)
+        ? currentValues.filter((value) => value !== option)
+        : [...currentValues, option];
+
+      return {
+        ...prev,
+        [specName]: nextValues,
+      };
+    });
+  };
+
+  const toggleFilterGroup = (specName) => {
+    setExpandedFilters((prev) => ({
+      ...prev,
+      [specName]: !prev[specName],
+    }));
   };
 
   const currentCategory = categories.find((cat) => cat.slug === slug);
@@ -228,94 +320,121 @@ export default function ProductListPage() {
     }
   };
 
-  const FilterSelect = ({ label, value, options, onChange }) => {
-    if (!options.length) return null;
+  const FilterCheckboxGroup = ({ spec }) => {
+    const selectedValues = Array.isArray(filters[spec.name])
+      ? filters[spec.name]
+      : [];
+
+    const isExpanded = expandedFilters[spec.name] ?? selectedValues.length > 0;
 
     return (
-      <div>
-        <label className="block text-xs font-bold text-gray-600 mb-1 uppercase">
-          {label}
-        </label>
-
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-700"
+      <div className="border-b border-gray-200 pb-3">
+        <button
+          type="button"
+          onClick={() => toggleFilterGroup(spec.name)}
+          className="w-full flex items-center justify-between text-left"
         >
-          <option value="">All</option>
+          <span className="text-sm font-bold text-gray-800 uppercase">
+            {spec.name}
+          </span>
 
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+          {isExpanded ? (
+            <ChevronUp size={18} className="text-gray-600" />
+          ) : (
+            <ChevronDown size={18} className="text-gray-600" />
+          )}
+        </button>
+
+        {isExpanded && (
+          <div className="mt-3 space-y-2">
+            {spec.options.map((option) => {
+              const checked = selectedValues.includes(option);
+              const optionQty = getOptionQty(spec.name, option);
+
+              return (
+                <label
+                  key={option}
+                  className="flex items-center justify-between gap-2 text-sm text-gray-700 cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleFilterOption(spec.name, option)}
+                      className="h-4 w-4 rounded border-gray-400 accent-blue-800 cursor-pointer"
+                    />
+
+                    <span>{option}</span>
+                  </span>
+
+                  <span className="text-xs text-gray-500">({optionQty})</span>
+                </label>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   };
 
+  const FilterBox = () => (
+    <div className="bg-white border border-gray-300 p-4 space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-blue-800">Filters</h2>
+          <p className="text-xs text-gray-500 mt-1">
+            ({appliedFilterCount} applied)
+          </p>
+        </div>
+
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-sm font-bold text-red-600 hover:underline"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+
+      {filterOptions.specs.map((spec) => (
+        <FilterCheckboxGroup key={spec.name} spec={spec} />
+      ))}
+    </div>
+  );
+
   useEffect(() => {
     if (!slug) return;
-  
+
     let canonical = document.querySelector("link[rel='canonical']");
     if (!canonical) {
       canonical = document.createElement("link");
       canonical.setAttribute("rel", "canonical");
       document.head.appendChild(canonical);
     }
-  
+
     canonical.setAttribute(
       "href",
       `https://www.sarawholesale.co.uk/subcategory/${slug}`
     );
   }, [slug]);
 
-  const FilterBox = () => (
-    <div className="bg-white border border-gray-300 p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-blue-800">Filters</h2>
-
-        {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded hover:bg-red-700 cursor-pointer transition-colors"
-            >
-              Reset Filters
-            </button>
-          )}
-      </div>
-
-
-      {filterOptions.specs.map((spec) => (
-        <FilterSelect
-          key={spec.name}
-          label={spec.name}
-          value={filters[spec.name] || ""}
-          options={spec.options}
-          onChange={(value) =>
-            setFilters((prev) => ({ ...prev, [spec.name]: value }))
-          }
-        />
-      ))}
-    </div>
-  );
-
   useEffect(() => {
     if (!currentCategory) return;
-  
+
     document.title =
       currentCategory.meta_title ||
       `${currentCategory.category_name} | Sara Wholesale`;
-  
+
     let meta = document.querySelector('meta[name="description"]');
-  
+
     if (!meta) {
       meta = document.createElement("meta");
       meta.name = "description";
       document.head.appendChild(meta);
     }
-  
+
     meta.setAttribute(
       "content",
       currentCategory.meta_description ||
@@ -416,13 +535,7 @@ export default function ProductListPage() {
           </div>
         )}
 
-        <div
-          className={`grid grid-cols-1 gap-5 ${
-            hasFilterOptions
-              ? "lg:grid-cols-[260px_minmax(0,1fr)]"
-              : "lg:grid-cols-[260px_minmax(0,1fr)]"
-          }`}
-        >
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="hidden lg:block space-y-4 sticky top-17.5 h-fit">
             <div className="bg-white border border-gray-300 p-4">
               <h1 className="text-2xl font-bold text-blue-800 uppercase leading-tight">
@@ -443,17 +556,21 @@ export default function ProductListPage() {
                 Sub Categories
               </h2>
 
-              {sideSubCategories.map((cat) => (
-                <Link
-                  key={cat.category_id}
-                  to={`/subcategory/${cat.slug}`}
-                  className={`block w-full text-left py-2 border-b border-gray-300 ${
-                    cat.slug === slug ? "font-bold text-green-700" : ""
-                  }`}
-                >
-                  {cat.category_name}
-                </Link>
-              ))}
+              {sideSubCategories.map((cat) => {
+
+                return (
+                  <Link
+                    key={cat.category_id}
+                    to={`/subcategory/${cat.slug}`}
+                    className={`flex items-center justify-between w-full text-left py-2 border-b border-gray-300 ${
+                      cat.slug === slug ? "font-bold text-green-700" : ""
+                    }`}
+                  >
+                    <span>{cat.category_name}</span>
+                    
+                  </Link>
+                );
+              })}
             </div>
           </aside>
 
@@ -470,15 +587,41 @@ export default function ProductListPage() {
               </p>
             </div>
 
+            <div className="bg-white border border-gray-300 p-4 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-sm font-bold text-blue-800">
+                {hasActiveFilters
+                  ? `Showing ${filteredProducts.length} of ${products.length} products`
+                  : `Showing ${products.length} products`}
+              </p>
+
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-semibold text-gray-700">
+                  Sort by:
+                </label>
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-800"
+                >
+                  <option value="relevance">Relevance</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="name-asc">Name: A to Z</option>
+                  <option value="name-desc">Name: Z to A</option>
+                </select>
+              </div>
+            </div>
+
             {filteredProducts.length === 0 && (
               <div className="bg-white border border-gray-300 p-6">
                 No products found.
               </div>
             )}
 
-            {filteredProducts.length > 0 && (
+            {sortedProducts.length > 0 && (
               <div className="grid grid-cols-1 2xl:grid-cols-2 gap-5">
-                {filteredProducts.map((product) => (
+                {sortedProducts.map((product) => (
                   <ProductCard
                     key={product.product_id}
                     product={product}
@@ -545,28 +688,27 @@ export default function ProductListPage() {
                       <ChevronRight size={30} />
                     </button>
                   )}
-                  
                 </div>
-                      
               </div>
             )}
+
             {currentCategory?.seo_content && (
-                        <div className="mt-8 bg-white border border-gray-300 p-6 md:p-8">
-                          <div
-                            className="
-                              text-[#333] text-sm md:text-base leading-7
-                              [&_h2]:text-2xl [&_h2]:font-extrabold [&_h2]:text-blue-800 [&_h2]:mb-4
-                              [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-blue-800 [&_h3]:mt-6 [&_h3]:mb-3
-                              [&_p]:mb-4
-                              [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4
-                              [&_li]:mb-1
-                            "
-                            dangerouslySetInnerHTML={{
-                              __html: currentCategory.seo_content,
-                            }}
-                          />
-                        </div>
-                      )}
+              <div className="mt-8 bg-white border border-gray-300 p-6 md:p-8">
+                <div
+                  className="
+                    text-[#333] text-sm md:text-base leading-7
+                    [&_h2]:text-2xl [&_h2]:font-extrabold [&_h2]:text-blue-800 [&_h2]:mb-4
+                    [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-blue-800 [&_h3]:mt-6 [&_h3]:mb-3
+                    [&_p]:mb-4
+                    [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4
+                    [&_li]:mb-1
+                  "
+                  dangerouslySetInnerHTML={{
+                    __html: currentCategory.seo_content,
+                  }}
+                />
+              </div>
+            )}
           </section>
         </div>
       </section>

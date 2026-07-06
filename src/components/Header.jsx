@@ -238,15 +238,15 @@ const closeCart = () => {
       <div className="bg-[#062b63] text-white text-sm">
         <div className="max-w-7xl mx-auto px-4 h-9 flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <Truck size={16} /> Same day and next day Delivery 
+            <Truck size={16} /> Next working day delivery available 
           </span>
 
           <span className="hidden md:flex items-center gap-2">
-            <Truck size={16} /> Free Delivery for all orders
+            <Truck size={16} /> Free Delivery for orders above £40
           </span>
 
           <Link to="/contact" className="flex items-center gap-2">
-            <Phone size={15} /> Contact Us
+            <Phone size={15} /> Order online or Call 0724 715150
           </Link>
         </div>
       </div>
