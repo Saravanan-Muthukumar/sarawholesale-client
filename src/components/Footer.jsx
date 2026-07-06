@@ -124,7 +124,7 @@ export default function Footer() {
           </p>
 
           <p className="text-center text-xs text-blue-200 mt-2">
-            SAARAH ENTERPRISES LTD | Company No: 15920690
+            SARA WHOLESALE LIMITED | Company No: 15920690
           </p>
         </div>
                 

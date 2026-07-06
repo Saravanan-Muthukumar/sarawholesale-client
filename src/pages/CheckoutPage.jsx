@@ -195,7 +195,7 @@ const totalAmount = subtotal + vatAmount;
         ) : (
           <div className="grid lg:grid-cols-[1fr_330px] gap-7">
             <div className="space-y-4">
-              <div className="bg-white border border-[#edf1f7] rounded-xl overflow-hidden">
+              <div className="bg-white border border-[#edf1f7] overflow-hidden">
                 <div className="bg-[#26343a] text-white px-4 py-3 flex justify-between text-sm font-bold">
                   <span>Your Details</span>
                   <span>{canSubmit ? "Ready" : "Incomplete"}</span>

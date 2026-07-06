@@ -9,6 +9,7 @@ export default function AdvancedSearchBar() {
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   const navigate = useNavigate();
   const boxRef = useRef(null);
@@ -21,6 +22,7 @@ export default function AdvancedSearchBar() {
       if (value.length < 2) {
         setSuggestions([]);
         setOpen(false);
+        setActiveIndex(-1);
         return;
       }
 
@@ -31,6 +33,7 @@ export default function AdvancedSearchBar() {
         .then((data) => {
           setSuggestions(Array.isArray(data) ? data : []);
           setOpen(true);
+          setActiveIndex(-1);
         })
         .catch((err) => {
           console.error("Search suggestion error:", err);
@@ -46,33 +49,64 @@ export default function AdvancedSearchBar() {
     const handleClickOutside = (e) => {
       if (boxRef.current && !boxRef.current.contains(e.target)) {
         setOpen(false);
+        setActiveIndex(-1);
       }
     };
 
-    document.addEventListener("touchstart", handleClickOutside);
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
 
     return () => {
-      document.removeEventListener("touchstart", handleClickOutside);
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
     };
   }, []);
 
   const goToSearch = (value = query) => {
-    const searchValue = value.trim();
+    const searchValue = String(value || "").trim();
     if (!searchValue) return;
 
+    setQuery(searchValue);
     setOpen(false);
+    setActiveIndex(-1);
     inputRef.current?.blur();
 
-    const url = `/search?q=${encodeURIComponent(searchValue)}`;
+    navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+  };
 
-    if (window.innerWidth < 768) {
-      window.location.href = url;
-    } else {
-      navigate(url);
+  const handleKeyDown = (e) => {
+    if (!open) return;
+
+    const visibleSuggestions = suggestions.slice(0, 12);
+    const totalItems = visibleSuggestions.length + 1; // +1 for View all results
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev + 1) % totalItems);
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev <= 0 ? totalItems - 1 : prev - 1));
+    }
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      if (activeIndex >= 0 && activeIndex < visibleSuggestions.length) {
+        goToSearch(visibleSuggestions[activeIndex].keyword);
+      } else {
+        goToSearch(query);
+      }
+    }
+
+    if (e.key === "Escape") {
+      setOpen(false);
+      setActiveIndex(-1);
     }
   };
+
+  const visibleSuggestions = suggestions.slice(0, 12);
 
   return (
     <div ref={boxRef} className="relative w-full">
@@ -89,7 +123,9 @@ export default function AdvancedSearchBar() {
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
+            setActiveIndex(-1);
           }}
+          onKeyDown={handleKeyDown}
           onFocus={() => {
             if (query.trim().length >= 2) setOpen(true);
           }}
@@ -104,6 +140,7 @@ export default function AdvancedSearchBar() {
               setQuery("");
               setSuggestions([]);
               setOpen(false);
+              setActiveIndex(-1);
               inputRef.current?.focus();
             }}
             className="absolute right-16 top-1/2 -translate-y-1/2 text-[#071b3a]/45 hover:text-red-600"
@@ -122,9 +159,9 @@ export default function AdvancedSearchBar() {
 
       {open && query.trim().length >= 2 && (
         <div
-          onTouchStart={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
-          className="absolute left-0 right-0 top-full bg-white border border-[#cfd8e6] shadow-2xl z-99999 overflow-hidden"
+          onTouchStart={(e) => e.stopPropagation()}
+          className="absolute left-0 right-0 top-full bg-white border border-[#cfd8e6] shadow-2xl z-[99999] overflow-hidden"
         >
           <div className="max-h-[65vh] overflow-y-auto">
             {loading && (
@@ -133,51 +170,43 @@ export default function AdvancedSearchBar() {
               </div>
             )}
 
-            {!loading && suggestions.length > 0 && (
+            {!loading && visibleSuggestions.length > 0 && (
               <div className="py-1">
-                {suggestions.slice(0, 12).map((item) => (
-                  <div
-                    key={item.keyword}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      goToSearch(item.keyword);
-                    }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      goToSearch(item.keyword);
-                    }}
-                    className="w-full px-5 py-3 text-[15px] active:bg-[#f3f4f6] hover:bg-[#f3f4f6] text-[#071b3a] cursor-pointer border-b border-[#edf1f7] last:border-b-0"
+                {visibleSuggestions.map((item, index) => (
+                  <button
+                    type="button"
+                    key={`${item.keyword}-${index}`}
+                    onClick={() => goToSearch(item.keyword)}
+                    className={`w-full text-left px-5 py-3 text-[15px] text-[#071b3a] cursor-pointer border-b border-[#edf1f7] last:border-b-0 ${
+                      activeIndex === index
+                        ? "bg-green-50 font-semibold"
+                        : "hover:bg-[#f3f4f6]"
+                    }`}
                   >
                     {item.keyword}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
 
-            {!loading && suggestions.length === 0 && (
+            {!loading && visibleSuggestions.length === 0 && (
               <div className="px-5 py-3 text-sm text-[#071b3a]/50">
                 No suggestions found
               </div>
             )}
           </div>
 
-          <div
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              goToSearch();
-            }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              goToSearch();
-            }}
-            className="w-full px-5 py-3 bg-[#f3f4f6] active:bg-green-50 hover:bg-green-50 text-sm font-bold text-green-700 border-t border-[#d9e2ef] cursor-pointer"
+          <button
+            type="button"
+            onClick={() => goToSearch()}
+            className={`w-full text-left px-5 py-3 text-sm font-bold text-green-700 border-t border-[#d9e2ef] cursor-pointer ${
+              activeIndex === visibleSuggestions.length
+                ? "bg-green-50"
+                : "bg-[#f3f4f6] hover:bg-green-50"
+            }`}
           >
             View all results for "{query}"
-          </div>
+          </button>
         </div>
       )}
     </div>

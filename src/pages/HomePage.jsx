@@ -5,7 +5,9 @@ import FeaturedProducts from "../components/FeaturedProducts";
 import CategoryMenu from "../components/CategoryMenu";
 import WhyChooseUs from "../components/WhyChooseUs";
 import ShopByCollection from "../components/ShopByCollection";
-import PriceMatchBanner from "../components/PriceMatchBanner";
+import ShopByIndustry from "../components/ShopByIndustry";
+import TopSearches from "../components/TopSearches";
+import TradeAccountBanner from "../components/TradeAccountBanner";
 import { useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
@@ -17,17 +19,6 @@ export default function HomePage() {
   const [showStickyMenu, setShowStickyMenu] = useState(false);
   const [heroHidden, setHeroHidden] = useState(false);
   const location = useLocation();
-
-  useEffect(() => {
-    let canonical = document.querySelector("link[rel='canonical']");
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.setAttribute("rel", "canonical");
-      document.head.appendChild(canonical);
-    }
-  
-    canonical.setAttribute("href", "https://www.sarawholesale.co.uk/");
-  }, []);
 
   useEffect(() => {
     if (location.state?.hideHero) {
@@ -62,7 +53,6 @@ export default function HomePage() {
       if (!categoryGrid) return;
 
       const categoryTop = categoryGrid.getBoundingClientRect().top;
-
       setShowStickyMenu(categoryTop <= 0);
     };
 
@@ -84,21 +74,17 @@ export default function HomePage() {
 
   return (
     <main className="bg-[#f3f4f6] min-h-screen">
-        <Helmet>
-      <title>
-        SARA Wholesale Supplies | Packaging & Business Supplies UK
-      </title>
+      <Helmet>
+        <title>SARA Wholesale Supplies | Packaging & Business Supplies UK</title>
 
-      <meta
-        name="description"
-        content="Quality packaging supplies and business essentials for retail and wholesale customers across the UK. Fast delivery and competitive wholesale pricing."
-      />
+        <meta
+          name="description"
+          content="Wholesale packaging supplies, tapes, gloves, stationery, painting supplies and business essentials across the UK. Bulk pricing and fast delivery."
+        />
 
-      <link
-        rel="canonical"
-        href="https://www.sarawholesale.co.uk/"
-      />
-    </Helmet>
+        <link rel="canonical" href="https://www.sarawholesale.co.uk/" />
+      </Helmet>
+
       {!heroHidden && (
         <div className="hidden md:block bg-white border-b border-[#d9e2ef]">
           <CategoryMenu categories={categories} />
@@ -113,21 +99,25 @@ export default function HomePage() {
 
       {!heroHidden && (
         <div id="home-hero-section">
-        <Hero onShopNow={handleShopNow} categories={categories} />
+          <Hero onShopNow={handleShopNow} categories={categories} />
         </div>
       )}
+
+      <TopSearches />
 
       <section id="home-category-grid">
         <CategoryGrid categories={categories} />
       </section>
 
-      <PriceMatchBanner />
-
+      {/* <ShopByIndustry /> */}
+      <WhyChooseUs />
       <FeaturedProducts products={products} />
 
-      <WhyChooseUs />
-
       <ShopByCollection />
+
+      <TradeAccountBanner />
+
+      
     </main>
   );
 }

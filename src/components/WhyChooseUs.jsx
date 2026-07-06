@@ -5,7 +5,7 @@ export default function WhyChooseUs() {
         {
           icon: Truck,
           title: "Fast UK Delivery",
-          text: "Next day delivery across UK mainland. Same day within 50 miles of Slough. Delivery within 2 hours in Slough.",
+          text: "Next day delivery across UK mainland. Order before 1pm for next day delivery. Order palced after 1 pm Friday will be dispatched on Monday. Minimum value for free delivery is £40.",
         },
         {
           icon: Tag,

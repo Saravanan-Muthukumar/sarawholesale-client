@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+
 import {
   ArrowLeft,
   Menu,
@@ -31,6 +32,7 @@ export default function Header() {
   const [hideMobileLogo, setHideMobileLogo] = useState(false);
 
   const location = useLocation();
+  const isCartPage = location.pathname === "/cart";
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
   const cartContext = useCart();
@@ -59,13 +61,18 @@ const closeUserMenu = () => {
 };
 
 const openCartSlowly = () => {
+  if (isCartPage) return;
+
   clearTimeout(cartHoverTimer.current);
+
   cartHoverTimer.current = setTimeout(() => {
     setCartHoverOpen(true);
   }, 100);
 };
 
 const closeCart = () => {
+  if (isCartPage) return;
+
   clearTimeout(cartHoverTimer.current);
   setCartHoverOpen(false);
 };
@@ -267,11 +274,11 @@ const closeCart = () => {
             />
           </Link>
 
-          {!isAuthPage && (
+       
             <div className="flex-1 max-w-xl">
               <AdvancedSearchBar />
             </div>
-          )}
+         
 
           <div className="flex items-center gap-5">
             {isAdmin && (
@@ -360,7 +367,7 @@ const closeCart = () => {
                 </div>
               </Link>
 
-              {cartHoverOpen && (
+              {!isCartPage && cartHoverOpen && (
                 <CartDropdown
                   cartItems={cartItems}
                   API_URL={API_URL}
@@ -397,7 +404,7 @@ const closeCart = () => {
           </div>
         )}
 
-        {!isAuthPage && (
+        
           <>
             <div className="grid grid-cols-4 h-15.5 text-[#00539f]">
               <button
@@ -460,11 +467,11 @@ const closeCart = () => {
               </div>
             )}
           </>
-        )}
+       
       </div>
       {/* STICKY MOBILE MENU AFTER SCROLL */}
 
-{!isAuthPage && hideMobileLogo && (
+{hideMobileLogo && (
   <div
     className="md:hidden fixed top-0 left-0 right-0 z-9998 bg-white border-b border-gray-200 shadow-sm"
     onBlur={(e) => {

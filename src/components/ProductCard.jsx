@@ -66,7 +66,7 @@ export default function ProductCard({ product, onAddToCart }) {
           </div>
 
           <div className="min-w-0">
-            <h2 className="font-bold text-gray-900 text-xl leading-snug line-clamp-2 hover:text-green-700">
+          <h2 className="font-bold text-gray-900 text-lg leading-snug line-clamp-3 hover:text-green-700">
               {product.product_name}
             </h2>
 
@@ -98,7 +98,7 @@ export default function ProductCard({ product, onAddToCart }) {
 
         {product.price_breaks?.length > 0 && (
           <div
-            className="grid gap-2 mt-5"
+            className="grid gap-1.5 mt-3"
             style={{
               gridTemplateColumns: `repeat(${product.price_breaks.length}, minmax(0, 1fr))`,
             }}
@@ -110,9 +110,7 @@ export default function ProductCard({ product, onAddToCart }) {
 
               const savingPercent =
                 basePrice > 0
-                  ? Math.round(
-                      ((basePrice - Number(tier.price)) / basePrice) * 100
-                    )
+                  ? Math.round(((basePrice - Number(tier.price)) / basePrice) * 100)
                   : 0;
 
               const tierUnitLabel =
@@ -129,22 +127,20 @@ export default function ProductCard({ product, onAddToCart }) {
                     setQty(String(tier.min_qty));
                     setSelectedTierKey(tierKey);
                   }}
-                  className={`border px-3 py-4 text-center transition bg-white ${
+                  className={`relative border px-2 py-2 text-center transition bg-white ${
                     isActive
                       ? "border-green-700 bg-green-50"
                       : "border-gray-300 hover:border-green-500 hover:bg-gray-50"
                   }`}
                 >
-                  <div className="h-7 mb-1 flex items-center justify-center">
-                    {isBestValue && (
-                      <span className="bg-green-700 text-white text-[10px] px-2 py-1 font-bold">
-                        BEST VALUE
-                      </span>
-                    )}
-                  </div>
+                  {isBestValue && (
+                    <span className="absolute top-1 right-1 bg-green-700 text-white text-[8px] px-1.5 py-0.5 font-bold">
+                      BEST
+                    </span>
+                  )}
 
                   <div
-                    className={`text-sm font-semibold ${
+                    className={`text-[12px] font-semibold ${
                       isActive ? "text-green-800" : "text-gray-700"
                     }`}
                   >
@@ -152,23 +148,21 @@ export default function ProductCard({ product, onAddToCart }) {
                   </div>
 
                   <div
-                    className={`mt-1 text-lg font-semibold ${
+                    className={`mt-1 text-base font-bold ${
                       isActive ? "text-green-700" : "text-gray-900"
                     }`}
                   >
                     £{Number(tier.price).toFixed(2)}
                   </div>
 
-                  <div className="text-[11px] text-gray-500">each</div>
+                  <div className="text-[10px] text-gray-500">each</div>
 
                   <div
-                    className={`mt-2 pt-2 border-t text-[11px] font-semibold ${
+                    className={`mt-1 pt-1 border-t text-[10px] font-semibold ${
                       savingPercent > 0 ? "text-green-700" : "text-gray-400"
                     }`}
                   >
-                    {savingPercent > 0
-                      ? `${savingPercent}% saving`
-                      : "Base price"}
+                    {savingPercent > 0 ? `${savingPercent}% off` : "Base"}
                   </div>
                 </button>
               );
@@ -177,40 +171,40 @@ export default function ProductCard({ product, onAddToCart }) {
         )}
       </div>
 
-      <div className="border-t border-gray-300 bg-gray-50 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
-        <div className="bg-white border border-gray-300 p-4 w-full sm:w-[280px]">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-gray-500">Unit Price</p>
-            <p className="text-2xl font-bold text-green-700">
-              £{unitPrice.toFixed(2)}
-            </p>
-          </div>
+      <div className="border-t border-gray-300 bg-gray-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <div className="bg-white border border-gray-300 px-4 py-3 w-full sm:w-[240px]">
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-xs font-semibold text-gray-500">Unit Price</p>
+      <p className="text-xl font-bold text-green-700">
+        £{unitPrice.toFixed(2)}
+      </p>
+    </div>
 
-          <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between">
-            <p className="text-sm font-semibold text-gray-500">Subtotal</p>
-            <p className="text-xl font-bold text-gray-900">
-              £{subtotal.toFixed(2)}
-            </p>
-          </div>
+    <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between gap-3">
+      <p className="text-xs font-semibold text-gray-500">Subtotal</p>
+      <p className="text-lg font-bold text-gray-900">
+        £{subtotal.toFixed(2)}
+      </p>
+    </div>
 
-          <p className="text-xs text-gray-400 mt-1 text-right">exc. VAT</p>
-        </div>
+    <p className="text-[10px] text-gray-400 mt-0.5 text-right">exc. VAT</p>
+  </div>
 
-        <div className="flex flex-col items-stretch sm:items-end gap-2">
-          <p className="text-xs text-gray-500">
-            Add {currentQty} {unitLabel} to your cart
-          </p>
+  <div className="flex flex-col items-stretch sm:items-end gap-1.5">
+    <p className="text-xs text-gray-500">
+      Add {currentQty} {unitLabel} to your cart
+    </p>
 
-          <QtyAddControl
-            value={qty}
-            onQtyChange={(value) => {
-              setQty(value);
-              setSelectedTierKey(null);
-            }}
-            onAdd={(quantity) => onAddToCart(product, quantity)}
-          />
-        </div>
-      </div>
+    <QtyAddControl
+      value={qty}
+      onQtyChange={(value) => {
+        setQty(value);
+        setSelectedTierKey(null);
+      }}
+      onAdd={(quantity) => onAddToCart(product, quantity)}
+    />
+  </div>
+</div> 
     </div>
   );
 }

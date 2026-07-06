@@ -17,36 +17,8 @@ export default function CartPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const [showMobileStickyCheckout, setShowMobileStickyCheckout] = useState(true);
   const [deleteItemId, setDeleteItemId] = useState(null);
-  const [editingQty, setEditingQty] = useState({});
+  // const [editingQty, setEditingQty] = useState({});
   
-
-   const handleQtyBlur = async (item) => {
-    const id = getItemId(item);
-    const typedQty = editingQty[id];
-  
-    if (typedQty === undefined) return;
-  
-    const cleanQty = Number(typedQty);
-  
-    if (!cleanQty || cleanQty <= 0) {
-      setEditingQty((prev) => {
-        const copy = { ...prev };
-        delete copy[id];
-        return copy;
-      });
-      return;
-    }
-  
-    setUpdatingId(id);
-    await updateCartItem(id, cleanQty);
-    setUpdatingId(null);
-  
-    setEditingQty((prev) => {
-      const copy = { ...prev };
-      delete copy[id];
-      return copy;
-    });
-  };
 
   const getImage = (imageUrl) => {
     if (!imageUrl) return null;
@@ -71,10 +43,21 @@ export default function CartPage() {
     Number(item.quantity || 0) * Number(item.unit_price || 0);
   const getUnit = (item) => item.unit || "Unit";
 
-  const subtotal = cartItems.reduce((sum, item) => sum + getLineTotal(item), 0);
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + getLineTotal(item),
+    0
+  );
+  
+  const deliveryCharge = subtotal >= 40 ? 0 : 5.95;
+  
   const vatAmount = subtotal * 0.2;
-  const totalAmount = subtotal + vatAmount;
+  
+  // VAT is only on products (keep your current behaviour)
+  const totalAmount = subtotal + deliveryCharge + vatAmount;
+  
   const totalItems = cartItemCount;
+  
+  const canCheckout = subtotal >= 20;
 
   useEffect(() => {
     if (!bottomCheckoutRef.current) return;
@@ -90,35 +73,42 @@ export default function CartPage() {
 
   const handleIncrease = async (item) => {
     const id = getItemId(item);
+    const newQty = Number(item.quantity || 1) + 1;
+  
     setUpdatingId(id);
-    await updateCartItem(id, Number(item.quantity) + 1);
+    await updateCartItem(id, newQty);
     setUpdatingId(null);
   };
-
+  
   const handleDecrease = async (item) => {
+    const id = getItemId(item);
     const qty = Number(item.quantity || 1);
-
+  
     if (qty <= 1) {
-      setDeleteItemId(getItemId(item));
+      setDeleteItemId(id);
       return;
     }
-
-    const id = getItemId(item);
+  
     setUpdatingId(id);
     await updateCartItem(id, qty - 1);
     setUpdatingId(null);
   };
 
-  const handleQtyChange = (item, value) => {
+
+  const handleQtyInputChange = async (item, value) => {
     const id = getItemId(item);
     const cleanValue = value.replace(/\D/g, "");
   
-    setEditingQty((prev) => ({
-      ...prev,
-      [id]: cleanValue,
-    }));
+    if (cleanValue === "") return;
+  
+    const newQty = Number(cleanValue);
+  
+    if (newQty <= 0) return;
+  
+    setUpdatingId(id);
+    await updateCartItem(id, newQty);
+    setUpdatingId(null);
   };
-
   return (
     <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] pb-28 md:pb-0">
       <div className="hidden md:block mb-5">
@@ -160,7 +150,7 @@ export default function CartPage() {
         ) : (
           <div className="grid lg:grid-cols-[1fr_330px] gap-7">
             <div className="space-y-4">
-              <div className="bg-white border border-[#edf1f7] rounded-xl overflow-hidden">
+              <div className="bg-white border border-[#edf1f7] overflow-hidden">
                 <div className="bg-[#26343a] text-white px-4 py-3 flex justify-between text-sm font-bold">
                   <span>Your Items</span>
                   <span>{cartItems.length} products</span>
@@ -257,13 +247,12 @@ export default function CartPage() {
 
                               <div className="flex items-center gap-3 mt-4">
                               <QtyBox
-                                  qty={editingQty[id] ?? item.quantity}
-                                  onMinus={() => handleDecrease(item)}
-                                  onPlus={() => handleIncrease(item)}
-                                  onChangeQty={(value) => handleQtyChange(item, value)}
-                                  onBlurQty={() => handleQtyBlur(item)}
-                                  disabled={isUpdating}
-                                />
+                                qty={item.quantity}
+                                onMinus={() => handleDecrease(item)}
+                                onPlus={() => handleIncrease(item)}
+                                onChangeQty={(value) => handleQtyInputChange(item, value)}
+                                disabled={isUpdating}
+                              />
 
                                 <button
                                   onClick={() => setDeleteItemId(id)}
@@ -305,27 +294,31 @@ export default function CartPage() {
               </div>
 
               <div className="md:hidden bg-white border border-[#edf1f7] rounded-xl p-5">
-                <OrderSummary
-                  totalItems={totalItems}
-                  subtotal={subtotal}
-                  vatAmount={vatAmount}
-                  totalAmount={totalAmount}
-                  onCheckout={() => navigate("/checkout")}
-                  checkoutRef={bottomCheckoutRef}
-                />
+              <OrderSummary
+                totalItems={totalItems}
+                subtotal={subtotal}
+                deliveryCharge={deliveryCharge}
+                vatAmount={vatAmount}
+                totalAmount={totalAmount}
+                canCheckout={canCheckout}
+                onCheckout={() => navigate("/checkout")}
+                checkoutRef={bottomCheckoutRef}
+              />
               </div>
             </div>
 
             <aside className="hidden lg:block">
               <div className="sticky top-24 space-y-4">
                 <div className="border border-[#edf1f7] rounded-xl p-5 shadow-sm bg-white">
-                  <OrderSummary
-                    totalItems={totalItems}
-                    subtotal={subtotal}
-                    vatAmount={vatAmount}
-                    totalAmount={totalAmount}
-                    onCheckout={() => navigate("/checkout")}
-                  />
+                <OrderSummary
+                  totalItems={totalItems}
+                  subtotal={subtotal}
+                  deliveryCharge={deliveryCharge}
+                  vatAmount={vatAmount}
+                  totalAmount={totalAmount}
+                  canCheckout={canCheckout}
+                  onCheckout={() => navigate("/checkout")}
+                />
                 </div>
 
                 <div className="border border-[#edf1f7] rounded-xl p-4 gap-3 text-[#071b3a] bg-white flex">
@@ -362,13 +355,24 @@ export default function CartPage() {
             </p>
           </div>
 
+          {subtotal < 20 && (
+            <p className="mb-2 text-xs text-red-600 font-semibold text-center">
+              Minimum order value is £20.
+            </p>
+          )}
+
           <button
             onClick={() => navigate("/checkout")}
-            className="w-full h-12 bg-green-700 text-white font-bold text-sm hover:bg-green-800"
+            disabled={!canCheckout}
+            className={`w-full h-12 font-bold text-sm transition ${
+              canCheckout
+                ? "bg-green-700 text-white hover:bg-green-800"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
             type="button"
           >
             Go to checkout
-          </button>
+        </button>
         </div>
       )}
     </main>
@@ -378,8 +382,10 @@ export default function CartPage() {
 function OrderSummary({
   totalItems,
   subtotal,
+  deliveryCharge,
   vatAmount,
   totalAmount,
+  canCheckout,
   onCheckout,
   checkoutRef,
 }) {
@@ -388,19 +394,58 @@ function OrderSummary({
       <h2 className="text-xl font-bold text-[#071b3a] mb-5">Order summary</h2>
 
       <SummaryRow label="Items" value={totalItems} />
-      <SummaryRow label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
-      <SummaryRow label="VAT (20%)" value={`£${vatAmount.toFixed(2)}`} />
-      <SummaryRow label="Estimated delivery charge" value="Free" green />
+
+      <SummaryRow
+        label="Subtotal"
+        value={`£${subtotal.toFixed(2)}`}
+      />
+
+      <SummaryRow
+        label="VAT (20%)"
+        value={`£${vatAmount.toFixed(2)}`}
+      />
+
+      <SummaryRow
+        label="Delivery"
+        value={deliveryCharge === 0 ? "FREE" : `£${deliveryCharge.toFixed(2)}`}
+        green={deliveryCharge === 0}
+      />
+
+      {deliveryCharge > 0 && (
+        <p className="mb-3 text-xs text-blue-700">
+          Add another{" "}
+          <strong>£{(40 - subtotal).toFixed(2)}</strong> to qualify for{" "}
+          <strong>FREE delivery</strong>.
+        </p>
+      )}
+
+      {deliveryCharge === 0 && (
+        <p className="mb-3 text-xs text-green-700 font-semibold">
+          ✓ Your order qualifies for FREE delivery.
+        </p>
+      )}
 
       <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-xl text-[#071b3a]">
         <span>Total incl. VAT</span>
         <span>£{totalAmount.toFixed(2)}</span>
       </div>
 
+      {subtotal < 20 && (
+        <p className="mt-3 text-xs text-gray-600 font-semibold">
+          Please note our minimum order value is £20. Add another{" "}
+          <strong>£{(20 - subtotal).toFixed(2)}</strong> to checkout.
+        </p>
+      )}
+
       <button
         ref={checkoutRef}
         onClick={onCheckout}
-        className="w-full h-12 bg-green-700 text-white font-bold text-sm mt-5 hover:bg-green-800 transition"
+        disabled={!canCheckout}
+        className={`w-full h-12 font-bold text-sm mt-5 transition ${
+          canCheckout
+            ? "bg-green-700 text-white hover:bg-green-800"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+        }`}
         type="button"
       >
         Go to checkout
@@ -410,6 +455,23 @@ function OrderSummary({
 }
 
 function QtyBox({ qty, onMinus, onPlus, onChangeQty, disabled }) {
+  const [localQty, setLocalQty] = useState(String(qty || 1));
+
+  useEffect(() => {
+    setLocalQty(String(qty || 1));
+  }, [qty]);
+
+  const commitQty = () => {
+    const cleanQty = Number(localQty);
+
+    if (!cleanQty || cleanQty <= 0) {
+      setLocalQty(String(qty || 1));
+      return;
+    }
+
+    onChangeQty(String(cleanQty));
+  };
+
   return (
     <div className="flex h-10 border border-gray-300 overflow-hidden bg-white">
       <button
@@ -426,21 +488,16 @@ function QtyBox({ qty, onMinus, onPlus, onChangeQty, disabled }) {
       </button>
 
       <input
-        value={qty}
+        value={localQty}
         disabled={disabled}
         onChange={(e) => {
-          const value = e.target.value;
-
-          if (value === "") {
-            onChangeQty("");
-            return;
-          }
-
-          onChangeQty(value.replace(/\D/g, ""));
+          const value = e.target.value.replace(/\D/g, "");
+          setLocalQty(value);
         }}
-        onBlur={() => {
-          if (!qty || Number(qty) <= 0) {
-            onChangeQty(1);
+        onBlur={commitQty}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.currentTarget.blur();
           }
         }}
         inputMode="numeric"
