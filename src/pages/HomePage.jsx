@@ -97,17 +97,18 @@ export default function HomePage() {
         </div>
       )}
 
-      {!heroHidden && (
+      {/* {!heroHidden && (
         <div id="home-hero-section">
           <Hero onShopNow={handleShopNow} categories={categories} />
         </div>
-      )}
+      )} */}
 
-      <TopSearches />
+      
 
       <section id="home-category-grid">
         <CategoryGrid categories={categories} />
       </section>
+      <TopSearches />
 
       {/* <ShopByIndustry /> */}
       <WhyChooseUs />

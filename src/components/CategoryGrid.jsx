@@ -23,7 +23,7 @@ export default function CategoryGrid({ categories = [] }) {
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-2xl font-extrabold text-blue-800">
-              Shop by Category
+              Top Categories
             </h2>
 
             <p className="text-sm text-[#071b3a]/55 mt-1">

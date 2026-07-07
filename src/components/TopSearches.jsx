@@ -3,13 +3,14 @@ import { Link } from "react-router-dom";
 export default function TopSearches() {
   const searches = [
     { name: "Packing Tape", link: "/search?q=packing tape" },
-    { name: "Nitrile Gloves", link: "/search?q=nitrile gloves" },
     { name: "Masking Tape", link: "/search?q=masking tape" },
-    { name: "A4 Paper", link: "/search?q=a4 paper" },
-    { name: "Stretch Wrap", link: "/search?q=stretch wrap" },
+    { name: "Nitrile Gloves", link: "/search?q=nitrile gloves" },
+    { name: "Vinyl Gloves", link: "/search?q=vinyl gloves" },
+    { name: "Till Paper", link: "/search?q=till-paper" },
+    { name: "A4 Paper", link: "/subcategory/a4-paper" },
     { name: "Mailing Bags", link: "/search?q=mailing bags" },
-    { name: "Paint Rollers", link: "/search?q=paint rollers" },
-    { name: "Brushes", link: "/search?q=brushes" },
+    { name: "Cable Tie", link: "/search?q=cable tie" },
+    
   ];
 
   return (

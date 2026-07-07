@@ -144,8 +144,18 @@ export default function ProductPage() {
     return [...sameSubCategory, ...sameParentCategory].slice(0, 12);
   }, [product, allProducts, categories, currentCategory]);
 
-  const getSlabLabel = (tier) =>
-    tier.max_qty ? `${tier.min_qty}-${tier.max_qty}` : `${tier.min_qty}+`;
+  const getSlabLabel = (tier) => {
+    const slabUnit =
+      String(unit).toLowerCase() === "box" && Number(tier.min_qty) > 1
+        ? "Boxes"
+        : Number(tier.min_qty) === 1
+        ? unit
+        : `${unit}s`;
+  
+    return tier.max_qty
+      ? `${tier.min_qty}-${tier.max_qty} ${slabUnit}`
+      : `${tier.min_qty}+ ${slabUnit}`;
+  };
 
   const updateQty = (value) => {
     if (value === "") {
@@ -447,7 +457,7 @@ export default function ProductPage() {
             </div>
   
             <div className="p-5 md:p-7 border-b lg:border-b-0 lg:border-r border-[#edf1f7]">
-              <h1 className="text-2xl md:text-3xl font-extrabold text-blue-800 leading-tight uppercase">
+              <h1 className="text-xl md:text-xl font-bold text-[#071b3a] leading-tight">
                 {product.product_name}
               </h1>
   
@@ -467,11 +477,11 @@ export default function ProductPage() {
   
               {product.price_breaks?.length > 0 && (
                 <div className="mt-6">
-                  <h2 className="text-sm font-bold text-blue-800 mb-3 uppercase">
-                    Price breaks
+                  <h2 className="text-sm font-bold text-[#071b3a] mb-3">
+                    Buy more for more savings
                   </h2>
   
-                  <div className="grid grid-cols-2 gap-2 max-w-md">
+                  <div className="grid grid-cols-4 gap-2 max-w-md">
                     {product.price_breaks.map((tier) => {
                       const isActive = activeTier === tier;
   
@@ -487,7 +497,7 @@ export default function ProductPage() {
                           }`}
                         >
                           <div className="text-xs font-bold bg-[#f5f7fb] px-3 py-2 text-[#071b3a]">
-                            {getSlabLabel(tier)}
+                          {getSlabLabel(tier)}
                           </div>
   
                           <div className="font-extrabold text-sm px-3 py-2 text-green-700">
@@ -522,7 +532,7 @@ export default function ProductPage() {
   
             <aside className="p-5 md:p-7">
               <div className="sticky top-24">
-                <p className="text-4xl md:text-5xl font-extrabold text-[#3f4043] leading-none">
+                <p className="text-lg md:text-3xl font-extrabold text-[#3f4043] leading-none">
                   £{Number(unitPrice).toFixed(2)}
                 </p>
   
@@ -533,7 +543,7 @@ export default function ProductPage() {
                 <div className="border-t border-[#edf1f7] my-5" />
   
                 <div className="mb-5">
-                  <p className="text-sm font-extrabold text-blue-800 mb-2">
+                  <p className="text-sm font-extrabold text-[#071b3a] mb-2">
                     QTY
                   </p>
   
@@ -554,9 +564,13 @@ export default function ProductPage() {
                 )}
   
                 <div className="border-t border-[#edf1f7] pt-5 space-y-3 text-sm text-[#071b3a]">
-                  <p className="flex items-center gap-2 font-bold">
-                    <span className="h-4 w-4 rounded-full bg-green-700 inline-block" />
-                    Available for delivery
+                  <p className="flex items-center gap-2 ">
+                    <span className="h-2.5 w-2.5 rounded-full bg-green-700 inline-block" />
+                    Order above 40 for next day free delivery
+                  </p>
+                  <p className="flex items-center gap-2 ">
+                    <span className="h-2.5 w-2.5 rounded-full bg-green-700 inline-block" />
+                    Checkout before 1 PM for next day delivery
                   </p>
                 </div>
   
@@ -654,7 +668,7 @@ export default function ProductPage() {
         {relatedProducts.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-extrabold text-blue-800">
+              <h2 className="text-2xl font-bold text-[#071b3a]">
                 You may also like:
               </h2>
   
