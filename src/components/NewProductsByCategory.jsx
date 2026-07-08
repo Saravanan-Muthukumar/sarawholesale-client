@@ -33,7 +33,7 @@ export default function NewProductsByCategory({ products = [], categories = [] }
 
               <Link
                 to={`/category/${group.category.slug}`}
-                className="text-sm font-semibold text-blue-700"
+                className="text-sm font-semibold text-gray-700"
               >
                 View all
               </Link>

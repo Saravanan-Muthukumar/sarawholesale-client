@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-import CategoryMenu from "../components/CategoryMenu";
+import LoginPage from "./LoginPage";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -99,11 +99,7 @@ const totalAmount = subtotal + vatAmount;
     try {
       setSubmitting(true);
 
-      if (!isLoggedIn) {
-        navigate("/login", { state: { from: "/checkout" } });
-        return;
-      }
-
+      if (!isLoggedIn) return;
       if (!cartItems.length) {
         navigate("/cart");
         return;
@@ -125,25 +121,16 @@ const totalAmount = subtotal + vatAmount;
 
   if (!isLoggedIn) {
     return (
-      <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] px-4 py-8">
-        <section className="max-w-xl mx-auto bg-white border border-[#edf1f7] rounded-xl p-6 text-center shadow-sm">
-          <AlertCircle className="mx-auto text-red-600 mb-3" size={30} />
-
-          <h1 className="text-xl font-bold text-[#071b3a] mb-2">
-            Login Required
+      <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] pb-10">
+  
+        <section className="max-w-7xl mx-auto px-4 py-5">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#071b3a] mb-6">
+            Checkout
           </h1>
-
-          <p className="text-sm text-[#071b3a]/70 mb-5">
-            Please login to confirm your delivery details and submit your order.
-          </p>
-
-          <button
-            onClick={() => navigate("/login", { state: { from: "/checkout" } })}
-            className="h-10 px-6 bg-green-700 text-white font-bold text-sm hover:bg-green-800"
-            type="button"
-          >
-            Login to Continue
-          </button>
+  
+          <div className="max-w-5xl mx-auto">
+          <LoginPage redirectTo="/checkout" compact />
+          </div>
         </section>
       </main>
     );
@@ -151,15 +138,12 @@ const totalAmount = subtotal + vatAmount;
 
   return (
     <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] pb-28 md:pb-0">
-      <div className="hidden md:block mb-5">
-        <CategoryMenu categories={categories} />
-      </div>
       <section className="max-w-7xl mx-auto px-4 py-5">
         <div className="sticky top-0 z-30 bg-[#f4f6f9]/95 backdrop-blur py-3 -mx-4 px-4 mb-4 border-b border-[#e5eaf2] md:static md:bg-transparent md:border-0 md:p-0 md:mx-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-semibold text-[#071b3a] hover:text-green-700"
+            className="flex items-center gap-2 text-sm font-semibold text-[#071b3a] hover:text-red-700"
           >
             <ArrowLeft size={18} />
             Previous page
@@ -390,7 +374,7 @@ function DetailsCard({ title, icon, complete, onEdit, children }) {
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
           <span className="text-green-700">{icon}</span>
-          <h2 className="text-sm font-bold text-[#071b3a]">{title}</h2>
+          <h2 className="text-xl font-bold text-[#071b3a]">{title}</h2>
         </div>
 
         <button
@@ -402,7 +386,7 @@ function DetailsCard({ title, icon, complete, onEdit, children }) {
         </button>
       </div>
 
-      <div className="text-xs text-[#071b3a]/75 leading-5">{children}</div>
+      <div className="text-base text-[#071b3a]/80 leading-7">{children}</div>
 
       <div className="mt-3 text-[11px] flex items-center gap-1">
         {complete ? (

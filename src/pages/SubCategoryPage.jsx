@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import CategoryMenu from "../components/CategoryMenu";
 import { Helmet } from "react-helmet-async";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
@@ -62,13 +61,10 @@ const canonicalUrl = `https://www.sarawholesale.co.uk/category/${slug}`;
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
       </Helmet>
-      <div className="hidden md:block">
-        <CategoryMenu categories={categories} />
-      </div>
 
       <section className="max-w-7xl mx-auto px-4 py-5">
-        <div className="hidden md:flex items-center text-xs text-[#071b3a]/50 mb-4">
-          <Link to="/" className="hover:text-green-700">
+      <div className="hidden md:flex items-center text-sm font-semibold text-[#071b3a]/70 mb-4 mt-4">
+          <Link to="/" className="text-blue-700 underline hover:text-[#0f97d2] cursor-pointer">
             Home
           </Link>
 
@@ -77,7 +73,7 @@ const canonicalUrl = `https://www.sarawholesale.co.uk/category/${slug}`;
           <button
             type="button"
             onClick={goToCategories}
-            className="hover:text-green-700"
+            className="text-blue-700 underline hover:text-[#0f97d2] cursor-pointer"
           >
             Categories
           </button>
@@ -141,7 +137,7 @@ const canonicalUrl = `https://www.sarawholesale.co.uk/category/${slug}`;
                     {sub.category_name}
                   </h3>
 
-                  <p className="text-[11px] text-green-700 font-medium mt-1">
+                  <p className="text-[11px] text-gray-600 font-medium mt-1">
                     View products
                   </p>
                 </div>

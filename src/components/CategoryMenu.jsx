@@ -33,12 +33,12 @@ export default function CategoryMenu({ categories = [], sticky = false }) {
 
   return (
     <div
-      className={`hidden md:block relative z-900 -mb-px ${
+      className={`hidden md:block relative ${
         sticky ? "shadow-md" : ""
       }`}
       onMouseLeave={closeCategoryMenu}
     >
-      <div className="bg-[#4a5358]">
+      <div className="bg-[black]">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-stretch">
             {parentCategories.map((cat) => {
@@ -56,7 +56,7 @@ export default function CategoryMenu({ categories = [], sticky = false }) {
                     className={`h-16 px-7 flex items-center justify-center text-center text-[15px] font-medium tracking-normal transition ${
                       isActive
                         ? "bg-white text-[#1f2937] font-semibold relative z-10 border-none"
-                        : "bg-[#4a5358] text-white hover:bg-[#566167]"
+                        : "bg-[black] text-white hover:bg-[balck]"
                     }`}
                   >
                     {cat.category_name}

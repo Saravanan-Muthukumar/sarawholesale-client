@@ -86,6 +86,12 @@ export default function Footer() {
                   Cookie Policy
                 </Link>
               </li>
+              <li>
+              <Link to="/cancellation-policy" className="hover:text-green-700">
+                Cancellation Policy
+              </Link>
+              </li>
+              
             </ul>
           </div>
 

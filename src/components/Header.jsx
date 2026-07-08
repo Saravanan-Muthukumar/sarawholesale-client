@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import CategoryMenu from "./CategoryMenu";
 
 import {
   ArrowLeft,
@@ -33,6 +34,8 @@ export default function Header() {
 
   const location = useLocation();
   const isCartPage = location.pathname === "/cart";
+  const isCheckoutPage = location.pathname === "/checkout";
+  const disableCart = isCartPage || isCheckoutPage;
   const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
   const cartContext = useCart();
@@ -61,7 +64,7 @@ const closeUserMenu = () => {
 };
 
 const openCartSlowly = () => {
-  if (isCartPage) return;
+  if (disableCart) return;
 
   clearTimeout(cartHoverTimer.current);
 
@@ -176,7 +179,7 @@ const closeCart = () => {
         );
       
         return (
-          <div className="absolute right-0 top-full w-80 bg-white border-x border-b border-gray-200 shadow-xl z-9999">
+          <div className="absolute right-0 top-full w-80 bg-white border-x border-b border-gray-200 shadow-xl z-[10001]">
             <div className="p-4">
               <h3 className="font-bold text-[#071b3a]">
                 Basket ({cartItems.length})
@@ -230,7 +233,7 @@ const closeCart = () => {
               <Link
                 to="/cart"
                 onClick={onClose}
-                className="block w-full text-center bg-green-700 text-white font-bold py-3 hover:bg-green-800"
+                className="block w-full text-center bg-green-700 text-white font-bold py-3 hover:bg-[#071b3a]"
               >
                 View Basket
               </Link>
@@ -240,10 +243,11 @@ const closeCart = () => {
       }    
 
   return (
-    <header className="bg-[#f3f4f6]">
+    <>
+    <header className="bg-[#f3f4f6] relative z-[999]">
       {/* TOP DELIVERY BAR */}
-      <div className="bg-[#062b63] text-white text-sm">
-        <div className="max-w-7xl mx-auto px-4 h-9 flex items-center justify-between">
+      <div className="bg-[#da0202] text-white text-sm">
+        <div className="max-w-7xl mx-auto px-2 h-9 flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Truck size={16} /> Next working day delivery available 
           </span>
@@ -260,7 +264,7 @@ const closeCart = () => {
 
       {/* DESKTOP HEADER */}
       <div className="hidden md:block max-w-7xl mx-auto px-4">
-        <div className="h-26 flex items-center justify-between gap-6">
+        <div className="h-20 flex items-center justify-between gap-6">
         <Link
           to="/"
           state={{ resetHero: true }}
@@ -304,7 +308,7 @@ const closeCart = () => {
             {isLoggedIn ? (
               <div
                 ref={userMenuRef}
-                className={`relative z-9999 ${
+                className={`relative z-[10001] ${
                   userMenuOpen ? "bg-white" : "hover:bg-white"
                 }`}
                 onMouseEnter={openUserMenuSlowly}
@@ -352,7 +356,7 @@ const closeCart = () => {
               <Link
                 to="/cart"
                 onClick={closeMenus}
-                className={`h-14.5 px-5 relative flex items-center gap-2 text-[#071b3a] font-semibold hover:text-green-700 transition cursor-pointer ${
+                className={`h-14.5 px-5 relative flex items-center gap-2 text-[#071b3a] font-semibold hover:text-red-700 transition cursor-pointer ${
                   cartHoverOpen ? "bg-white" : "hover:bg-white"
                 }`}
               >
@@ -360,14 +364,14 @@ const closeCart = () => {
                   <ShoppingCart size={24} />
 
                   {cartItemCount > 0 && (
-                    <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                    <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                       {cartItemCount}
                     </span>
                   )}
                 </div>
               </Link>
 
-              {!isCartPage && cartHoverOpen && (
+              {!disableCart && cartHoverOpen && (
                 <CartDropdown
                   cartItems={cartItems}
                   API_URL={API_URL}
@@ -378,7 +382,6 @@ const closeCart = () => {
           </div>
         </div>
       </div>
-
       {/* MOBILE HEADER */}
       <div
         className="md:hidden sticky top-0 z-9998 bg-white border-b border-gray-200 shadow-sm"
@@ -406,7 +409,7 @@ const closeCart = () => {
 
         
           <>
-            <div className="grid grid-cols-4 h-15.5 text-[#00539f]">
+            <div className="grid grid-cols-4 h-15.5 text-[black]">
               <button
                 type="button"
                 onClick={() => setMenuOpen(true)}
@@ -449,7 +452,7 @@ const closeCart = () => {
                   <ShoppingCart size={24} />
 
                   {cartItemCount > 0 && (
-                    <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                    <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                       {cartItemCount}
                     </span>
                   )}
@@ -521,7 +524,7 @@ const closeCart = () => {
           <ShoppingCart size={24} />
 
           {cartItemCount > 0 && (
-            <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+            <span className="absolute -top-2 -right-3 min-w-4.5 h-4.5 px-1 bg-[#0f97d2] text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
               {cartItemCount}
             </span>
           )}
@@ -749,8 +752,13 @@ const closeCart = () => {
           </nav>
         </div>
       )}
-    </header>
-  );
+      </header>
+
+      <div className="hidden md:block sticky top-0 z-50">
+  <CategoryMenu categories={categories} sticky />
+</div>
+</>
+);
 }
 
 function UserDropdown({ user, fullName, onLogout, onClose }) {

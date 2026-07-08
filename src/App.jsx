@@ -47,6 +47,7 @@ const ReturnsPolicyPage = lazy(() => import("./pages/footer/ReturnsPolicyPage"))
 const TermsPage = lazy(() => import("./pages/footer/TermsPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/footer/PrivacyPolicyPage"));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
+import CancellationPolicyPage from "./pages/footer/CancellationPolicyPage";
 
 // Optimized Global Loading Skeleton Indicator
 function RouteLoaderSkeleton() {
@@ -145,6 +146,7 @@ export default function App() {
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+            <Route path="/cancellation-policy" element={<CancellationPolicyPage />} />
           </Routes>
         </Suspense>
       </main>

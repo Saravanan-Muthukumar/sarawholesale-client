@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Hero from "../components/Hero";
 import CategoryGrid from "../components/CategoryGrid";
 import FeaturedProducts from "../components/FeaturedProducts";
-import CategoryMenu from "../components/CategoryMenu";
 import WhyChooseUs from "../components/WhyChooseUs";
 import ShopByCollection from "../components/ShopByCollection";
 import ShopByIndustry from "../components/ShopByIndustry";
@@ -16,7 +15,6 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 export default function HomePage() {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
-  const [showStickyMenu, setShowStickyMenu] = useState(false);
   const [heroHidden, setHeroHidden] = useState(false);
   const location = useLocation();
 
@@ -47,20 +45,6 @@ export default function HomePage() {
       .catch((err) => console.error("Product error:", err));
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const categoryGrid = document.getElementById("home-category-grid");
-      if (!categoryGrid) return;
-
-      const categoryTop = categoryGrid.getBoundingClientRect().top;
-      setShowStickyMenu(categoryTop <= 0);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    handleScroll();
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const handleShopNow = () => {
     setHeroHidden(true);
@@ -85,17 +69,17 @@ export default function HomePage() {
         <link rel="canonical" href="https://www.sarawholesale.co.uk/" />
       </Helmet>
 
-      {!heroHidden && (
+      {/* {!heroHidden && (
         <div className="hidden md:block bg-white border-b border-[#d9e2ef]">
           <CategoryMenu categories={categories} />
         </div>
-      )}
+      )} */}
 
-      {showStickyMenu && (
+      {/* {showStickyMenu && (
         <div className="hidden md:block fixed top-0 left-0 right-0 z-999 bg-white border-b border-[#d9e2ef] shadow-md">
           <CategoryMenu categories={categories} sticky />
         </div>
-      )}
+      )} */}
 
       {/* {!heroHidden && (
         <div id="home-hero-section">

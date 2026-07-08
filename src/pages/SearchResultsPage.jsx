@@ -3,7 +3,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Filter, SlidersHorizontal, X } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import ProductCard from "../components/ProductCard";
-import CategoryMenu from "../components/CategoryMenu";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -155,9 +154,6 @@ export default function SearchResultsPage() {
       )}
 
       <div className="hidden md:block sticky top-0 z-800 bg-[#4f5961]">
-      <div className="hidden md:block sticky top-0 z-800">
-        <CategoryMenu categories={categories} />
-      </div>
       </div>
 
         <div className="max-w-7xl mx-auto px-4 pt-6 pb-6">
@@ -168,11 +164,11 @@ export default function SearchResultsPage() {
         </div>
 
         <div className="md:hidden bg-white border border-gray-300 p-4 mb-0">
-          <h1 className="text-sm font-bold text-blue-800 uppercase">
+          <h1 className="text-sm font-bold text-blue-grayuppercase">
             Search results for <span className="font-bold">'{q}'</span>
           </h1>
 
-          <p className="text-sm text-blue-700 font-semibold">
+          <p className="text-sm text-gray-700 font-semibold">
             {products.length} products
           </p>
         </div>
@@ -201,8 +197,8 @@ export default function SearchResultsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-5">
           <aside className="hidden md:block space-y-4 sticky top-6 h-fit">
-            <div className="bg-white border border-gray-300 p-4">
-              <h1 className="text-2xl font-bold text-blue-800 uppercase">
+            <div className=" bg-white border border-gray-300 p-4">
+              <h1 className="text-2xl font-bold text-gray-800 uppercase">
                 Search results
               </h1>
 
@@ -210,13 +206,13 @@ export default function SearchResultsPage() {
                 for <span className="font-bold">"{q}"</span>
               </p>
 
-              <p className="text-sm text-blue-700 font-semibold">
+              <p className="text-sm text-gray-700 font-semibold">
                 {products.length} products
               </p>
             </div>
 
             <div className="bg-white border border-gray-300 p-4">
-              <h2 className="text-xl font-bold text-blue-800 mb-3">
+              <h2 className="text-xl font-bold text-gray-800 mb-3">
                 Sub Categories
               </h2>
 
@@ -249,7 +245,7 @@ export default function SearchResultsPage() {
 
           <section>
             <div className="hidden md:flex bg-white border border-gray-300 p-4 mb-5 items-center justify-end gap-3">
-              <div className="font-bold text-blue-800 whitespace-nowrap">
+              <div className="font-bold text-gray-800 whitespace-nowrap">
                 Sort by:
               </div>
 

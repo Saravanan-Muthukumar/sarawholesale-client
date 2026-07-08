@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ShieldCheck, Trash2 } from "lucide-react";
 import { useCart } from "../context/CartContext";
-import CategoryMenu from "../components/CategoryMenu";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -111,16 +110,13 @@ export default function CartPage() {
   };
   return (
     <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] pb-28 md:pb-0">
-      <div className="hidden md:block mb-5">
-        <CategoryMenu categories={categories} />
-      </div>
 
       <section className="max-w-7xl mx-auto px-4 py-5">
         <div className="sticky top-0 z-30 bg-[#f4f6f9]/95 backdrop-blur py-3 -mx-4 px-4 mb-4 border-b border-[#e5eaf2] md:static md:bg-transparent md:border-0 md:p-0 md:mx-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-semibold text-[#071b3a] hover:text-green-700"
+            className="flex items-center gap-2 text-sm font-semibold text-[#071b3a] hover:text-red-700"
           >
             <ArrowLeft size={18} />
             Previous page

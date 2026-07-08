@@ -36,7 +36,7 @@ export default function FeaturedProducts({ products = [] }) {
     <section className="bg-[#f3f4f6] py-8 sm:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-blue-800">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-700">
             Popular Products
           </h2>
 
@@ -58,7 +58,7 @@ export default function FeaturedProducts({ products = [] }) {
               <Link
                 key={product.product_id}
                 to={`/product/${product.slug}`}
-                className="bg-white border border-[#d9e2ef] shadow-sm hover:border-green-500 hover:shadow-md transition p-3 md:p-4 flex flex-col min-h-55 md:min-h-80"
+                className="bg-white border border-[#d9e2ef] shadow-sm hover:shadow-md transition p-3 md:p-4 flex flex-col min-h-55 md:min-h-80"
               >
                 {product.image_url ? (
                   <img
@@ -72,7 +72,7 @@ export default function FeaturedProducts({ products = [] }) {
                   </div>
                 )}
 
-                <h3 className="text-[11px] md:text-sm font-extrabold text-blue-800 leading-tight line-clamp-2 uppercase min-h-8.5 md:min-h-10.5">
+                <h3 className="text-[11px] md:text-sm font-bold text-gray-700 leading-tight line-clamp-2 min-h-8.5 md:min-h-10.5">
                   {product.product_name}
                 </h3>
 
@@ -81,7 +81,7 @@ export default function FeaturedProducts({ products = [] }) {
                 </p>
 
                 <div className="mt-auto pt-3">
-                  <p className="text-lg md:text-2xl font-extrabold text-[#071b3a]">
+                  <p className="text-lg md:text-2xl font-bold text-[#071b3a]">
                     £{getLowestPrice(product)}
                   </p>
 

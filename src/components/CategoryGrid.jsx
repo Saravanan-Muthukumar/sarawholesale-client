@@ -3,9 +3,7 @@ import { Link } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function CategoryGrid({ categories = [] }) {
-  const parentCategories = categories.filter(
-    (cat) => !cat.parent_category_id
-  );
+  const parentCategories = categories.filter((cat) => !cat.parent_category_id);
 
   const getImage = (imageUrl) => {
     if (!imageUrl) return null;
@@ -20,60 +18,63 @@ export default function CategoryGrid({ categories = [] }) {
   return (
     <section className="bg-[#f3f4f6]">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:py-10">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="text-2xl font-extrabold text-blue-800">
-              Top Categories
-            </h2>
+        <div className="mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#071b3a]">
+            Top Categories
+          </h2>
 
-            <p className="text-sm text-[#071b3a]/55 mt-1">
-              Browse our most popular categories
-            </p>
-          </div>
+          <p className="text-sm md:text-base text-[#071b3a]/55 mt-1">
+            Browse our most popular categories
+          </p>
         </div>
 
-        <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-5">
           {parentCategories.map((cat) => (
             <Link
               key={cat.category_id}
               to={`/category/${cat.slug}`}
               className="
+                group
                 bg-white
                 border border-[#d9e2ef]
                 shadow-sm
-                hover:shadow-md
-                hover:border-green-500
-                transition
-                min-h-35
-                md:min-h-55
-                p-3
-                md:p-4
-                flex
-                flex-col
-                items-center
-                justify-center
+                hover:shadow-xl
+                hover:-translate-y-1
+                transition-all
+                duration-300
+                overflow-hidden
                 text-center
               "
             >
-              <div className="h-16 md:h-28 w-full flex items-center justify-center mb-3">
+              <div className="h-32 md:h-40 w-full flex items-center justify-center bg-white overflow-hidden p-1">
                 {getImage(cat.image_url) ? (
                   <img
                     src={getImage(cat.image_url)}
                     alt={cat.category_name}
-                    className="h-full w-full object-contain scale-110"
+                    className="
+                      w-full
+                      h-full
+                      object-contain
+                      scale-110
+                      transition-transform
+                      duration-300
+                      group-hover:scale-115
+                    "
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-[#f3f4f6]" />
+                  <div className="w-16 h-16 rounded-full bg-[#f3f4f6]" />
                 )}
               </div>
 
-              <h3 className="text-[11px] md:text-base font-extrabold text-blue-800 leading-tight line-clamp-2 uppercase">
-                {cat.category_name}
-              </h3>
+              <div className="px-3 py-3 md:px-4 md:py-3">
+              <h3 className="text-xs md:text-[19px] font-small text-[#071b3a] leading-snug line-clamp-2">
+                  {cat.category_name}
+                </h3>
 
-              <p className="mt-2 text-[10px] md:text-xs font-semibold text-[#071b3a]/50">
-                Shop Now →
-              </p>
+                <p className="mt-3 text-xs md:text-sm font-semibold text-[#071b3a]/55 group-hover:text-green-700">
+                  Shop Now →
+                </p>
+              </div>
             </Link>
           ))}
         </div>

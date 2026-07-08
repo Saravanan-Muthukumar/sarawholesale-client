@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import CategoryMenu from "../components/CategoryMenu";
 import ProductCard from "../components/ProductCard";
 import {
   ArrowLeft,
@@ -361,7 +360,7 @@ export default function ProductListPage() {
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleFilterOption(spec.name, option)}
-                      className="h-4 w-4 rounded border-gray-400 accent-blue-800 cursor-pointer"
+                      className="h-4 w-4  border-gray-400 accent-gray-800 cursor-pointer"
                     />
 
                     <span>{option}</span>
@@ -381,7 +380,7 @@ export default function ProductListPage() {
     <div className="bg-white border border-gray-300 p-4 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-blue-800">Filters</h2>
+          <h2 className="text-xl font-bold text-gray-800">Filters</h2>
           <p className="text-xs text-gray-500 mt-1">
             ({appliedFilterCount} applied)
           </p>
@@ -445,25 +444,21 @@ export default function ProductListPage() {
   return (
     <main className="bg-gray-100 min-h-screen">
       {addedProduct && (
-        <div className="fixed top-5 right-5 z-50 bg-white border border-green-100 shadow-lg rounded-xl px-5 py-4">
+        <div className="fixed top-5 right-5 z-50 bg-white border border-green-100 shadow-lg px-5 py-4">
           <p className="text-sm font-semibold text-green-700">Added to cart</p>
           <p className="text-xs text-[#071b3a]/55 mt-1">{addedProduct}</p>
         </div>
       )}
 
       {errorMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-red-50 border border-red-200 shadow-lg rounded-xl px-5 py-4">
+        <div className="fixed top-5 right-5 z-50 bg-red-50 border border-red-200 shadow-lg px-5 py-4">
           <p className="text-sm font-semibold text-red-700">{errorMessage}</p>
         </div>
       )}
 
-      <div className="hidden md:block sticky top-0 z-900 bg-[#4a5358]">
-        <CategoryMenu categories={categories} />
-      </div>
-
       <section className="max-w-7xl mx-auto px-4 pt-6 pb-6">
-        <div className="hidden md:block text-sm mb-2">
-          <Link to="/" className="text-blue-700 underline">
+      <div className="hidden md:flex items-center text-sm font-semibold text-[#071b3a]/70 mb-4 mt-4">
+          <Link to="/"  className="text-blue-700 underline hover:text-green-700 cursor-pointer">
             Home
           </Link>
 
@@ -472,7 +467,7 @@ export default function ProductListPage() {
               <span className="mx-2">›</span>
               <Link
                 to={`/category/${parentCategory.slug}`}
-                className="text-blue-700 underline"
+                className="text-blue-700 underline hover:text-green-700 cursor-pointer"
               >
                 {parentCategory.category_name}
               </Link>
@@ -538,11 +533,11 @@ export default function ProductListPage() {
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="hidden lg:block space-y-4 sticky top-17.5 h-fit">
             <div className="bg-white border border-gray-300 p-4">
-              <h1 className="text-2xl font-bold text-blue-800 uppercase leading-tight">
+              <h1 className="text-xl font-bold text-gray-800 uppercase leading-tight">
                 {currentCategory?.category_name || "Products"}
               </h1>
 
-              <p className="text-sm text-blue-700 font-semibold mt-1">
+              <p className="text-sm text-gray-700 font-semibold mt-1">
                 {hasActiveFilters
                   ? `${filteredProducts.length} of ${products.length} products`
                   : `${products.length} products`}
@@ -552,7 +547,7 @@ export default function ProductListPage() {
             {hasFilterOptions && <FilterBox />}
 
             <div className="bg-white border border-gray-300 p-4">
-              <h2 className="text-xl font-bold text-blue-800 mb-3">
+              <h2 className="text-xl font-bold text-gray-800 mb-3">
                 Sub Categories
               </h2>
 
@@ -575,43 +570,44 @@ export default function ProductListPage() {
           </aside>
 
           <section className="min-w-0">
-            <div className="lg:hidden bg-white border border-gray-300 p-4 mb-4">
-              <h1 className="text-sm font-bold text-blue-800 uppercase">
-                {currentCategory?.category_name || "Products"}
-              </h1>
+          <div className="lg:hidden bg-white border border-gray-300 p-4 mb-4">
+  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+  <div className="flex items-center gap-3">
+  <h1 className="text-lg font-bold text-gray-800 uppercase">
+    {currentCategory?.category_name || "Products"}
+  </h1>
 
-              <p className="text-sm text-blue-700 font-semibold">
-                {hasActiveFilters
-                  ? `${filteredProducts.length} of ${products.length} products`
-                  : `${products.length} products`}
-              </p>
-            </div>
+  <span className="text-sm text-gray-600 font-semibold whitespace-nowrap">
+    (
+    {hasActiveFilters
+      ? `${filteredProducts.length} of ${products.length}`
+      : products.length}
+    )
+  </span>
+</div>
 
-            <div className="bg-white border border-gray-300 p-4 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <p className="text-sm font-bold text-blue-800">
-                {hasActiveFilters
-                  ? `Showing ${filteredProducts.length} of ${products.length} products`
-                  : `Showing ${products.length} products`}
-              </p>
+    <div className="flex items-center gap-2">
+      <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+        Sort by:
+      </label>
 
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-semibold text-gray-700">
-                  Sort by:
-                </label>
+      <select
+        value={sortBy}
+        onChange={(e) => setSortBy(e.target.value)}
+        className="border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-800"
+      >
+        <option value="relevance">Relevance</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="name-asc">Name: A to Z</option>
+        <option value="name-desc">Name: Z to A</option>
+      </select>
+    </div>
+  </div>
+</div>
+            
 
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-800"
-                >
-                  <option value="relevance">Relevance</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                  <option value="name-asc">Name: A to Z</option>
-                  <option value="name-desc">Name: Z to A</option>
-                </select>
-              </div>
-            </div>
+            
 
             {filteredProducts.length === 0 && (
               <div className="bg-white border border-gray-300 p-6">

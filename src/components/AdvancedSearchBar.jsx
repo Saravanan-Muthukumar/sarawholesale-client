@@ -130,7 +130,7 @@ export default function AdvancedSearchBar() {
             if (query.trim().length >= 2) setOpen(true);
           }}
           placeholder="Search products, SKU, category..."
-          className="w-full h-14 pl-5 pr-24 border border-[#cfd8e6] bg-white text-[16px] text-[#071b3a] shadow-md placeholder:text-[#071b3a]/35 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+          className="w-full h-14 pl-5 pr-24 border border-[#cfd8e6] bg-white text-[16px] text-[#071b3a] shadow-md placeholder:text-[#071b3a]/35 focus:outline-none focus:border-[#0f97d2] focus:ring-2 focus:ring-[#0f97d2]"
         />
 
         {query && (
@@ -199,7 +199,7 @@ export default function AdvancedSearchBar() {
           <button
             type="button"
             onClick={() => goToSearch()}
-            className={`w-full text-left px-5 py-3 text-sm font-bold text-green-700 border-t border-[#d9e2ef] cursor-pointer ${
+            className={`w-full text-left px-5 py-3 text-sm font-bold text-gray-700 border-t border-[#d9e2ef] cursor-pointer ${
               activeIndex === visibleSuggestions.length
                 ? "bg-green-50"
                 : "bg-[#f3f4f6] hover:bg-green-50"

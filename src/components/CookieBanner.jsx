@@ -39,7 +39,7 @@ export default function CookieBanner() {
             improve our website. Read our{" "}
             <Link
               to="/cookie-policy"
-              className="font-bold text-green-700 hover:text-green-800"
+              className="font-bold text-[#0f97d2] hover:text-[#0f97d2]"
             >
               Cookie Policy
             </Link>
@@ -59,7 +59,7 @@ export default function CookieBanner() {
           <button
             type="button"
             onClick={acceptCookies}
-            className="px-4 py-2 rounded-lg bg-green-700 text-white text-sm font-bold hover:bg-green-800"
+            className="px-4 py-2 rounded-lg bg-[#0f97d2] text-white text-sm font-bold hover:bg-[#0f97d2]"
           >
             Accept Optional Cookies
           </button>

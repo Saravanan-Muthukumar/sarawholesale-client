@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
-import CategoryMenu from "../components/CategoryMenu";
 import QtyAddControl from "../components/QtyAddControl";
 import { Helmet } from "react-helmet-async";
 
@@ -342,21 +341,17 @@ export default function ProductPage() {
   />
 )}
       {added && (
-        <div className="fixed top-5 right-5 z-50 bg-white border border-green-100 shadow-lg rounded-xl px-5 py-4">
+        <div className="fixed top-5 right-5 z-50 bg-white border border-green-100 shadow-lg px-5 py-4">
           <p className="text-sm font-semibold text-green-700">Added to cart</p>
           <p className="text-xs text-[#071b3a]/55 mt-1">
             {product.product_name}
           </p>
         </div>
       )}
-  
-      <div className="hidden md:block sticky top-0 z-800">
-        <CategoryMenu categories={categories} />
-      </div>
-  
+
       <section className="max-w-7xl mx-auto px-4 pb-10">
-        <div className="hidden md:block text-xs font-semibold text-blue-800 mb-4 mt-4">
-          <Link to="/" className="underline hover:text-green-700">
+      <div className="hidden md:flex items-center text-sm font-semibold text-[#071b3a]/70 mb-4 mt-4">
+          <Link to="/" className="text-blue-700 underline hover:text-green-700 cursor-pointer">
             Home
           </Link>
   
@@ -365,7 +360,7 @@ export default function ProductPage() {
               <span className="mx-2 text-[#071b3a]/50">›</span>
               <Link
                 to={`/category/${parentCategory.slug}`}
-                className="underline hover:text-green-700"
+                className="text-blue-700 underline hover:text-green-700 cursor-pointer"
               >
                 {parentCategory.category_name}
               </Link>
@@ -377,7 +372,7 @@ export default function ProductPage() {
               <span className="mx-2 text-[#071b3a]/50">›</span>
               <Link
                 to={`/subcategory/${currentCategory.slug}`}
-                className="underline hover:text-green-700"
+                className="text-blue-700 underline hover:text-green-700 cursor-pointer"
               >
                 {currentCategory.category_name}
               </Link>
@@ -522,7 +517,7 @@ export default function ProductPage() {
                   View all:{" "}
                   <Link
                     to={`/subcategory/${currentCategory.slug}`}
-                    className="text-blue-700 underline font-semibold"
+                    className="text-gray-700 underline font-semibold"
                   >
                     {currentCategory.category_name}
                   </Link>
