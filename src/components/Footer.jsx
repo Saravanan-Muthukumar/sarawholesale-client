@@ -19,7 +19,7 @@ export default function Footer() {
   );
 
   return (
-    <footer className="bg-[#062b63] text-white">
+    <footer className="bg-[black] text-white">
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
@@ -124,7 +124,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-blue-500/30 mt-8 pt-5">
+        <div className="border-t border-red-500/30 mt-8 pt-5">
           <p className="text-center text-sm text-blue-100">
             © 2026 SARA Wholesale. All rights reserved.
           </p>

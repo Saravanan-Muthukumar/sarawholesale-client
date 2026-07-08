@@ -633,7 +633,7 @@ export default function ProductListPage() {
 
             {relatedCategories.length > 0 && (
               <div className="mt-8 bg-white border border-gray-300 p-4 overflow-hidden">
-                <h2 className="text-xl font-bold text-blue-800 mb-4">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">
                   Related Categories
                 </h2>
 
@@ -693,8 +693,8 @@ export default function ProductListPage() {
                 <div
                   className="
                     text-[#333] text-sm md:text-base leading-7
-                    [&_h2]:text-2xl [&_h2]:font-extrabold [&_h2]:text-blue-800 [&_h2]:mb-4
-                    [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-blue-800 [&_h3]:mt-6 [&_h3]:mb-3
+                    [&_h2]:text-2xl [&_h2]:font-extrabold [&_h2]:text-gray-800 [&_h2]:mb-4
+                    [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-blue-gray [&_h3]:mt-6 [&_h3]:mb-3
                     [&_p]:mb-4
                     [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4
                     [&_li]:mb-1

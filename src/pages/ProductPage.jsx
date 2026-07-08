@@ -589,7 +589,7 @@ export default function ProductPage() {
                       onClick={() => setActiveTab("description")}
                       className={`px-6 py-4 font-bold text-sm transition ${
                         activeTab === "description"
-                          ? "bg-white text-blue-800 border-b-2 border-green-600"
+                          ? "bg-white text-blue-800 border-b-2 border-red-600"
                           : "bg-[#f5f7fb] text-[#071b3a]/60"
                       }`}
                     >
@@ -601,7 +601,7 @@ export default function ProductPage() {
                       onClick={() => setActiveTab("specifications")}
                       className={`px-6 py-4 font-bold text-sm transition ${
                         activeTab === "specifications"
-                          ? "bg-white text-blue-800 border-b-2 border-green-600"
+                          ? "bg-white text-blue-800 border-b-2 border-red-600"
                           : "bg-[#f5f7fb] text-[#071b3a]/60"
                       }`}
                     >
@@ -704,7 +704,7 @@ export default function ProductPage() {
                   <Link
                     key={item.product_id}
                     to={`/product/${item.slug}`}
-                    className="shrink-0 w-55 md:w-60 bg-white border border-[#d9e2ef] shadow-sm p-4 hover:border-green-500 transition"
+                    className="shrink-0 w-55 md:w-60 bg-white border border-[#d9e2ef] shadow-sm p-4 transition"
                   >
                     <div className="h-36 bg-white flex items-center justify-center mb-3">
                       {imageUrl ? (
