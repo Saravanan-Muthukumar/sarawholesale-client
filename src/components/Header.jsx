@@ -233,7 +233,7 @@ const closeCart = () => {
               <Link
                 to="/cart"
                 onClick={onClose}
-                className="block w-full text-center bg-green-700 text-white font-bold py-3 hover:bg-[#071b3a]"
+                className="block w-full text-center bg-red-700 text-white font-bold py-3 hover:bg-[#071b3a]"
               >
                 View Basket
               </Link>
@@ -290,7 +290,7 @@ const closeCart = () => {
                 <Link
                   to="/admin/categories"
                   onClick={closeMenus}
-                  className="font-semibold text-[#062b63] hover:text-green-700"
+                  className="font-semibold text-[#062b63] hover:text-red-700"
                 >
                   Categories
                 </Link>
@@ -298,9 +298,16 @@ const closeCart = () => {
                 <Link
                   to="/admin/products"
                   onClick={closeMenus}
-                  className="font-semibold text-[#062b63] hover:text-green-700"
+                  className="font-semibold text-[#062b63] hover:text-red-700"
                 >
                   Products
+                </Link>
+                <Link
+                  to="/admin/flyer-builder"
+                  onClick={closeMenus}
+                  className="font-semibold text-[#062b63] hover:text-red-700"
+                >
+                  Flyer
                 </Link>
               </>
             )}

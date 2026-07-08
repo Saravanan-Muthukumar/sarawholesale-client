@@ -391,7 +391,7 @@ function FlyerPreview({
       id="flyer-preview"
       className={`${sizeClass} mx-auto bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden`}
     >
-      <div className="bg-white p-6 border-b-4 border-[#0b376d]">
+      <div className="bg-white p-6 border-b-4 border-[black]">
         <div className="flex justify-between gap-4">
         <div>
                 <img
@@ -405,10 +405,10 @@ function FlyerPreview({
                 </div>
 
           <div className="text-right">
-            <h2 className="text-2xl font-black text-[#0b376d] uppercase">
+            <h2 className="text-2xl font-black text-[red] uppercase">
               {title}
             </h2>
-            <p className="text-sm font-bold text-green-700 uppercase mt-1">
+            <p className="text-sm font-bold text-gray-700 uppercase mt-1">
               {subtitle}
             </p>
 
@@ -421,7 +421,7 @@ function FlyerPreview({
         </div>
       </div>
 
-      <div className="grid grid-cols-4 bg-[#0b376d] text-white text-xs font-bold text-center">
+      <div className="grid grid-cols-4 bg-[black] text-white text-xs font-bold text-center">
         <div className="py-3">TRADE PRICES</div>
         <div className="py-3">BULK DISCOUNTS</div>
         <div className="py-3">SAME DAY SLOUGH</div>
@@ -431,7 +431,7 @@ function FlyerPreview({
       <div className="p-5">
         <table className="w-full text-xs border border-gray-200">
           <thead>
-            <tr className="bg-[#0b376d] text-white">
+            <tr className="bg-[black] text-white">
               <th className="p-2 text-left w-17.5">Image</th>
               <th className="p-2 text-left">Product</th>
               <th className="p-2 text-left">Price Slabs</th>
@@ -469,7 +469,7 @@ function FlyerPreview({
                     {getPriceSlabText(product)}
                   </td>
 
-                  <td className="p-2 text-right font-black text-green-700 text-base">
+                  <td className="p-2 text-right font-black text-gray-700 text-base">
                     {getFromPrice(product)}
                   </td>
 
@@ -495,8 +495,8 @@ function FlyerPreview({
         </table>
 
         <div className="grid grid-cols-2 gap-4 mt-5">
-          <div className="border border-green-100 bg-green-50 rounded-xl p-4">
-            <h3 className="text-sm font-black text-green-700 mb-2">
+          <div className="border border-red-100 bg-red-50 rounded-xl p-4">
+            <h3 className="text-sm font-black text-gray-700 mb-2">
               WHY CONTRACTORS CHOOSE US
             </h3>
             <div className="grid grid-cols-2 gap-2 text-xs text-[#071b3a]">
@@ -516,7 +516,7 @@ function FlyerPreview({
             <p className="text-xs text-[#071b3a]/60 mt-1">
               Call us today for trade and bulk orders
             </p>
-            <p className="text-2xl font-black text-green-700 mt-2">
+            <p className="text-2xl font-black text-gray-700 mt-2">
               07424 715150
             </p>
           </div>
