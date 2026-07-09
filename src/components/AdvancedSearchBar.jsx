@@ -14,10 +14,15 @@ export default function AdvancedSearchBar() {
   const navigate = useNavigate();
   const boxRef = useRef(null);
   const inputRef = useRef(null);
+  const skipNextSuggestionRef = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       const value = query.trim();
+      if (skipNextSuggestionRef.current) {
+        skipNextSuggestionRef.current = false;
+        return;
+      }
 
       if (value.length < 2) {
         setSuggestions([]);
@@ -65,13 +70,15 @@ export default function AdvancedSearchBar() {
   const goToSearch = (value = query) => {
     const searchValue = String(value || "").trim();
     if (!searchValue) return;
-
+  
+    skipNextSuggestionRef.current = true;
+  
     setQuery(searchValue);
-    setSuggestions([]); 
+    setSuggestions([]);
     setOpen(false);
     setActiveIndex(-1);
     inputRef.current?.blur();
-
+  
     navigate(`/search?q=${encodeURIComponent(searchValue)}`);
   };
 

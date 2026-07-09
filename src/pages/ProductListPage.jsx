@@ -333,111 +333,6 @@ const getOptionQty = (specName, option) => {
     return spec?.spec_value || "";
   };
 
-  // const ProductTradeRow = ({ product }) => {
-  //   const activeTier = getActiveTier(product);
-  //   const productQty = qty[product.product_id] ?? 1;
-
-  //   const brand = product.brand || "";
-  //   const size = getSpecValue(product, "Size") || product.size || "";
-  //   const colour =
-  //     getSpecValue(product, "Colour") || getSpecValue(product, "Color") || "";
-  //     const unitValue = getSpecValue(product, "Unit");
-
-  //     const unit =
-  // unitValue?.toLowerCase() === "roll"
-  //   ? "rolls"
-  //   : unitValue?.toLowerCase() === "box"
-  //   ? "boxes"
-  //   : unitValue?.toLowerCase() === "pack"
-  //   ? "packs"
-  //   : unitValue?.toLowerCase() === "sheet"
-  //   ? "sheets"
-  //   : unitValue?.toLowerCase() === "pair"
-  //   ? "pairs"
-  //   : unitValue?.toLowerCase() === "piece"
-  //   ? "pieces"
-  //   : unitValue?.toLowerCase() === "unit"
-  //   ? "units"
-  //   : unitValue?.toLowerCase() === "packet"
-  //   ? "packets"
-  //   : unitValue?.toLowerCase() || "";
-
-  //   return (
-  //     <div className="bg-white border border-gray-300 px-3 py-2 flex items-center gap-3">
-  //       <Link
-  //         to={`/product/${product.slug}`}
-  //         className="w-16 h-16 bg-white-50 border border-gray-200 flex items-center justify-center shrink-0"
-  //       >
-  //         {product.image_url && (
-  //           <img
-  //             src={getImage(product.image_url)}
-  //             alt={product.product_name}
-  //             className="max-w-full max-h-full object-contain"
-  //           />
-  //         )}
-  //       </Link>
-
-  //       <div className="min-w-0 flex-1">
-  //         <Link
-  //           to={`/product/${product.slug}`}
-  //           className="font-semibold text-sm leading-5 text-gray-900 hover:text-blue-700 line-clamp-2 min-h-[2.5rem]"
-  //         >
-  //           {product.product_name}
-  //         </Link>
-
-  //         <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-  //           {[brand, size, colour, unit, "In Stock"].filter(Boolean).join(" • ")}
-  //         </p>
-  //       </div>
-
-  //       <div className="hidden lg:flex items-center gap-2">
-  //         {product.price_breaks?.map((tier) => (
-  //           <button
-  //             key={`${tier.min_qty}-${tier.max_qty}`}
-  //             type="button"
-  //             onClick={() => setQtyFromSlab(product.product_id, tier.min_qty)}
-  //             className={`text-xs border px-2 py-1 font-semibold whitespace-nowrap ${
-  //               activeTier?.min_qty === tier.min_qty
-  //                 ? "bg-gray-400 text-gray-900 border-gray-600"
-  //                 : "bg-white text-gray-900 border-gray-300"
-  //             }`}
-  //           >
-  //             <p>
-  //               {tier.max_qty
-  //                 ? `${tier.min_qty}-${tier.max_qty}`
-  //                 : `${tier.min_qty}+`}
-  //               {unit && ` ${unit}`}
-  //             </p>
-  //             <p>£{Number(tier.price).toFixed(2)}</p>
-  //           </button>
-  //         ))}
-  //       </div>
-
-  //       <div className="hidden md:block w-20 text-right">
-  //         <p className="font-bold text-gray-900">
-  //           £{Number(activeTier?.price || 0).toFixed(2)}
-  //         </p>
-  //         <p className="text-[11px] text-gray-500">ex VAT</p>
-  //       </div>
-
-  //       <input
-  //         type="number"
-  //         min="1"
-  //         value={productQty}
-  //         onChange={(e) => updateQty(product.product_id, e.target.value)}
-  //         className="w-16 border border-gray-300 px-2 py-2 text-center font-semibold"
-  //       />
-
-  //       <button
-  //         type="button"
-  //         onClick={() => handleAddToCart(product, productQty)}
-  //         className="bg-green-700 text-white px-4 py-2 font-bold text-sm hover:bg-green-800"
-  //       >
-  //         Add
-  //       </button>
-  //     </div>
-  //   );
-  // };
 
   const ProductTradeRow = ({ product }) => {
     const activeTier = getActiveTier(product);
@@ -581,7 +476,12 @@ const getOptionQty = (specName, option) => {
                   : "bg-white text-gray-900 border-gray-300"
               }`}
             >
-              <p>{tier.max_qty ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}` : `${Number(tier.min_qty)}+`}</p>
+              <p>
+              {tier.max_qty
+                ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
+                : `${Number(tier.min_qty)}+`}
+              {unitValue ? ` ${unitValue.toLowerCase()}${Number(tier.max_qty) > 1 || !tier.max_qty ? "s" : ""}` : ""}
+            </p>
               <p>£{Number(tier.price).toFixed(2)}</p>
             </button>
           ))}

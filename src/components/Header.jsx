@@ -246,21 +246,45 @@ const closeCart = () => {
     <>
     <header className="bg-[#f3f4f6] relative z-[999]">
       {/* TOP DELIVERY BAR */}
-      <div className="bg-[#da0202] text-white text-sm">
-        <div className="max-w-7xl mx-auto px-2 h-9 flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <Truck size={16} /> Next working day delivery available 
-          </span>
+      <div className="bg-[#da0202] text-white">
+          <div className="max-w-7xl mx-auto">
 
-          <span className="hidden md:flex items-center gap-2">
-            <Truck size={16} /> Free Delivery for orders above £40
-          </span>
+            {/* Mobile */}
+            <div className="md:hidden h-7 px-2 flex items-center justify-between text-[11px] font-medium">
+              <span className="flex items-center gap-1 whitespace-nowrap">
+                <Truck size={12} />
+                Next day delivery
+              </span>
 
-          <Link to="/contact" className="flex items-center gap-2">
-            <Phone size={15} /> Order online or Call 0724 715150
-          </Link>
+              <Link
+                to="/contact"
+                className="flex items-center gap-1 whitespace-nowrap"
+              >
+                <Phone size={12} />
+                0724 715150
+              </Link>
+            </div>
+
+            {/* Desktop */}
+            <div className="hidden md:flex h-9 px-2 items-center justify-between text-sm">
+              <span className="flex items-center gap-2">
+                <Truck size={16} />
+                Next working day delivery available
+              </span>
+
+              <span className="flex items-center gap-2">
+                <Truck size={16} />
+                Free Delivery for orders above £40
+              </span>
+
+              <Link to="/contact" className="flex items-center gap-2">
+                <Phone size={15} />
+                Order online or Call 0724 715150
+              </Link>
+            </div>
+
+          </div>
         </div>
-      </div>
 
       {/* DESKTOP HEADER */}
       <div className="hidden md:block max-w-7xl mx-auto px-4">
