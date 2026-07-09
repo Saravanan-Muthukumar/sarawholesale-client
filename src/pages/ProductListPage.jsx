@@ -10,6 +10,8 @@ import {
   ChevronUp,
   SlidersHorizontal,
   X,
+  Grid2X2,
+  List,
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
@@ -27,7 +29,8 @@ export default function ProductListPage() {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
   const [expandedFilters, setExpandedFilters] = useState({});
-  const [sortBy, setSortBy] = useState("relevance");
+  const [sortBy, setSortBy] = useState("price-asc");
+  const [viewMode, setViewMode] = useState("list");
 
   const appliedFilterCount = Object.values(filters).reduce((total, values) => {
     if (!Array.isArray(values)) return total;
@@ -47,7 +50,7 @@ export default function ProductListPage() {
     setFilters({});
     setExpandedFilters({});
     setMobileFilterOpen(false);
-    setSortBy("relevance");
+    setSortBy("price-asc");
 
     fetch(`${API_URL}/api/products/category/${slug}`)
       .then((res) => res.json())
@@ -79,12 +82,12 @@ export default function ProductListPage() {
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const specs = getProductSpecsObject(product);
-
+  
       return Object.entries(filters).every(([filterName, selectedValues]) => {
         if (!Array.isArray(selectedValues) || selectedValues.length === 0) {
           return true;
         }
-
+  
         return selectedValues.includes(normalise(specs[filterName]));
       });
     });
@@ -123,26 +126,27 @@ export default function ProductListPage() {
     }
   }, [filteredProducts, sortBy]);
 
-  const getOptionQty = (specName, option) => {
-    return products.filter((product) => {
-      const specs = getProductSpecsObject(product);
+const getOptionQty = (specName, option) => {
+  return products.filter((product) => {
+    const specs = getProductSpecsObject(product);
 
-      return Object.entries(filters).every(([filterName, selectedValues]) => {
-        if (!Array.isArray(selectedValues) || selectedValues.length === 0) {
-          return normalise(specs[specName]) === normalise(option);
-        }
+    if (normalise(specs[specName]) !== normalise(option)) {
+      return false;
+    }
 
-        if (filterName === specName) {
-          return normalise(specs[specName]) === normalise(option);
-        }
+    return Object.entries(filters).every(([filterName, selectedValues]) => {
+      if (!Array.isArray(selectedValues) || selectedValues.length === 0) {
+        return true;
+      }
 
-        return (
-          selectedValues.includes(normalise(specs[filterName])) &&
-          normalise(specs[specName]) === normalise(option)
-        );
-      });
-    }).length;
-  };
+      if (filterName === specName) {
+        return true;
+      }
+
+      return selectedValues.includes(normalise(specs[filterName]));
+    });
+  }).length;
+};
 
   const filterOptions = useMemo(() => {
     const allSpecNames = new Set();
@@ -319,6 +323,122 @@ export default function ProductListPage() {
     }
   };
 
+  const getSpecValue = (product, name) => {
+    const spec = product.specifications?.find(
+      (item) =>
+        String(item.spec_name || "").trim().toLowerCase() ===
+        String(name || "").trim().toLowerCase()
+    );
+
+    return spec?.spec_value || "";
+  };
+
+  const ProductTradeRow = ({ product }) => {
+    const activeTier = getActiveTier(product);
+    const productQty = qty[product.product_id] ?? 1;
+
+    const brand = product.brand || "";
+    const size = getSpecValue(product, "Size") || product.size || "";
+    const colour =
+      getSpecValue(product, "Colour") || getSpecValue(product, "Color") || "";
+      const unitValue = getSpecValue(product, "Unit");
+
+      const unit =
+  unitValue?.toLowerCase() === "roll"
+    ? "rolls"
+    : unitValue?.toLowerCase() === "box"
+    ? "boxes"
+    : unitValue?.toLowerCase() === "pack"
+    ? "packs"
+    : unitValue?.toLowerCase() === "sheet"
+    ? "sheets"
+    : unitValue?.toLowerCase() === "pair"
+    ? "pairs"
+    : unitValue?.toLowerCase() === "piece"
+    ? "pieces"
+    : unitValue?.toLowerCase() === "unit"
+    ? "units"
+    : unitValue?.toLowerCase() === "packet"
+    ? "packets"
+    : unitValue?.toLowerCase() || "";
+
+    return (
+      <div className="bg-white border border-gray-300 px-3 py-2 flex items-center gap-3">
+        <Link
+          to={`/product/${product.slug}`}
+          className="w-16 h-16 bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0"
+        >
+          {product.image_url && (
+            <img
+              src={getImage(product.image_url)}
+              alt={product.product_name}
+              className="max-w-full max-h-full object-contain"
+            />
+          )}
+        </Link>
+
+        <div className="min-w-0 flex-1">
+          <Link
+            to={`/product/${product.slug}`}
+            className="font-semibold text-sm leading-5 text-gray-900 hover:text-blue-700 line-clamp-2 min-h-[2.5rem]"
+          >
+            {product.product_name}
+          </Link>
+
+          <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+            {[brand, size, colour, unit, "In Stock"].filter(Boolean).join(" • ")}
+          </p>
+        </div>
+
+        <div className="hidden lg:flex items-center gap-2">
+          {product.price_breaks?.map((tier) => (
+            <button
+              key={`${tier.min_qty}-${tier.max_qty}`}
+              type="button"
+              onClick={() => setQtyFromSlab(product.product_id, tier.min_qty)}
+              className={`text-xs border px-2 py-1 font-semibold whitespace-nowrap ${
+                activeTier?.min_qty === tier.min_qty
+                  ? "bg-gray-400 text-gray-900 border-gray-600"
+                  : "bg-white text-gray-900 border-gray-300"
+              }`}
+            >
+              <p>
+                {tier.max_qty
+                  ? `${tier.min_qty}-${tier.max_qty}`
+                  : `${tier.min_qty}+`}
+                {unit && ` ${unit}`}
+              </p>
+              <p>£{Number(tier.price).toFixed(2)}</p>
+            </button>
+          ))}
+        </div>
+
+        <div className="hidden md:block w-20 text-right">
+          <p className="font-bold text-gray-900">
+            £{Number(activeTier?.price || 0).toFixed(2)}
+          </p>
+          <p className="text-[11px] text-gray-500">ex VAT</p>
+        </div>
+
+        <input
+          type="number"
+          min="1"
+          value={productQty}
+          onChange={(e) => updateQty(product.product_id, e.target.value)}
+          className="w-16 border border-gray-300 px-2 py-2 text-center font-semibold"
+        />
+
+        <button
+          type="button"
+          onClick={() => handleAddToCart(product, productQty)}
+          className="bg-green-700 text-white px-4 py-2 font-bold text-sm hover:bg-green-800"
+        >
+          Add
+        </button>
+      </div>
+    );
+  };
+
   const FilterCheckboxGroup = ({ spec }) => {
     const selectedValues = Array.isArray(filters[spec.name])
       ? filters[spec.name]
@@ -333,7 +453,7 @@ export default function ProductListPage() {
           onClick={() => toggleFilterGroup(spec.name)}
           className="w-full flex items-center justify-between text-left"
         >
-          <span className="text-sm font-bold text-gray-800 uppercase">
+          <span className="text-sm font-bold text-gray-800">
             {spec.name}
           </span>
 
@@ -360,7 +480,7 @@ export default function ProductListPage() {
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleFilterOption(spec.name, option)}
-                      className="h-4 w-4  border-gray-400 accent-gray-800 cursor-pointer"
+                      className="h-4 w-4 border-gray-400 accent-gray-800 cursor-pointer"
                     />
 
                     <span>{option}</span>
@@ -457,8 +577,11 @@ export default function ProductListPage() {
       )}
 
       <section className="max-w-7xl mx-auto px-4 pt-6 pb-6">
-      <div className="hidden md:flex items-center text-sm font-semibold text-[#071b3a]/70 mb-4 mt-4">
-          <Link to="/"  className="text-blue-700 underline hover:text-green-700 cursor-pointer">
+        <div className="hidden md:flex items-center text-sm font-semibold text-[#071b3a]/70 mb-4 mt-4">
+          <Link
+            to="/"
+            className="text-blue-700 underline hover:text-green-700 cursor-pointer"
+          >
             Home
           </Link>
 
@@ -507,10 +630,7 @@ export default function ProductListPage() {
                   Filter Products
                 </h2>
 
-                <button
-                  type="button"
-                  onClick={() => setMobileFilterOpen(false)}
-                >
+                <button type="button" onClick={() => setMobileFilterOpen(false)}>
                   <X size={22} />
                 </button>
               </div>
@@ -532,17 +652,6 @@ export default function ProductListPage() {
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="hidden lg:block space-y-4 sticky top-17.5 h-fit">
-            <div className="bg-white border border-gray-300 p-4">
-              <h1 className="text-xl font-bold text-gray-800 uppercase leading-tight">
-                {currentCategory?.category_name || "Products"}
-              </h1>
-
-              <p className="text-sm text-gray-700 font-semibold mt-1">
-                {hasActiveFilters
-                  ? `${filteredProducts.length} of ${products.length} products`
-                  : `${products.length} products`}
-              </p>
-            </div>
 
             {hasFilterOptions && <FilterBox />}
 
@@ -552,7 +661,6 @@ export default function ProductListPage() {
               </h2>
 
               {sideSubCategories.map((cat) => {
-
                 return (
                   <Link
                     key={cat.category_id}
@@ -562,7 +670,6 @@ export default function ProductListPage() {
                     }`}
                   >
                     <span>{cat.category_name}</span>
-                    
                   </Link>
                 );
               })}
@@ -570,44 +677,67 @@ export default function ProductListPage() {
           </aside>
 
           <section className="min-w-0">
-          <div className="lg:hidden bg-white border border-gray-300 p-4 mb-4">
-  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-  <div className="flex items-center gap-3">
-  <h1 className="text-lg font-bold text-gray-800 uppercase">
-    {currentCategory?.category_name || "Products"}
-  </h1>
+            <div className="bg-white border border-gray-300 p-4 mb-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-lg font-bold text-gray-800">
+                    {currentCategory?.category_name || "Products"}
+                  </h1>
 
-  <span className="text-sm text-gray-600 font-semibold whitespace-nowrap">
-    (
-    {hasActiveFilters
-      ? `${filteredProducts.length} of ${products.length}`
-      : products.length}
-    )
-  </span>
-</div>
+                  <span className="text-sm text-gray-600 font-semibold whitespace-nowrap">
+                    (
+                    {hasActiveFilters
+                      ? `${filteredProducts.length} of ${products.length}`
+                      : products.length}
+                    )
+                  </span>
+                </div>
 
-    <div className="flex items-center gap-2">
-      <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">
-        Sort by:
-      </label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+                    Sort by:
+                  </label>
 
-      <select
-        value={sortBy}
-        onChange={(e) => setSortBy(e.target.value)}
-        className="border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-800"
-      >
-        <option value="relevance">Relevance</option>
-        <option value="price-asc">Price: Low to High</option>
-        <option value="price-desc">Price: High to Low</option>
-        <option value="name-asc">Name: A to Z</option>
-        <option value="name-desc">Name: Z to A</option>
-      </select>
-    </div>
-  </div>
-</div>
-            
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-800"
+                  >
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="name-asc">Name: A to Z</option>
+                    <option value="name-desc">Name: Z to A</option>
+                    <option value="relevance">Relevance</option>
+                  </select>
 
-            
+                  <div className="flex border border-gray-300 bg-white">
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("grid")}
+                      className={`px-3 py-2 ${
+                        viewMode === "grid"
+                          ? "bg-blue-800 text-white"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      <Grid2X2 size={18} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("list")}
+                      className={`px-3 py-2 ${
+                        viewMode === "list"
+                          ? "bg-blue-800 text-white"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      <List size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {filteredProducts.length === 0 && (
               <div className="bg-white border border-gray-300 p-6">
@@ -615,7 +745,7 @@ export default function ProductListPage() {
               </div>
             )}
 
-            {sortedProducts.length > 0 && (
+            {sortedProducts.length > 0 && viewMode === "grid" && (
               <div className="grid grid-cols-1 2xl:grid-cols-2 gap-5">
                 {sortedProducts.map((product) => (
                   <ProductCard
@@ -627,6 +757,14 @@ export default function ProductListPage() {
                     onSlabClick={setQtyFromSlab}
                     onAddToCart={handleAddToCart}
                   />
+                ))}
+              </div>
+            )}
+
+            {sortedProducts.length > 0 && viewMode === "list" && (
+              <div className="space-y-2">
+                {sortedProducts.map((product) => (
+                  <ProductTradeRow key={product.product_id} product={product} />
                 ))}
               </div>
             )}
