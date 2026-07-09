@@ -67,6 +67,7 @@ export default function AdvancedSearchBar() {
     if (!searchValue) return;
 
     setQuery(searchValue);
+    setSuggestions([]); 
     setOpen(false);
     setActiveIndex(-1);
     inputRef.current?.blur();
@@ -150,8 +151,12 @@ export default function AdvancedSearchBar() {
         )}
 
         <button
-          type="submit"
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#071b3a] hover:text-green-700"
+          type="button"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            goToSearch();
+          }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#071b3a] hover:text-green-700 z-10"
         >
           <Search size={26} strokeWidth={2.4} />
         </button>
@@ -160,7 +165,6 @@ export default function AdvancedSearchBar() {
       {open && query.trim().length >= 2 && (
         <div
           onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
           className="absolute left-0 right-0 top-full bg-white border border-[#cfd8e6] shadow-2xl z-[99999] overflow-hidden"
         >
           <div className="max-h-[65vh] overflow-y-auto">
@@ -176,7 +180,10 @@ export default function AdvancedSearchBar() {
                   <button
                     type="button"
                     key={`${item.keyword}-${index}`}
-                    onClick={() => goToSearch(item.keyword)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      goToSearch(item.keyword);
+                    }}
                     className={`w-full text-left px-5 py-3 text-[15px] text-[#071b3a] cursor-pointer border-b border-[#edf1f7] last:border-b-0 ${
                       activeIndex === index
                         ? "bg-green-50 font-semibold"
@@ -198,7 +205,10 @@ export default function AdvancedSearchBar() {
 
           <button
             type="button"
-            onClick={() => goToSearch()}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              goToSearch();
+            }}
             className={`w-full text-left px-5 py-3 text-sm font-bold text-gray-700 border-t border-[#d9e2ef] cursor-pointer ${
               activeIndex === visibleSuggestions.length
                 ? "bg-green-50"
