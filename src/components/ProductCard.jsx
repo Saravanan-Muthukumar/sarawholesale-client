@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import QtyAddControl from "./QtyAddControl";
+import PriceTier from "./PriceTier";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:9000";
@@ -149,75 +150,6 @@ export default function ProductCard({
     onAddToCart(product, finalQty);
   };
 
-  const renderMobilePriceTiers = () => {
-    if (!sortedTiers.length) return null;
-
-    return (
-      <div
-        className="mt-3 grid gap-1"
-        style={{
-          gridTemplateColumns: `repeat(${sortedTiers.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {sortedTiers.map((tier) => {
-          const minimum = Number(tier.min_qty || 1);
-
-          const maximum =
-            tier.max_qty === null ||
-            tier.max_qty === undefined ||
-            tier.max_qty === ""
-              ? Infinity
-              : Number(tier.max_qty);
-
-          const isActive =
-            currentQty >= minimum && currentQty <= maximum;
-
-          return (
-            <button
-              key={`${tier.min_qty}-${tier.max_qty || "plus"}`}
-              type="button"
-              disabled={isOutOfStock}
-              onClick={() => handleTierClick(tier)}
-              className={`min-w-0 overflow-hidden transition ${
-                isActive
-                  ? "border border-green-500"
-                  : "border border-transparent"
-              } ${
-                isOutOfStock
-                  ? "cursor-not-allowed opacity-50"
-                  : "cursor-pointer"
-              }`}
-            >
-              <div
-                className={`px-1 py-1.5 ${
-                  isActive ? "bg-green-600" : "bg-gray-100"
-                }`}
-              >
-                <p
-                  className={`truncate text-center text-[10px] font-bold leading-3 ${
-                    isActive ? "text-white" : "text-gray-700"
-                  }`}
-                >
-                  {getSlabLabel(tier)}
-                </p>
-              </div>
-
-              <div className="bg-white px-1 py-2">
-                <p
-                  className={`truncate text-center text-[12px] font-extrabold leading-4 ${
-                    isActive ? "text-green-700" : "text-gray-950"
-                  }`}
-                >
-                  £{Number(tier.price || 0).toFixed(2)}
-                </p>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <>
       {/* Mobile view */}
@@ -279,7 +211,18 @@ export default function ProductCard({
             </div>
           </div>
 
-          {renderMobilePriceTiers()}
+          {sortedTiers.length > 0 && (
+            <div className="mt-3">
+              <PriceTier
+                tiers={sortedTiers}
+                currentQty={currentQty}
+                isOutOfStock={isOutOfStock}
+                onSelect={handleTierClick}
+                getSlabLabel={getSlabLabel}
+                compact
+              />
+            </div>
+          )}
 
           {cartQty > 0 && (
             <p className="mt-2 text-right text-[10px] font-medium text-gray-500">
@@ -380,65 +323,17 @@ export default function ProductCard({
           </div>
 
           {/* Price tiers */}
+     
           {sortedTiers.length > 0 && (
-            <div
-              className="mt-3 grid gap-0.5 sm:mt-4 sm:gap-1"
-              style={{
-                gridTemplateColumns: `repeat(${sortedTiers.length}, minmax(0, 1fr))`,
-              }}
-            >
-              {sortedTiers.map((tier) => {
-                const minimum = Number(tier.min_qty || 1);
-
-                const maximum =
-                  tier.max_qty === null ||
-                  tier.max_qty === undefined ||
-                  tier.max_qty === ""
-                    ? Infinity
-                    : Number(tier.max_qty);
-
-                const isActive =
-                  currentQty >= minimum &&
-                  currentQty <= maximum;
-
-                return (
-                  <button
-                    key={`${tier.min_qty}-${tier.max_qty || "plus"}`}
-                    type="button"
-                    disabled={isOutOfStock}
-                    onClick={() => handleTierClick(tier)}
-                    className={`min-w-0 border px-0.5 py-1 text-center transition sm:px-1 sm:py-1.5 ${
-                      isActive
-                        ? "border-green-600 bg-green-50"
-                        : "border-gray-200 bg-gray-50 hover:border-green-500"
-                    } ${
-                      isOutOfStock
-                        ? "cursor-not-allowed opacity-60"
-                        : ""
-                    }`}
-                  >
-                    <p
-                      className={`truncate text-[7px] font-semibold sm:text-[9px] ${
-                        isActive
-                          ? "text-green-800"
-                          : "text-gray-600"
-                      }`}
-                    >
-                      {getSlabLabel(tier)}
-                    </p>
-
-                    <p
-                      className={`mt-0.5 truncate text-[8px] font-bold sm:text-[11px] ${
-                        isActive
-                          ? "text-green-700"
-                          : "text-gray-900"
-                      }`}
-                    >
-                      £{Number(tier.price || 0).toFixed(2)}
-                    </p>
-                  </button>
-                );
-              })}
+            <div className="mt-4">
+              <PriceTier
+                tiers={sortedTiers}
+                currentQty={currentQty}
+                isOutOfStock={isOutOfStock}
+                onSelect={handleTierClick}
+                getSlabLabel={getSlabLabel}
+                compact
+              />
             </div>
           )}
 

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import QtyAddControl from "./QtyAddControl";
-
+import PriceTier from "./PriceTier";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function ProductListCard({
@@ -87,46 +87,23 @@ export default function ProductListCard({
 
       {/* Small space between name and tiers */}
       <div className="mt-3 mb-2">
-        {product.price_breaks?.length > 0 && (
-          <div
-            className="grid w-full text-center border-t border-l border-gray-300"
-            style={{
-              gridTemplateColumns: `repeat(
-                ${product.price_breaks.length},
-                minmax(0, 1fr)
-              )`,
-            }}
-          >
-            {product.price_breaks.map((tier) => {
-              const isActive =
-                Number(activeTier?.min_qty) === Number(tier.min_qty);
-
-              return (
-                <button
-                  key={`${tier.min_qty}-${tier.max_qty || "plus"}`}
-                  type="button"
-                  onClick={() => {
-                    onSlabClick(product.product_id, tier.min_qty);
-                    setQtyWarning("");
-                  }}
-                  className={`min-w-0 ${
-                    isActive ? "bg-gray-300" : "bg-gray-200"
-                  }`}
-                >
-                  <p className="m-0 px-1 py-[4px] text-[12px] leading-3 font-medium whitespace-nowrap bg-gray-200">
-                    {tier.max_qty
-                      ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
-                      : `${Number(tier.min_qty)}+`}
-                  </p>
-
-                  <p className="m-0 px-1 py-[4px] text-[12px] leading-3 font-bold whitespace-nowrap bg-white">
-                    £{Number(tier.price).toFixed(2)}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        )}
+      {product.price_breaks?.length > 0 && (
+  <PriceTier
+    tiers={product.price_breaks}
+    currentQty={productQty}
+    isOutOfStock={isOutOfStock || availableQty < 1}
+    compact
+    getSlabLabel={(tier) =>
+      tier.max_qty
+        ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
+        : `${Number(tier.min_qty)}+`
+    }
+    onSelect={(tier) => {
+      onSlabClick(product.product_id, tier.min_qty);
+      setQtyWarning("");
+    }}
+  />
+)}
       </div>
     </div>
   </div>
@@ -256,46 +233,26 @@ export default function ProductListCard({
         </div>
 
         {/* Desktop price tiers */}
-        <div className="inline-grid grid-flow-col auto-cols-max text-center text-[10px] border-t border-l border-gray-300">
-          {product.price_breaks?.map((tier) => {
-            const isActive =
-              Number(activeTier?.min_qty) === Number(tier.min_qty);
-
-            const tierUnit =
-              Number(tier.min_qty) === 1
-                ? unitValue.toLowerCase()
-                : `${unitValue.toLowerCase()}s`;
-
-            return (
-              <button
-                key={`${tier.min_qty}-${tier.max_qty || "plus"}`}
-                type="button"
-                onClick={() => {
-                  onSlabClick(product.product_id, tier.min_qty);
-                  setQtyWarning("");
-                }}
-                className={`min-w-[68px] border border-gray-300 py-1 text-xs font-semibold leading-none ${
-                  isActive
-                    ? "bg-gray-400 text-gray-900 border-gray-600"
-                    : "bg-white text-gray-900 border-gray-300"
-                }`}
-              >
-                <p className="w-[50px] py-1 leading-3 whitespace-nowrap">
-  {tier.max_qty
-    ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
-    : `${Number(tier.min_qty)}+`}
-</p>
-
-<p className="w-[50px] border-t border-gray-200 py-1 font-semibold leading-3">
-  £{Number(tier.price).toFixed(2)}
-</p>
-              </button>
-            );
-          })}
+        <div className="w-[230px]">
+          <PriceTier
+            tiers={product.price_breaks}
+            currentQty={productQty}
+            isOutOfStock={isOutOfStock || availableQty < 1}
+            compact
+            getSlabLabel={(tier) =>
+              tier.max_qty
+                ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
+                : `${Number(tier.min_qty)}+`
+            }
+            onSelect={(tier) => {
+              onSlabClick(product.product_id, tier.min_qty);
+              setQtyWarning("");
+            }}
+          />
         </div>
 
         {/* Current price */}
-        <div className="w-20 shrink-0 text-right">
+        <div className="w-16 shrink-0 text-right">
           <p className="font-bold text-gray-900">
             £{currentPrice.toFixed(2)}
           </p>
