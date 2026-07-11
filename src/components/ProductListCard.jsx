@@ -57,7 +57,7 @@ export default function ProductListCard({
       {/* Mobile */}
 <div className="md:hidden px-1.5 py-1.5">
   {/* Product image, name and price tiers */}
-  <div className="grid grid-cols-[68px_minmax(0,1fr)] items-start gap-1.5">
+  <div className="grid grid-cols-[98px_minmax(0,1fr)] items-start gap-1.5">
     {/* Image */}
     <Link
       to={`/product/${product.slug}`}
@@ -80,7 +80,7 @@ export default function ProductListCard({
       {/* Product name */}
       <Link
         to={`/product/${product.slug}`}
-        className="block text-[12px]  font-semibold leading-[13px] text-gray-900 line-clamp-1"
+        className="block text-[13px]  font-semibold leading-[16px] text-gray-900 line-clamp-2"
       >
         {product.product_name}
       </Link>
@@ -109,17 +109,17 @@ export default function ProductListCard({
                     onSlabClick(product.product_id, tier.min_qty);
                     setQtyWarning("");
                   }}
-                  className={`min-w-0 border-r border-b border-gray-300 ${
-                    isActive ? "bg-gray-200" : "bg-white"
+                  className={`min-w-0 ${
+                    isActive ? "bg-gray-300" : "bg-gray-200"
                   }`}
                 >
-                  <p className="m-0 py-[3px] text-[12px] leading-3 font-medium whitespace-nowrap">
+                  <p className="m-0 px-1 py-[4px] text-[12px] leading-3 font-medium whitespace-nowrap bg-gray-200">
                     {tier.max_qty
                       ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
                       : `${Number(tier.min_qty)}+`}
                   </p>
 
-                  <p className="m-0 border-t border-gray-200 py-[3px] text-[12px] leading-3 font-bold whitespace-nowrap">
+                  <p className="m-0 px-1 py-[4px] text-[12px] leading-3 font-bold whitespace-nowrap bg-white">
                     £{Number(tier.price).toFixed(2)}
                   </p>
                 </button>
@@ -234,7 +234,8 @@ export default function ProductListCard({
         <div className="min-w-0 flex-1">
           <Link
             to={`/product/${product.slug}`}
-            className="font-semibold text-sm leading-5 text-gray-900 hover:text-blue-700 line-clamp-2"
+            
+            className="text-[11px] md:text-sm font-semibold text-gray-700 leading-tight line-clamp-2 min-h-8.5 md:min-h-10.5"
           >
             {product.product_name}
           </Link>

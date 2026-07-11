@@ -83,6 +83,10 @@ export default function ProductCard({
           0
       );
 
+  const goToProduct = () => {
+    navigate(`/product/${product.slug}`);
+  };
+
   const handleTierClick = (tier) => {
     if (isOutOfStock) return;
 
@@ -145,166 +149,338 @@ export default function ProductCard({
     onAddToCart(product, finalQty);
   };
 
-  return (
-    <article className="flex h-full min-w-0 flex-col overflow-hidden border border-gray-300 bg-white shadow-sm transition hover:shadow-md">
-      <div className="flex h-full min-w-0 flex-col p-2 sm:p-3">
-        {/* Product image */}
-        <button
-          type="button"
-          onClick={() => navigate(`/product/${product.slug}`)}
-          className="block w-full"
-        >
-          <div className="flex h-28 items-center justify-center overflow-hidden bg-white sm:h-36 md:h-40">
-            {product.image_url ? (
-              <img
-                src={getImage(product.image_url)}
-                alt={product.product_name}
-                className="h-full w-full object-contain p-1 sm:p-2"
-                loading="lazy"
-              />
-            ) : (
-              <span className="text-[10px] text-gray-400 sm:text-sm">
-                No image
-              </span>
-            )}
-          </div>
-        </button>
+  const renderMobilePriceTiers = () => {
+    if (!sortedTiers.length) return null;
 
-        {/* Product name */}
-        <button
-          type="button"
-          onClick={() => navigate(`/product/${product.slug}`)}
-          className="mt-2 block w-full min-w-0 text-left sm:mt-3"
-        >
-          <h2 className="line-clamp-2 min-h-9 text-[11px] font-extrabold leading-4 text-[#062653] hover:text-green-700 sm:min-h-10 sm:text-[14px] sm:leading-5">
-            {product.product_name}
-          </h2>
-        </button>
+    return (
+      <div
+        className="mt-3 grid gap-1"
+        style={{
+          gridTemplateColumns: `repeat(${sortedTiers.length}, minmax(0, 1fr))`,
+        }}
+      >
+        {sortedTiers.map((tier) => {
+          const minimum = Number(tier.min_qty || 1);
 
-        {/* Main price and stock */}
-        <div className="mt-2 flex min-w-0 items-end justify-between gap-1.5 sm:mt-3 sm:gap-2">
-          <div className="min-w-0">
-            <p className="truncate text-lg font-extrabold leading-none text-[#001d4c] sm:text-2xl">
-              £{unitPrice.toFixed(2)}
-            </p>
+          const maximum =
+            tier.max_qty === null ||
+            tier.max_qty === undefined ||
+            tier.max_qty === ""
+              ? Infinity
+              : Number(tier.max_qty);
 
-            <p className="mt-1 truncate text-[8px] font-semibold text-gray-400 sm:text-[10px]">
-              Price per {unit} · exc. VAT
-            </p>
-          </div>
+          const isActive =
+            currentQty >= minimum && currentQty <= maximum;
 
-          <p
-            className={`shrink-0 pb-0.5 text-[8px] font-bold sm:text-[10px] ${
-              isOutOfStock
-                ? "text-red-600"
-                : "text-green-700"
-            }`}
-          >
-            {isOutOfStock ? "Out of stock" : "In stock"}
-          </p>
-        </div>
-
-        {/* Price tiers */}
-        {sortedTiers.length > 0 && (
-          <div
-            className="mt-3 grid gap-0.5 sm:mt-4 sm:gap-1"
-            style={{
-              gridTemplateColumns: `repeat(${sortedTiers.length}, minmax(0, 1fr))`,
-            }}
-          >
-            {sortedTiers.map((tier) => {
-              const minimum = Number(tier.min_qty || 1);
-
-              const maximum =
-                tier.max_qty === null ||
-                tier.max_qty === undefined ||
-                tier.max_qty === ""
-                  ? Infinity
-                  : Number(tier.max_qty);
-
-              const isActive =
-                currentQty >= minimum &&
-                currentQty <= maximum;
-
-              return (
-                <button
-                  key={`${tier.min_qty}-${tier.max_qty || "plus"}`}
-                  type="button"
-                  disabled={isOutOfStock}
-                  onClick={() => handleTierClick(tier)}
-                  className={`min-w-0 border px-0.5 py-1 text-center transition sm:px-1 sm:py-1.5 ${
-                    isActive
-                      ? "border-green-600 bg-green-50"
-                      : "border-gray-200 bg-gray-50 hover:border-green-500"
-                  } ${
-                    isOutOfStock
-                      ? "cursor-not-allowed opacity-60"
-                      : ""
+          return (
+            <button
+              key={`${tier.min_qty}-${tier.max_qty || "plus"}`}
+              type="button"
+              disabled={isOutOfStock}
+              onClick={() => handleTierClick(tier)}
+              className={`min-w-0 overflow-hidden transition ${
+                isActive
+                  ? "border border-green-500"
+                  : "border border-transparent"
+              } ${
+                isOutOfStock
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer"
+              }`}
+            >
+              <div
+                className={`px-1 py-1.5 ${
+                  isActive ? "bg-green-600" : "bg-gray-100"
+                }`}
+              >
+                <p
+                  className={`truncate text-center text-[10px] font-bold leading-3 ${
+                    isActive ? "text-white" : "text-gray-700"
                   }`}
                 >
-                  <p
-                    className={`truncate text-[7px] font-semibold sm:text-[9px] ${
-                      isActive
-                        ? "text-green-800"
-                        : "text-gray-600"
-                    }`}
-                  >
-                    {getSlabLabel(tier)}
+                  {getSlabLabel(tier)}
+                </p>
+              </div>
+
+              <div className="bg-white px-1 py-2">
+                <p
+                  className={`truncate text-center text-[12px] font-extrabold leading-4 ${
+                    isActive ? "text-green-700" : "text-gray-950"
+                  }`}
+                >
+                  £{Number(tier.price || 0).toFixed(2)}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {/* Mobile view */}
+      <article className="flex h-full min-w-0 flex-col overflow-hidden border border-gray-200 bg-white shadow-sm md:hidden">
+        <div className="flex h-full min-w-0 flex-col p-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <button
+              type="button"
+              onClick={goToProduct}
+              className="flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center overflow-hidden bg-white"
+              aria-label={`View ${product.product_name}`}
+            >
+              {product.image_url ? (
+                <img
+                  src={getImage(product.image_url)}
+                  alt={product.product_name}
+                  className="h-full w-full object-contain p-1"
+                  loading="lazy"
+                />
+              ) : (
+                <span className="text-[10px] text-gray-400">
+                  No image
+                </span>
+              )}
+            </button>
+
+            <div className="min-w-0 flex-1">
+              <button
+                type="button"
+                onClick={goToProduct}
+                className="block w-full cursor-pointer text-left"
+              >
+                <h2 className="line-clamp-3 text-[13px] font-extrabold leading-[17px] text-[#062653] hover:text-green-700">
+                  {product.product_name}
+                </h2>
+              </button>
+
+              <div className="mt-3 flex items-end justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xl font-extrabold leading-none text-[#001d4c]">
+                    £{unitPrice.toFixed(2)}
                   </p>
 
-                  <p
-                    className={`mt-0.5 truncate text-[8px] font-extrabold sm:text-[11px] ${
-                      isActive
-                        ? "text-green-700"
-                        : "text-gray-900"
-                    }`}
-                  >
-                    £{Number(tier.price || 0).toFixed(2)}
+                  <p className="mt-1 text-[9px] font-medium text-gray-500">
+                    Price per {unit} · exc. VAT
                   </p>
-                </button>
-              );
-            })}
+                </div>
+
+                <p
+                  className={`shrink-0 text-[9px] font-bold ${
+                    isOutOfStock
+                      ? "text-red-600"
+                      : "text-green-700"
+                  }`}
+                >
+                  {isOutOfStock ? "Out of stock" : "In stock"}
+                </p>
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* Quantity control */}
-        <div className="mt-3 flex flex-col items-center sm:mt-4">
+          {renderMobilePriceTiers()}
+
           {cartQty > 0 && (
-            <p className="mb-1 text-center text-[8px] font-medium text-gray-500 sm:mb-1.5 sm:text-[10px]">
-              <strong>{cartQty}</strong> already added
+            <p className="mt-2 text-right text-[10px] font-medium text-gray-500">
+              <strong>{cartQty}</strong> {unit} already added to cart
             </p>
           )}
 
-          {isOutOfStock ? (
-            <button
-              type="button"
-              disabled
-              className="w-full cursor-not-allowed bg-gray-200 px-2 py-2 text-[10px] font-bold text-gray-500 sm:max-w-[230px] sm:px-4 sm:py-2.5 sm:text-sm"
-            >
-              Out of stock
-            </button>
-          ) : (
-            <div className="w-full sm:max-w-[230px]">
-              <QtyAddControl
-                value={qty}
-                maxQty={availableQty}
-                disabled={isOutOfStock}
-                onQtyChange={handleQtyChange}
-                onMaxQty={handleMaxQty}
-                onAdd={handleAdd}
-              />
-            </div>
-          )}
+          <div className="mt-3 flex justify-end">
+            {isOutOfStock ? (
+              <button
+                type="button"
+                disabled
+                className="w-full cursor-not-allowed bg-gray-200 px-4 py-2.5 text-sm font-bold text-gray-500"
+              >
+                Out of stock
+              </button>
+            ) : (
+              <div className="ml-auto w-fit">
+                <QtyAddControl
+                  value={qty}
+                  maxQty={availableQty}
+                  disabled={isOutOfStock}
+                  onQtyChange={handleQtyChange}
+                  onMaxQty={handleMaxQty}
+                  onAdd={handleAdd}
+                />
+              </div>
+            )}
+          </div>
 
           {qtyWarning && (
-            <div className="mt-2 w-full border border-amber-200 bg-amber-50 px-1.5 py-1 sm:max-w-[230px] sm:px-2 sm:py-1.5">
-              <p className="text-center text-[8px] font-medium leading-3 text-amber-700 sm:text-[10px]">
+            <div className="mt-2 border border-amber-200 bg-amber-50 px-2 py-1.5">
+              <p className="text-center text-[10px] font-medium leading-4 text-amber-700">
                 {qtyWarning}
               </p>
             </div>
           )}
         </div>
-      </div>
-    </article>
+      </article>
+
+      {/* Desktop view — same code and styling */}
+      <article className="hidden h-full min-w-0 flex-col overflow-hidden border border-gray-300 bg-white shadow-sm transition hover:shadow-md md:flex">
+        <div className="flex h-full min-w-0 flex-col p-2 sm:p-3">
+          {/* Product image */}
+          <button
+            type="button"
+            onClick={() => navigate(`/product/${product.slug}`)}
+            className="block w-full"
+          >
+            <div className="flex h-28 items-center justify-center overflow-hidden bg-white sm:h-36 md:h-40">
+              {product.image_url ? (
+                <img
+                  src={getImage(product.image_url)}
+                  alt={product.product_name}
+                  className="h-full w-full object-contain p-1 sm:p-2"
+                  loading="lazy"
+                />
+              ) : (
+                <span className="text-[10px] text-gray-400 sm:text-sm">
+                  No image
+                </span>
+              )}
+            </div>
+          </button>
+
+          {/* Product name */}
+          <button
+            type="button"
+            onClick={() => navigate(`/product/${product.slug}`)}
+            className="mt-2 block w-full min-w-0 text-left sm:mt-3"
+          >
+            <h2 className="text-[11px] md:text-sm font-bold text-gray-700 leading-tight line-clamp-2 min-h-8.5 md:min-h-10.5">
+            {product.product_name}
+          </h2>
+          </button>
+
+          {/* Main price and stock */}
+          <div className="mt-2 flex min-w-0 items-end justify-between gap-1.5 sm:mt-3 sm:gap-2">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold leading-none text-[#001d4c] sm:text-2xl">
+                £{unitPrice.toFixed(2)}
+              </p>
+
+              <p className="mt-1 truncate text-[8px] font-semibold text-gray-400 sm:text-[10px]">
+                Price per {unit} · exc. VAT
+              </p>
+            </div>
+
+            <p
+              className={`shrink-0 pb-0.5 text-[8px] font-bold sm:text-[10px] ${
+                isOutOfStock
+                  ? "text-red-600"
+                  : "text-green-700"
+              }`}
+            >
+              {isOutOfStock ? "Out of stock" : "In stock"}
+            </p>
+          </div>
+
+          {/* Price tiers */}
+          {sortedTiers.length > 0 && (
+            <div
+              className="mt-3 grid gap-0.5 sm:mt-4 sm:gap-1"
+              style={{
+                gridTemplateColumns: `repeat(${sortedTiers.length}, minmax(0, 1fr))`,
+              }}
+            >
+              {sortedTiers.map((tier) => {
+                const minimum = Number(tier.min_qty || 1);
+
+                const maximum =
+                  tier.max_qty === null ||
+                  tier.max_qty === undefined ||
+                  tier.max_qty === ""
+                    ? Infinity
+                    : Number(tier.max_qty);
+
+                const isActive =
+                  currentQty >= minimum &&
+                  currentQty <= maximum;
+
+                return (
+                  <button
+                    key={`${tier.min_qty}-${tier.max_qty || "plus"}`}
+                    type="button"
+                    disabled={isOutOfStock}
+                    onClick={() => handleTierClick(tier)}
+                    className={`min-w-0 border px-0.5 py-1 text-center transition sm:px-1 sm:py-1.5 ${
+                      isActive
+                        ? "border-green-600 bg-green-50"
+                        : "border-gray-200 bg-gray-50 hover:border-green-500"
+                    } ${
+                      isOutOfStock
+                        ? "cursor-not-allowed opacity-60"
+                        : ""
+                    }`}
+                  >
+                    <p
+                      className={`truncate text-[7px] font-semibold sm:text-[9px] ${
+                        isActive
+                          ? "text-green-800"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {getSlabLabel(tier)}
+                    </p>
+
+                    <p
+                      className={`mt-0.5 truncate text-[8px] font-bold sm:text-[11px] ${
+                        isActive
+                          ? "text-green-700"
+                          : "text-gray-900"
+                      }`}
+                    >
+                      £{Number(tier.price || 0).toFixed(2)}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Quantity control */}
+          <div className="mt-3 flex flex-col items-center sm:mt-4">
+            {cartQty > 0 && (
+              <p className="mb-1 text-center text-[8px] font-medium text-gray-500 sm:mb-1.5 sm:text-[10px]">
+                <strong>{cartQty}</strong> already added to cart
+              </p>
+            )}
+
+            {isOutOfStock ? (
+              <button
+                type="button"
+                disabled
+                className="w-full cursor-not-allowed bg-gray-200 px-2 py-2 text-[10px] font-bold text-gray-500 sm:max-w-[230px] sm:px-4 sm:py-2.5 sm:text-sm"
+              >
+                Out of stock
+              </button>
+            ) : (
+              <div className="w-full sm:max-w-[230px]">
+                <QtyAddControl
+                  value={qty}
+                  maxQty={availableQty}
+                  disabled={isOutOfStock}
+                  onQtyChange={handleQtyChange}
+                  onMaxQty={handleMaxQty}
+                  onAdd={handleAdd}
+                />
+              </div>
+            )}
+
+            {qtyWarning && (
+              <div className="mt-2 w-full border border-amber-200 bg-amber-50 px-1.5 py-1 sm:max-w-[230px] sm:px-2 sm:py-1.5">
+                <p className="text-center text-[8px] font-medium leading-3 text-amber-700 sm:text-[10px]">
+                  {qtyWarning}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </article>
+    </>
   );
 }

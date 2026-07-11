@@ -72,7 +72,7 @@ export default function FeaturedProducts({ products = [] }) {
                   </div>
                 )}
 
-                <h3 className="text-[11px] md:text-sm font-bold text-gray-700 leading-tight line-clamp-2 min-h-8.5 md:min-h-10.5">
+                <h3 className="text-[11px] md:text-sm font-bold text-gray-700 leading-tight line-clamp-3 min-h-8.5 md:min-h-10.5">
                   {product.product_name}
                 </h3>
 

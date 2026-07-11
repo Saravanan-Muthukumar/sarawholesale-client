@@ -664,7 +664,7 @@ const getOptionQty = (specName, option) => {
             )}
 
             {sortedProducts.length > 0 && viewMode === "grid" && (
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {sortedProducts.map((product) => (
                   <ProductCard
                     key={product.product_id}
