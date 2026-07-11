@@ -210,19 +210,22 @@ export function CartProvider({ children }) {
     if (!isLoggedIn) {
       throw new Error("Please login to request order");
     }
-
+  
     const res = await fetch(`${API_URL}/api/cart/request-order`, {
       method: "POST",
       credentials: "include",
     });
-
+  
     const data = await res.json();
-
+  
     if (!res.ok) {
       throw new Error(data.message || "Failed to submit order request");
     }
-
-    await loadCart();
+  
+    setCartItems([]);
+    localStorage.removeItem("guestCart");
+  
+  
     return data;
   };
 

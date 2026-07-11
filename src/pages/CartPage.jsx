@@ -16,6 +16,7 @@ export default function CartPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const [showMobileStickyCheckout, setShowMobileStickyCheckout] = useState(true);
   const [deleteItemId, setDeleteItemId] = useState(null);
+  const [qtyWarnings, setQtyWarnings] = useState({});
   // const [editingQty, setEditingQty] = useState({});
   
 
@@ -72,13 +73,42 @@ export default function CartPage() {
 
   const handleIncrease = async (item) => {
     const id = getItemId(item);
-    const newQty = Number(item.quantity || 1) + 1;
   
-    setUpdatingId(id);
-    await updateCartItem(id, newQty);
-    setUpdatingId(null);
+    const maxQty = Number(
+      item.stock_qty ||
+      item.available_qty ||
+      item.qty_available ||
+      item.quantity_available ||
+      0
+    );
+  
+    const currentQty = Number(item.quantity || 1);
+  
+    if (maxQty && currentQty >= maxQty) {
+      setQtyWarnings((prev) => ({
+        ...prev,
+        [id]: `Only ${maxQty} available to add.`,
+      }));
+      return;
+    }
+  
+    try {
+      setUpdatingId(id);
+      await updateCartItem(id, currentQty + 1);
+  
+      setQtyWarnings((prev) => ({
+        ...prev,
+        [id]: "",
+      }));
+    } catch (err) {
+      setQtyWarnings((prev) => ({
+        ...prev,
+        [id]: `Only ${currentQty} available to add.`,
+      }));
+    } finally {
+      setUpdatingId(null);
+    }
   };
-  
   const handleDecrease = async (item) => {
     const id = getItemId(item);
     const qty = Number(item.quantity || 1);
@@ -87,27 +117,45 @@ export default function CartPage() {
       setDeleteItemId(id);
       return;
     }
+    // Clear warning when user reduces quantity
+    setQtyWarnings((prev) => ({
+      ...prev,
+      [id]: "",
+    }));
   
-    setUpdatingId(id);
-    await updateCartItem(id, qty - 1);
-    setUpdatingId(null);
+    try {
+      setUpdatingId(id);
+      await updateCartItem(id, qty - 1);
+    } finally {
+      setUpdatingId(null);
+    }
   };
-
-
   const handleQtyInputChange = async (item, value) => {
     const id = getItemId(item);
     const cleanValue = value.replace(/\D/g, "");
   
     if (cleanValue === "") return;
   
+    const availableQty = Number(item.stock_qty || item.available_qty || 999999);
     const newQty = Number(cleanValue);
   
     if (newQty <= 0) return;
+  
+    if (newQty > availableQty) {
+      setQtyWarnings((prev) => ({
+        ...prev,
+        [id]: `Only ${availableQty} available to add.`,
+      }));
+    
+      await updateCartItem(id, availableQty);
+      return;
+    }
   
     setUpdatingId(id);
     await updateCartItem(id, newQty);
     setUpdatingId(null);
   };
+
   return (
     <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] pb-28 md:pb-0">
 
@@ -130,7 +178,7 @@ export default function CartPage() {
         </div>
 
         {cartItems.length === 0 ? (
-          <div className="bg-white border border-[#edf1f7] rounded-xl p-6">
+          <div className="bg-white border border-[#edf1f7]  p-6">
             <p className="font-semibold text-[#071b3a] mb-4">
               Your basket is empty.
             </p>
@@ -242,14 +290,17 @@ export default function CartPage() {
                               </div>
 
                               <div className="flex items-center gap-3 mt-4">
+                              <div className="flex flex-col">
                               <QtyBox
                                 qty={item.quantity}
+                                maxQty={Number(item.stock_qty || item.available_qty || 0)}
                                 onMinus={() => handleDecrease(item)}
                                 onPlus={() => handleIncrease(item)}
                                 onChangeQty={(value) => handleQtyInputChange(item, value)}
                                 disabled={isUpdating}
                               />
-
+                                </div>
+                               
                                 <button
                                   onClick={() => setDeleteItemId(id)}
                                   disabled={isUpdating}
@@ -259,6 +310,11 @@ export default function CartPage() {
                                   <Trash2 size={18} />
                                 </button>
                               </div>
+                              {qtyWarnings[id] && (
+                                  <span className="text-[11px] text-red-600 whitespace-nowrap">
+                                    {qtyWarnings[id]}
+                                  </span>
+                                )}
                             </div>
 
                             <div className="hidden md:block text-right">
@@ -289,7 +345,7 @@ export default function CartPage() {
                 })}
               </div>
 
-              <div className="md:hidden bg-white border border-[#edf1f7] rounded-xl p-5">
+              <div className="md:hidden bg-white border border-[#edf1f7]  p-5">
               <OrderSummary
                 totalItems={totalItems}
                 subtotal={subtotal}
@@ -305,7 +361,7 @@ export default function CartPage() {
 
             <aside className="hidden lg:block">
               <div className="sticky top-24 space-y-4">
-                <div className="border border-[#edf1f7] rounded-xl p-5 shadow-sm bg-white">
+                <div className="border border-[#edf1f7]  p-5 shadow-sm bg-white">
                 <OrderSummary
                   totalItems={totalItems}
                   subtotal={subtotal}
@@ -317,7 +373,7 @@ export default function CartPage() {
                 />
                 </div>
 
-                <div className="border border-[#edf1f7] rounded-xl p-4 gap-3 text-[#071b3a] bg-white flex">
+                <div className="border border-[#edf1f7]  p-4 gap-3 text-[#071b3a] bg-white flex">
                   <ShieldCheck size={22} />
 
                   <div>
@@ -450,7 +506,7 @@ function OrderSummary({
   );
 }
 
-function QtyBox({ qty, onMinus, onPlus, onChangeQty, disabled }) {
+function QtyBox({ qty, maxQty, onMinus, onPlus, onChangeQty, disabled }) {
   const [localQty, setLocalQty] = useState(String(qty || 1));
 
   useEffect(() => {

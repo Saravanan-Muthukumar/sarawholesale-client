@@ -44,7 +44,8 @@ const pageDescription =
 const canonicalUrl = `https://www.sarawholesale.co.uk/category/${slug}`;
 
   return (
-    <main className="bg-[#f7f8fb] min-h-screen">
+    // <main className="bg-[#f7f8fb] min-h-screen">
+    <main className="bg-[white] min-h-screen">
       <Helmet>
         <title>{pageTitle}</title>
 

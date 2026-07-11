@@ -1,255 +1,310 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import QtyAddControl from "./QtyAddControl";
-import { useState } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:9000";
 
-export default function ProductCard({ product, onAddToCart }) {
+export default function ProductCard({
+  product,
+  onAddToCart,
+  qtyInCart = 0,
+}) {
   const navigate = useNavigate();
+
   const [qty, setQty] = useState("1");
-  const [selectedTierKey, setSelectedTierKey] = useState(null);
+  const [qtyWarning, setQtyWarning] = useState("");
 
   const getImage = (imageUrl) => {
     if (!imageUrl) return "";
-    return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
-  };
 
-  const getSlabLabel = (tier) =>
-    tier.max_qty ? `${tier.min_qty}-${tier.max_qty}` : `${tier.min_qty}+`;
+    return imageUrl.startsWith("http")
+      ? imageUrl
+      : `${API_URL}${imageUrl}`;
+  };
 
   const getSpecValue = (name) => {
-    const spec = product.specifications?.find(
+    const specification = product.specifications?.find(
       (item) =>
-        String(item.spec_name || "").trim().toLowerCase() ===
-        String(name || "").trim().toLowerCase()
+        String(item.spec_name || "")
+          .trim()
+          .toLowerCase() ===
+        String(name || "")
+          .trim()
+          .toLowerCase()
     );
-    return String(spec?.spec_value || "").trim();
+
+    return String(specification?.spec_value || "").trim();
   };
 
-  const unit = getSpecValue("Unit") || "unit";
-  const currentQty = Number(qty || 1);
+  const getSlabLabel = (tier) => {
+    return tier.max_qty
+      ? `${tier.min_qty}-${tier.max_qty}`
+      : `${tier.min_qty}+`;
+  };
 
-  const unitLabel =
-    currentQty === 1 ? unit.toLowerCase() : `${unit.toLowerCase()}s`;
+  const unit = getSpecValue("Unit") || "Unit";
+
+  const currentQty = Math.max(Number(qty || 1), 1);
+  const stockQty = Number(product.stock_qty || 0);
+  const cartQty = Number(qtyInCart || 0);
+
+  const availableQty = Math.max(stockQty - cartQty, 0);
+  const isOutOfStock = stockQty < 1 || availableQty < 1;
+
+  const sortedTiers = Array.isArray(product.price_breaks)
+    ? [...product.price_breaks].sort(
+        (a, b) => Number(a.min_qty) - Number(b.min_qty)
+      )
+    : [];
 
   const activeTier =
-    product.price_breaks?.find(
-      (tier) =>
-        currentQty >= Number(tier.min_qty) &&
-        (!tier.max_qty || currentQty <= Number(tier.max_qty))
-    ) || null;
+    sortedTiers.find((tier) => {
+      const minimum = Number(tier.min_qty || 1);
+
+      const maximum =
+        tier.max_qty === null ||
+        tier.max_qty === undefined ||
+        tier.max_qty === ""
+          ? Infinity
+          : Number(tier.max_qty);
+
+      return currentQty >= minimum && currentQty <= maximum;
+    }) ||
+    sortedTiers[0] ||
+    null;
 
   const unitPrice = activeTier
-    ? Number(activeTier.price)
-    : Number(product.from_price || product.price || 0);
+    ? Number(activeTier.price || 0)
+    : Number(
+        product.from_price ||
+          product.price ||
+          product.selling_price ||
+          0
+      );
 
-  const subtotal = unitPrice * currentQty;
-  const basePrice = Number(product.price_breaks?.[0]?.price || unitPrice || 0);
+  const handleTierClick = (tier) => {
+    if (isOutOfStock) return;
+
+    const minimumQty = Number(tier.min_qty || 1);
+
+    if (minimumQty > availableQty) {
+      setQtyWarning(
+        cartQty > 0
+          ? `Only ${availableQty} available to add, ${cartQty} already in cart`
+          : `Only ${availableQty} available to add`
+      );
+
+      return;
+    }
+
+    setQty(String(minimumQty));
+    setQtyWarning("");
+  };
+
+  const handleQtyChange = (value) => {
+    setQtyWarning("");
+
+    if (value === "") {
+      setQty("");
+      return;
+    }
+
+    const nextQty = Math.max(Number(value) || 1, 1);
+
+    setQty(String(nextQty));
+  };
+
+  const handleMaxQty = () => {
+    setQtyWarning(
+      cartQty > 0
+        ? `Only ${availableQty} available to add, ${cartQty} already in cart`
+        : `Only ${availableQty} available to add`
+    );
+  };
+
+  const handleAdd = (quantity) => {
+    const finalQty = Number(quantity || qty || 1);
+
+    if (isOutOfStock) {
+      setQtyWarning("This product is out of stock");
+      return;
+    }
+
+    if (!Number.isInteger(finalQty) || finalQty < 1) {
+      setQtyWarning("Please enter a valid quantity");
+      return;
+    }
+
+    if (finalQty > availableQty) {
+      handleMaxQty();
+      return;
+    }
+
+    setQtyWarning("");
+    onAddToCart(product, finalQty);
+  };
 
   return (
-    <div className="bg-white border border-gray-300 shadow-sm hover:shadow-md transition overflow-hidden">
-      <div className="p-4 md:p-5">
-      <h2
+    <article className="flex h-full min-w-0 flex-col overflow-hidden border border-gray-300 bg-white shadow-sm transition hover:shadow-md">
+      <div className="flex h-full min-w-0 flex-col p-2 sm:p-3">
+        {/* Product image */}
+        <button
+          type="button"
           onClick={() => navigate(`/product/${product.slug}`)}
-          className="md:hidden font-bold text-gray-900 text-base leading-snug line-clamp-2 mb-3 cursor-pointer"
+          className="block w-full"
         >
-          {product.product_name}
-        </h2>
-        
-        <div
-            className="grid grid-cols-[135px_1fr] md:grid-cols-[180px_1fr] gap-3 md:gap-6 cursor-pointer"
-          onClick={() => navigate(`/product/${product.slug}`)}
-        >
-
-      <div className="h-36 md:h-48 bg-white border border-gray-200 flex items-center justify-center overflow-hidden">
+          <div className="flex h-28 items-center justify-center overflow-hidden bg-white sm:h-36 md:h-40">
             {product.image_url ? (
               <img
                 src={getImage(product.image_url)}
                 alt={product.product_name}
-                className="w-full h-full object-contain p-1"
+                className="h-full w-full object-contain p-1 sm:p-2"
+                loading="lazy"
               />
             ) : (
-              <span className="text-gray-400 text-sm">No image</span>
+              <span className="text-[10px] text-gray-400 sm:text-sm">
+                No image
+              </span>
             )}
           </div>
-          <div className="md:hidden ml-4 space-y-1 text-[9px] max-w-[125px]">
-          <div className="md:hidden  items-start justify-between gap-3 mb-3">
-    <p className="text-sm mt-2 font-semibold text-gray-500">Price per {unit}</p>
-    <p className="text-2xl mt-3 font-bold text-green-700 leading-none">
-        £{unitPrice.toFixed(2)} <span className="ml-1 text-[10px] font-semibold text-gray-400">exc. VAT</span>
-      </p>
-    </div>
-  <div className="bg-green-50 mt-3 text-green-800 border border-green-200 px-1.5 py-1 font-semibold">
-    ✔ Available
-  </div>
+        </button>
 
-  <div className="bg-blue-50 text-blue-800 border border-blue-200 px-1.5 py-1 font-semibold">
-    🚚 UK Delivery
-  </div>
+        {/* Product name */}
+        <button
+          type="button"
+          onClick={() => navigate(`/product/${product.slug}`)}
+          className="mt-2 block w-full min-w-0 text-left sm:mt-3"
+        >
+          <h2 className="line-clamp-2 min-h-9 text-[11px] font-extrabold leading-4 text-[#062653] hover:text-green-700 sm:min-h-10 sm:text-[14px] sm:leading-5">
+            {product.product_name}
+          </h2>
+        </button>
 
-  <div className="bg-yellow-50 text-yellow-800 border border-yellow-200 px-1.5 py-1 font-semibold">
-    📦 Bulk Discounts
-  </div>
-</div>
-
-          <div className="hidden md:block min-w-0">
-          <h2 className="hidden md:block font-bold text-gray-900 text-lg leading-snug line-clamp-3 hover:text-green-700">
-              {product.product_name}
-            </h2>
-
-            <p className="hidden md:block text-sm text-gray-500 mt-2">
-              SKU: {product.sku || "N/A"}
+        {/* Main price and stock */}
+        <div className="mt-2 flex min-w-0 items-end justify-between gap-1.5 sm:mt-3 sm:gap-2">
+          <div className="min-w-0">
+            <p className="truncate text-lg font-extrabold leading-none text-[#001d4c] sm:text-2xl">
+              £{unitPrice.toFixed(2)}
             </p>
 
-            {/* <p className="text-sm text-gray-500 mt-1 line-clamp-1">
-              {product.parent_category_name
-                ? `${product.parent_category_name} / ${product.category_name}`
-                : product.category_name}
-            </p> */}
-            <div className="hidden md:flex items-center mt-4 mb-4 gap-3">
-    <p className="text-sm font-semibold text-gray-500">Price per {unit}</p>
-    <p className="text-2xl font-bold text-green-700 leading-none">
-        £{unitPrice.toFixed(2)} <span className="ml-1 text-[10px] font-semibold text-gray-400">exc. VAT</span>
-      </p>
-    </div>
-
-
-    <div className="mt-2 md:mt-4 grid grid-cols-1 md:grid-cols-3 gap-1.5 md:gap-2 text-[9px] md:text-xs">
-              <div className="bg-green-50 text-green-800 border border-green-200 px-2 py-3 md:px-3 md:py-3 font-semibold">
-                ✔ Available
-              </div>
-
-              <div className="bg-blue-50 text-blue-800 border border-blue-200 px-2 py-1.5 md:px-3 md:py-2 font-semibold">
-                🚚 UK Delivery
-              </div>
-
-              <div className="bg-yellow-50 text-yellow-800 border border-yellow-200 px-2 py-1.5 md:px-3 md:py-2 font-semibold">
-                📦 Bulk Discounts
-              </div>
-            </div>
+            <p className="mt-1 truncate text-[8px] font-semibold text-gray-400 sm:text-[10px]">
+              Price per {unit} · exc. VAT
+            </p>
           </div>
+
+          <p
+            className={`shrink-0 pb-0.5 text-[8px] font-bold sm:text-[10px] ${
+              isOutOfStock
+                ? "text-red-600"
+                : "text-green-700"
+            }`}
+          >
+            {isOutOfStock ? "Out of stock" : "In stock"}
+          </p>
         </div>
 
-        {product.price_breaks?.length > 0 && (
+        {/* Price tiers */}
+        {sortedTiers.length > 0 && (
           <div
-            className="grid gap-1.5 mt-3"
+            className="mt-3 grid gap-0.5 sm:mt-4 sm:gap-1"
             style={{
-              gridTemplateColumns: `repeat(${product.price_breaks.length}, minmax(0, 1fr))`,
+              gridTemplateColumns: `repeat(${sortedTiers.length}, minmax(0, 1fr))`,
             }}
           >
-            {product.price_breaks.map((tier, index) => {
-              const tierKey = `${tier.min_qty}-${tier.max_qty || "plus"}`;
-              const isActive = selectedTierKey === tierKey;
-              const isBestValue = index === product.price_breaks.length - 1;
+            {sortedTiers.map((tier) => {
+              const minimum = Number(tier.min_qty || 1);
 
-              const savingPercent =
-                basePrice > 0
-                  ? Math.round(((basePrice - Number(tier.price)) / basePrice) * 100)
-                  : 0;
+              const maximum =
+                tier.max_qty === null ||
+                tier.max_qty === undefined ||
+                tier.max_qty === ""
+                  ? Infinity
+                  : Number(tier.max_qty);
 
-              const tierUnitLabel =
-                Number(tier.min_qty) === 1
-                  ? unit.toLowerCase()
-                  : `${unit.toLowerCase()}s`;
+              const isActive =
+                currentQty >= minimum &&
+                currentQty <= maximum;
 
               return (
                 <button
+                  key={`${tier.min_qty}-${tier.max_qty || "plus"}`}
                   type="button"
-                  key={tierKey}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setQty(String(tier.min_qty));
-                    setSelectedTierKey(tierKey);
-                  }}
-                  className={`relative border px-2 py-2 text-center transition bg-white ${
+                  disabled={isOutOfStock}
+                  onClick={() => handleTierClick(tier)}
+                  className={`min-w-0 border px-0.5 py-1 text-center transition sm:px-1 sm:py-1.5 ${
                     isActive
-                      ? "border-green-700 bg-green-50"
-                      : "border-gray-300 hover:border-green-500 hover:bg-gray-50"
+                      ? "border-green-600 bg-green-50"
+                      : "border-gray-200 bg-gray-50 hover:border-green-500"
+                  } ${
+                    isOutOfStock
+                      ? "cursor-not-allowed opacity-60"
+                      : ""
                   }`}
                 >
-                  {isBestValue && (
-                    <span className="absolute top-1 right-1 bg-green-700 text-white text-[8px] px-1.5 py-0.5 font-bold">
-                      BEST
-                    </span>
-                  )}
-
-                  <div
-                    className={`text-[12px] font-semibold ${
-                      isActive ? "text-green-800" : "text-gray-700"
+                  <p
+                    className={`truncate text-[7px] font-semibold sm:text-[9px] ${
+                      isActive
+                        ? "text-green-800"
+                        : "text-gray-600"
                     }`}
                   >
-                    {getSlabLabel(tier)} {tierUnitLabel}
-                  </div>
+                    {getSlabLabel(tier)}
+                  </p>
 
-                  <div
-                    className={`mt-1 text-base font-bold ${
-                      isActive ? "text-green-700" : "text-gray-900"
+                  <p
+                    className={`mt-0.5 truncate text-[8px] font-extrabold sm:text-[11px] ${
+                      isActive
+                        ? "text-green-700"
+                        : "text-gray-900"
                     }`}
                   >
-                    £{Number(tier.price).toFixed(2)}
-                  </div>
-
-                  {/* <div className="text-[10px] text-gray-500">each</div> */}
-
-                  <div
-                    className={`mt-1 pt-1 border-t text-[10px] font-semibold ${
-                      savingPercent > 0 ? "text-green-700" : "text-gray-400"
-                    }`}
-                  >
-                    {savingPercent > 0 ? `${savingPercent}% off` : "Base"}
-                  </div>
+                    £{Number(tier.price || 0).toFixed(2)}
+                  </p>
                 </button>
               );
             })}
           </div>
         )}
+
+        {/* Quantity control */}
+        <div className="mt-3 flex flex-col items-center sm:mt-4">
+          {cartQty > 0 && (
+            <p className="mb-1 text-center text-[8px] font-medium text-gray-500 sm:mb-1.5 sm:text-[10px]">
+              <strong>{cartQty}</strong> already added
+            </p>
+          )}
+
+          {isOutOfStock ? (
+            <button
+              type="button"
+              disabled
+              className="w-full cursor-not-allowed bg-gray-200 px-2 py-2 text-[10px] font-bold text-gray-500 sm:max-w-[230px] sm:px-4 sm:py-2.5 sm:text-sm"
+            >
+              Out of stock
+            </button>
+          ) : (
+            <div className="w-full sm:max-w-[230px]">
+              <QtyAddControl
+                value={qty}
+                maxQty={availableQty}
+                disabled={isOutOfStock}
+                onQtyChange={handleQtyChange}
+                onMaxQty={handleMaxQty}
+                onAdd={handleAdd}
+              />
+            </div>
+          )}
+
+          {qtyWarning && (
+            <div className="mt-2 w-full border border-amber-200 bg-amber-50 px-1.5 py-1 sm:max-w-[230px] sm:px-2 sm:py-1.5">
+              <p className="text-center text-[8px] font-medium leading-3 text-amber-700 sm:text-[10px]">
+                {qtyWarning}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-
-      <div className="bg-gray-50 px-4 py-3 flex flex-row items-end justify-between gap-2">
-      <div className="bg-white border border-gray-300 px-3 py-2 w-[42%] md:w-[240px]">
-    {/* <div className="flex items-center justify-between gap-1">
-    <p className="text-xs font-semibold text-gray-500">Price per {unit}</p>
-    <p className="text-lg font-bold text-green-700 leading-none">
-        £{unitPrice.toFixed(2)} <span className="ml-1 text-[10px] font-semibold text-gray-400">exc. VAT</span>
-      </p>
-    </div> */}
-
-    <div className="flex flex-col md:flex-row md:items-end sm:justify-between">
-  {/* Left */}
-  <p className="text-xs font-semibold text-gray-500">
-    Subtotal
-  </p>
-
-  {/* Right */}
-  <div className="flex flex-col md:flex-row md:items-end sm:gap-1 mt-0.5 sm:mt-0">
-    <p className="text-sm font-bold text-gray-900 leading-none">
-      £{subtotal.toFixed(2)}
-    </p>
-
-    <p className="text-[10px] font-semibold text-gray-400 leading-none">
-      exc. VAT
-    </p>
-  </div>
-</div>
-
-    {/* <p className="text-[10px] text-gray-400 mt-0.5 text-right">exc. VAT</p> */}
-  </div>
-
-  <div className="flex-1 flex flex-col items-stretch md:items-end gap-1">
-    <p className="text-xs text-gray-500">
-      Add {currentQty} {unitLabel} to your cart
-    </p>
-
-    <QtyAddControl
-      value={qty}
-      onQtyChange={(value) => {
-        setQty(value);
-        setSelectedTierKey(null);
-      }}
-      onAdd={(quantity) => onAddToCart(product, quantity)}
-    />
-  </div>
-</div> 
-    </div>
+    </article>
   );
 }

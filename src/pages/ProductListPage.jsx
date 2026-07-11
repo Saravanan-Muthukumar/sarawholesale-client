@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import ProductCard from "../components/ProductCard";
+import ProductListCard from "../components/ProductListCard";
 import {
   ArrowLeft,
   ChevronDown,
@@ -18,14 +19,25 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function ProductListPage() {
   const { slug } = useParams();
-  const { addToCart } = useCart();
+  const cartContext = useCart();
+    const { addToCart, cartItems = [], cart = [] } = cartContext;
+
+    const getProductCartQty = (productId) => {
+      const items = cartItems.length ? cartItems : cart;
+
+      const item = items.find(
+        (cartItem) => Number(cartItem.product_id) === Number(productId)
+      );
+
+      return Number(item?.quantity || 0);
+    };
   const categoryScrollRef = useRef(null);
 
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [qty, setQty] = useState({});
   const [addedProduct, setAddedProduct] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [qtyErrors, setQtyErrors] = useState({});
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
   const [expandedFilters, setExpandedFilters] = useState({});
@@ -257,15 +269,17 @@ const getOptionQty = (specName, option) => {
     });
   };
 
-  const updateQty = (productId, value) => {
+  const updateQty = (productId, value, maxQty) => {
     if (value === "") {
       setQty((prev) => ({ ...prev, [productId]: "" }));
       return;
     }
-
+  
+    const nextQty = Math.max(1, Number(value) || 1);
+  
     setQty((prev) => ({
       ...prev,
-      [productId]: Math.max(0, Number(value) || 0),
+      [productId]: maxQty ? Math.min(nextQty, maxQty) : nextQty,
     }));
   };
 
@@ -303,7 +317,27 @@ const getOptionQty = (specName, option) => {
   const handleAddToCart = async (product, quantity) => {
     const enteredQty = Number(quantity || 1);
     const activeTier = getActiveTier(product);
-
+  
+    const qtyInCart = getProductCartQty(product.product_id);
+    const stockQty = Number(product.stock_qty || 0);
+    const remainingQty = Math.max(stockQty - qtyInCart, 0);
+  
+    if (!enteredQty || enteredQty <= 0) {
+      setQtyErrors((prev) => ({
+        ...prev,
+        [product.product_id]: "Please enter quantity",
+      }));
+      return;
+    }
+  
+    if (enteredQty > remainingQty) {
+      setQty((prev) => ({
+        ...prev,
+        [product.product_id]: remainingQty,
+      }));
+      return;
+    }
+  
     try {
       await addToCart({
         product_id: product.product_id,
@@ -314,202 +348,19 @@ const getOptionQty = (specName, option) => {
         unit_price: activeTier ? Number(activeTier.price) : 0,
         price: activeTier ? Number(activeTier.price) : 0,
       });
-
+  
+      setQtyErrors((prev) => ({
+        ...prev,
+        [product.product_id]: "",
+      }));
+  
       setAddedProduct(product.product_name);
       setTimeout(() => setAddedProduct(""), 2000);
     } catch (err) {
-      setErrorMessage(err.message || "Failed to add to cart");
-      setTimeout(() => setErrorMessage(""), 2500);
+      console.error(err);
     }
   };
 
-  const getSpecValue = (product, name) => {
-    const spec = product.specifications?.find(
-      (item) =>
-        String(item.spec_name || "").trim().toLowerCase() ===
-        String(name || "").trim().toLowerCase()
-    );
-
-    return spec?.spec_value || "";
-  };
-
-
-  const ProductTradeRow = ({ product }) => {
-    const activeTier = getActiveTier(product);
-    const productQty = qty[product.product_id] ?? 1;
-  
-    const unitValue = getSpecValue(product, "Unit");
-    const unitLabel = unitValue ? `Price per ${unitValue.toLowerCase()}` : "Price";
-  
-    return (
-      <div className="bg-white border border-gray-300 overflow-hidden md:px-3 md:py-2 md:flex md:items-center md:gap-3">
-        <div className="md:hidden p-2">
-  <div className="grid grid-cols-[70px_1fr] gap-2">
-    <Link
-      to={`/product/${product.slug}`}
-      className="h-20 bg-gray-50 border border-gray-200 flex items-center justify-center"
-    >
-      {product.image_url && (
-        <img
-          src={getImage(product.image_url)}
-          alt={product.product_name}
-          className="max-w-full max-h-full object-contain"
-        />
-      )}
-    </Link>
-
-    <div>
-      <Link
-        to={`/product/${product.slug}`}
-        className="block text-[12px] font-semibold leading-4 text-gray-900 line-clamp-1 mb-2"
-      >
-        {product.product_name}
-      </Link>
-
-      <div
-        className="grid text-center text-[11px] border border-gray-300"
-        style={{
-          gridTemplateColumns: `repeat(${product.price_breaks?.length || 1}, minmax(0, 1fr))`,
-        }}
-      >
-        {product.price_breaks?.map((tier) => (
-          <div
-            key={`qty-${tier.min_qty}-${tier.max_qty}`}
-            className="border-b border-r last:border-r-0 border-gray-300 py-1"
-          >
-            {tier.max_qty
-              ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
-              : `${Number(tier.min_qty)}+`}
-          </div>
-        ))}
-
-        {product.price_breaks?.map((tier) => (
-          <button
-            key={`price-${tier.min_qty}-${tier.max_qty}`}
-            type="button"
-            onClick={() => setQtyFromSlab(product.product_id, tier.min_qty)}
-            className="border-r last:border-r-0 border-gray-300 py-1 font-semibold"
-          >
-            £{Number(tier.price).toFixed(2)}
-          </button>
-        ))}
-      </div>
-    </div>
-  </div>
-
-  <div className="mt-2 pt-2 border-t border-gray-200 flex items-center gap-2">
-    <span className="text-xs font-semibold whitespace-nowrap">
-      Price per {unitValue  ? `${unitValue} £${Number(activeTier?.price || 0).toFixed(2)}` : `Price £${Number(activeTier?.price || 0).toFixed(2)}`}
-    </span>
-
-    <div className="ml-auto flex items-center border border-gray-300 rounded overflow-hidden">
-      <button
-        type="button"
-        onClick={() =>
-          updateQty(product.product_id, Math.max(1, Number(productQty || 1) - 1))
-        }
-        className="w-10 h-10 flex items-center justify-center text-xl font-bold bg-gray-100"
-      >
-        -
-      </button>
-
-      <input
-        type="number"
-        min="1"
-        value={productQty}
-        onChange={(e) => updateQty(product.product_id, e.target.value)}
-        className="w-14 h-10 border-x border-gray-300 text-center font-semibold text-base"
-      />
-
-      <button
-        type="button"
-        onClick={() =>
-          updateQty(product.product_id, Number(productQty || 1) + 1)
-        }
-        className="w-10 h-10 flex items-center justify-center text-xl font-bold bg-gray-100"
-      >
-        +
-      </button>
-    </div>
-
-    <button
-      type="button"
-      onClick={() => handleAddToCart(product, productQty)}
-      className="bg-green-700 text-white px-5 h-10 font-bold text-sm hover:bg-green-800 rounded"
-    >
-      Add
-    </button>
-  </div>
-</div>
-  
-        <Link
-          to={`/product/${product.slug}`}
-          className="hidden md:flex w-16 h-16 bg-gray-50 border border-gray-200 items-center justify-center shrink-0"
-        >
-          {product.image_url && (
-            <img
-              src={getImage(product.image_url)}
-              alt={product.product_name}
-              className="max-w-full max-h-full object-contain"
-            />
-          )}
-        </Link>
-  
-        <div className="hidden md:block min-w-0 flex-1">
-          <Link
-            to={`/product/${product.slug}`}
-            className="font-semibold text-sm leading-5 text-gray-900 hover:text-blue-700 line-clamp-2 min-h-[2.5rem]"
-          >
-            {product.product_name}
-          </Link>
-        </div>
-  
-        <div className="hidden lg:flex items-center gap-2">
-          {product.price_breaks?.map((tier) => (
-            <button
-              key={`${tier.min_qty}-${tier.max_qty}`}
-              type="button"
-              onClick={() => setQtyFromSlab(product.product_id, tier.min_qty)}
-              className={`text-xs border px-2 py-1 font-semibold whitespace-nowrap ${
-                activeTier?.min_qty === tier.min_qty
-                  ? "bg-gray-400 text-gray-900 border-gray-600"
-                  : "bg-white text-gray-900 border-gray-300"
-              }`}
-            >
-              <p>
-              {tier.max_qty
-                ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
-                : `${Number(tier.min_qty)}+`}
-              {unitValue ? ` ${unitValue.toLowerCase()}${Number(tier.max_qty) > 1 || !tier.max_qty ? "s" : ""}` : ""}
-            </p>
-              <p>£{Number(tier.price).toFixed(2)}</p>
-            </button>
-          ))}
-        </div>
-  
-        <div className="hidden md:block w-20 text-right">
-          <p className="font-bold text-gray-900">£{Number(activeTier?.price || 0).toFixed(2)}</p>
-          <p className="text-[11px] text-gray-500">ex VAT</p>
-        </div>
-  
-        <input
-          type="number"
-          min="1"
-          value={productQty}
-          onChange={(e) => updateQty(product.product_id, e.target.value)}
-          className="hidden md:block w-16 border border-gray-300 px-2 py-2 text-center font-semibold"
-        />
-  
-        <button
-          type="button"
-          onClick={() => handleAddToCart(product, productQty)}
-          className="hidden md:block bg-green-700 text-white px-4 py-2 font-bold text-sm hover:bg-green-800"
-        >
-          Add
-        </button>
-      </div>
-    );
-  };
   const FilterCheckboxGroup = ({ spec }) => {
     const selectedValues = Array.isArray(filters[spec.name])
       ? filters[spec.name]
@@ -641,11 +492,7 @@ const getOptionQty = (specName, option) => {
         </div>
       )}
 
-      {errorMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-red-50 border border-red-200 shadow-lg px-5 py-4">
-          <p className="text-sm font-semibold text-red-700">{errorMessage}</p>
-        </div>
-      )}
+
 
       <section className="max-w-7xl mx-auto px-4 pt-6 pb-6">
         <div className="hidden md:flex items-center text-sm font-semibold text-[#071b3a]/70 mb-4 mt-4">
@@ -817,13 +664,14 @@ const getOptionQty = (specName, option) => {
             )}
 
             {sortedProducts.length > 0 && viewMode === "grid" && (
-              <div className="grid grid-cols-1 2xl:grid-cols-2 gap-5">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {sortedProducts.map((product) => (
                   <ProductCard
                     key={product.product_id}
                     product={product}
                     qty={qty[product.product_id] ?? 1}
                     activeTier={getActiveTier(product)}
+                    qtyInCart={getProductCartQty(product.product_id)}
                     onQtyChange={updateQty}
                     onSlabClick={setQtyFromSlab}
                     onAddToCart={handleAddToCart}
@@ -835,7 +683,16 @@ const getOptionQty = (specName, option) => {
             {sortedProducts.length > 0 && viewMode === "list" && (
               <div className="space-y-2">
                 {sortedProducts.map((product) => (
-                  <ProductTradeRow key={product.product_id} product={product} />
+                  <ProductListCard
+                    key={product.product_id}
+                    product={product}
+                    qty={qty[product.product_id] ?? 1}
+                    activeTier={getActiveTier(product)}
+                    qtyInCart={getProductCartQty(product.product_id)}
+                    onQtyChange={updateQty}
+                    onSlabClick={setQtyFromSlab}
+                    onAddToCart={handleAddToCart}
+                  />
                 ))}
               </div>
             )}

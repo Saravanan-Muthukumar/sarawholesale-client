@@ -58,8 +58,11 @@ export default function CheckoutPage() {
     0
   );
 
-  const vatAmount = subtotal * 0.2;
-const totalAmount = subtotal + vatAmount;
+  const deliveryCharge = subtotal >= 40 ? 0 : 5.95;
+
+const vatAmount = subtotal * 0.2;
+
+const totalAmount = subtotal + deliveryCharge + vatAmount;
 
   const totalItems = cartItems.reduce(
     (sum, item) => sum + Number(item.quantity || 0),
@@ -107,6 +110,23 @@ const totalAmount = subtotal + vatAmount;
 
       if (!canSubmit) {
         goToDetails();
+        return;
+      }
+      const stockProblem = cartItems.find((item) => {
+        const availableQty = Number(item.stock_qty || item.available_qty || 999999);
+        return Number(item.quantity || 0) > availableQty;
+      });
+      
+      if (stockProblem) {
+        const availableQty = Number(
+          stockProblem.stock_qty || stockProblem.available_qty || 0
+        );
+      
+        alert(
+          `${stockProblem.product_name} has only ${availableQty} available in stock. Please update your basket.`
+        );
+      
+        navigate("/cart");
         return;
       }
 
@@ -163,7 +183,7 @@ const totalAmount = subtotal + vatAmount;
         </div>
 
         {cartItems.length === 0 ? (
-          <div className="bg-white border border-[#edf1f7] rounded-xl p-6">
+          <div className="bg-white border border-[#edf1f7]  p-6">
             <p className="font-semibold text-[#071b3a] mb-4">
               Your basket is empty.
             </p>
@@ -250,10 +270,11 @@ const totalAmount = subtotal + vatAmount;
                 </div>
               </div>
 
-              <div className="md:hidden bg-white border border-[#edf1f7] rounded-xl p-5">
+              <div className="md:hidden bg-white border border-[#edf1f7]  p-5">
                 <OrderSummary
                   totalItems={totalItems}
                   subtotal={subtotal}
+                  deliveryCharge={deliveryCharge}
                   vatAmount={vatAmount}
                   totalAmount={totalAmount}
                   submitting={submitting}
@@ -265,10 +286,11 @@ const totalAmount = subtotal + vatAmount;
 
             <aside className="hidden lg:block">
               <div className="sticky top-24 space-y-4">
-                <div className="border border-[#edf1f7] rounded-xl p-5 shadow-sm bg-white">
+                <div className="border border-[#edf1f7]  p-5 shadow-sm bg-white">
                   <OrderSummary
                     totalItems={totalItems}
                     subtotal={subtotal}
+                    deliveryCharge={deliveryCharge}
                     vatAmount={vatAmount}
                     totalAmount={totalAmount}
                     submitting={submitting}
@@ -276,7 +298,7 @@ const totalAmount = subtotal + vatAmount;
                   />
                 </div>
 
-                <div className="border border-[#edf1f7] rounded-xl p-4 gap-3 text-[#071b3a] bg-white flex">
+                <div className="border border-[#edf1f7]  p-4 gap-3 text-[#071b3a] bg-white flex">
                   <ShieldCheck size={22} />
 
                   <div>
@@ -330,6 +352,7 @@ const totalAmount = subtotal + vatAmount;
 function OrderSummary({
   totalItems,
   subtotal,
+  deliveryCharge,
   vatAmount,
   totalAmount,
   submitting,
@@ -345,7 +368,11 @@ function OrderSummary({
       <SummaryRow label="Items" value={totalItems} />
       <SummaryRow label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
       <SummaryRow label="VAT (20%)" value={`£${vatAmount.toFixed(2)}`} />
-      <SummaryRow label="Estimated delivery charge" value="Free" green />
+      <SummaryRow
+          label="Estimated delivery charge"
+          value={deliveryCharge === 0 ? "Free" : `£${deliveryCharge.toFixed(2)}`}
+          green={deliveryCharge === 0}
+        />
 
       <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-xl text-[#071b3a]">
         <span>Total incl. VAT</span>
