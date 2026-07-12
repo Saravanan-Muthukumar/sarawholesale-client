@@ -217,7 +217,7 @@ export default function ProductCard({
             </div>
           </div>
 
-          {sortedTiers.length > 0 && (
+          {sortedTiers.length > 1 && (
             <div className="mt-3">
               <PriceTier
                 tiers={sortedTiers}
@@ -333,7 +333,7 @@ export default function ProductCard({
             </p>
           </div>
 
-          {sortedTiers.length > 0 && (
+          {sortedTiers.length > 1 && (
             <div className="mt-4">
               <PriceTier
                 tiers={sortedTiers}

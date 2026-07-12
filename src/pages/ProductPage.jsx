@@ -394,7 +394,7 @@ export default function ProductPage() {
                 {Number(product.stock_qty) > 0 ? "✓ In stock" : "Out of stock"}
               </p>
 
-              {product.price_breaks?.length > 0 && (
+              {product.price_breaks?.length > 1 && (
                 <div className="mt-6">
                   <h2 className="text-sm font-bold text-gray-900 mb-3">
                     Buy more for more savings

@@ -24,6 +24,13 @@ export default function ProductListCard({
       : `${API_URL}${imageUrl}`;
   };
 
+  const sortedTiers = Array.isArray(product.price_breaks)
+  ? [...product.price_breaks].sort(
+      (a, b) =>
+        Number(a.min_qty || 0) - Number(b.min_qty || 0)
+    )
+  : [];
+
   const getSpecValue = (name) => {
     const spec = product.specifications?.find(
       (item) =>
@@ -48,7 +55,7 @@ export default function ProductListCard({
     activeTier?.price ||
       product.from_price ||
       product.price ||
-      product.price_breaks?.[0]?.price ||
+      sortedTiers[0]?.price ||
       0
   );
 
@@ -88,7 +95,7 @@ export default function ProductListCard({
 
       {/* Small space between name and tiers */}
       <div className="mt-3 mb-2">
-      {product.price_breaks?.length > 0 && (
+      {product.price_breaks?.length > 1 && (
         <PriceTier
           tiers={product.price_breaks}
           currentQty={productQty}
@@ -237,26 +244,28 @@ export default function ProductListCard({
         </div>
 
         {/* Desktop price tiers */}
-        <div className="w-[260px]">
-        <PriceTier
-    tiers={product.price_breaks}
-    currentQty={productQty}
-    isOutOfStock={isOutOfStock || availableQty < 1}
-    compact
-    hasQtyChanged={hasQtyChanged}
-    getSlabLabel={(tier) =>
-      tier.max_qty
-        ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
-        : `${Number(tier.min_qty)}+`
-    }
-    onSelect={(tier) => {
-      setHasQtyChanged(true);
-      onSlabClick(product.product_id, tier.min_qty);
-      setQtyWarning("");
-    }}
-    unit={getSpecValue("Unit")}
-  />
-        </div>
+        {sortedTiers.length > 1 && (
+          <div className="mt-3 mb-2">
+            <PriceTier
+              tiers={sortedTiers}
+              currentQty={productQty}
+              isOutOfStock={isOutOfStock || availableQty < 1}
+              compact
+              hasQtyChanged={hasQtyChanged}
+              getSlabLabel={(tier) =>
+                tier.max_qty
+                  ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
+                  : `${Number(tier.min_qty)}+`
+              }
+              onSelect={(tier) => {
+                setHasQtyChanged(true);
+                onSlabClick(product.product_id, tier.min_qty);
+                setQtyWarning("");
+              }}
+              unit={unitValue || "Unit"}
+            />
+          </div>
+        )}
 
         {/* Current price */}
         <div className="w-16 shrink-0 text-right">

@@ -494,7 +494,7 @@ const getOptionQty = (specName, option) => {
 
 
 
-      <section className="max-w-[1400px] mx-auto px-4 pt-6 pb-6">
+      <section className="max-w-[1400px] mx-auto pt-6 pb-6">
         <div className="hidden md:flex items-center text-sm font-semibold text-[#071b3a]/70 mb-4 mt-4">
           <Link
             to="/"
@@ -664,7 +664,7 @@ const getOptionQty = (specName, option) => {
             )}
 
             {sortedProducts.length > 0 && (viewMode === "grid" || window.innerWidth < 768) && (
-              <div className="grid  gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-0 md:gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {sortedProducts.map((product) => (
                   <ProductCard
                     key={product.product_id}
