@@ -42,7 +42,7 @@ export default function ProductListPage() {
   const [filters, setFilters] = useState({});
   const [expandedFilters, setExpandedFilters] = useState({});
   const [sortBy, setSortBy] = useState("price-asc");
-  const [viewMode, setViewMode] = useState("list");
+  const [viewMode, setViewMode] = useState("grid");
 
   const appliedFilterCount = Object.values(filters).reduce((total, values) => {
     if (!Array.isArray(values)) return total;
@@ -628,7 +628,7 @@ const getOptionQty = (specName, option) => {
                     <option value="relevance">Relevance</option>
                   </select>
 
-                  <div className="flex border border-gray-300 bg-white">
+                  <div className="hidden md:flex border border-gray-300 bg-white">
                     <button
                       type="button"
                       onClick={() => setViewMode("grid")}
@@ -663,7 +663,7 @@ const getOptionQty = (specName, option) => {
               </div>
             )}
 
-            {sortedProducts.length > 0 && viewMode === "grid" && (
+            {sortedProducts.length > 0 && (viewMode === "grid" || window.innerWidth < 768) && (
               <div className="grid  gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {sortedProducts.map((product) => (
                   <ProductCard
@@ -681,6 +681,7 @@ const getOptionQty = (specName, option) => {
             )}
 
             {sortedProducts.length > 0 && viewMode === "list" && (
+              <div className="hidden md:block">
               <div className="space-y-2">
                 {sortedProducts.map((product) => (
                   <ProductListCard
@@ -694,6 +695,7 @@ const getOptionQty = (specName, option) => {
                     onAddToCart={handleAddToCart}
                   />
                 ))}
+              </div>
               </div>
             )}
 
