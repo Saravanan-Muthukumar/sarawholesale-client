@@ -1,17 +1,18 @@
+import { useState } from "react";
+
 export default function PriceTier({
   tiers = [],
   currentQty = 1,
   isOutOfStock = false,
   onSelect,
   compact = false,
-  hasQtyChanged = false,
   unit = "Unit",
 }) {
+  const [selectedTierKey, setSelectedTierKey] = useState(null);
+
   if (!Array.isArray(tiers) || tiers.length === 0) {
     return null;
   }
-
-  const enteredQty = Number(currentQty || 1);
 
   const getUnitLabel = (quantity) => {
     const cleanUnit = String(unit || "Unit").trim();
@@ -31,29 +32,28 @@ export default function PriceTier({
     return `${cleanUnit}s`;
   };
 
+  const handleTierClick = (tier, tierKey) => {
+    if (isOutOfStock) return;
+
+    setSelectedTierKey(tierKey);
+    onSelect?.(tier);
+  };
+
   return (
     <div className="grid grid-cols-4 gap-2">
       {tiers.map((tier) => {
         const minimum = Number(tier.min_qty || 1);
 
-        const maximum =
-          tier.max_qty === null ||
-          tier.max_qty === undefined ||
-          tier.max_qty === ""
-            ? Infinity
-            : Number(tier.max_qty);
+        const tierKey = `${tier.min_qty}-${tier.max_qty || "plus"}`;
 
-        const isActive =
-          hasQtyChanged &&
-          enteredQty >= minimum &&
-          enteredQty <= maximum;
+        const isActive = selectedTierKey === tierKey;
 
         return (
           <button
-            key={`${tier.min_qty}-${tier.max_qty || "plus"}`}
+            key={tierKey}
             type="button"
             disabled={isOutOfStock}
-            onClick={() => onSelect?.(tier)}
+            onClick={() => handleTierClick(tier, tierKey)}
             className={`min-w-0 overflow-hidden border text-center transition ${
               isActive
                 ? "border-2 border-black bg-white"
