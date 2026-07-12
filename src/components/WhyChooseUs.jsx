@@ -1,33 +1,37 @@
 import { Truck, Tag, ShieldCheck, Users } from "lucide-react";
 
 export default function WhyChooseUs() {
-    const items = [
-        {
-          icon: Truck,
-          title: "Fast UK Delivery",
-          text: "Next day delivery across UK mainland. Order before 1pm for next day delivery. Order palced after 1 pm Friday will be dispatched on Monday. Minimum value for free delivery is £40.",
-        },
-        {
-          icon: Tag,
-          title: "Bulk & Trade Pricing",
-          text: "Trade prices available even for minimum quantity. Not happy with the price? Call us for the best price.",
-        },
-        {
-          icon: ShieldCheck,
-          title: "Quality Guaranteed",
-          text: "Sourced from trusted UK suppliers.",
-        },
-        {
-          icon: Users,
-          title: "Business Accounts",
-          text: "Credit accounts available. Call us for details.",
-        },
-      ];
+  const items = [
+    {
+      icon: Truck,
+      title: "Fast UK Delivery",
+      text: "Next day delivery across UK mainland. Order before 1pm for next day delivery. Order palced after 1 pm Friday will be dispatched on Monday. Minimum value for free delivery is £40.",
+    },
+    {
+      icon: Tag,
+      title: "Bulk & Trade Pricing",
+      text: "Trade prices available even for minimum quantity. Not happy with the price? Call us for the best price.",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Quality Guaranteed",
+      text: "Sourced from trusted UK suppliers.",
+    },
+    {
+      icon: Users,
+      title: "Business Accounts",
+      text: "Credit accounts available. Call us for details.",
+    },
+  ];
 
   return (
-    <section className="bg-[#eef6ff] py-8">
+    <section
+      className="py-8"
+      style={{ background: "#FDF7F7" }}
+      
+    >
       <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-center text-2xl font-bold text-[#062b63] mb-7">
+        <h2 className="text-center text-2xl font-bold text-[#1F2937] mb-7">
           Why Choose SARA Wholesale Supplies?
         </h2>
 
@@ -36,12 +40,19 @@ export default function WhyChooseUs() {
             const Icon = item.icon;
 
             return (
-              <div key={item.title} className="flex flex-col items-center text-center">
-                <Icon className="text-[#062b63] mb-3" size={34} />
-                <h3 className="font-bold text-[#062b63] text-sm">
+              <div
+                key={item.title}
+                className="flex flex-col items-center text-center"
+              >
+                <Icon className="text-[#C1121F] mb-3" size={34} />
+
+                <h3 className="font-bold text-[#1F2937] text-sm">
                   {item.title}
                 </h3>
-                <p className="text-xs text-slate-600 mt-1">{item.text}</p>
+
+                <p className="text-xs text-slate-600 mt-1">
+                  {item.text}
+                </p>
               </div>
             );
           })}

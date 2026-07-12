@@ -9,6 +9,8 @@ export function CartProvider({ children }) {
   const { isLoggedIn, authLoading } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [cartLoading, setCartLoading] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+const [discountPercent, setDiscountPercent] = useState(0);
 
   const mergeGuestCartToUserCart = async () => {
     const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
@@ -49,9 +51,13 @@ export function CartProvider({ children }) {
         const data = await res.json();
   
         if (res.ok) {
-          setCartItems(data);
+          setCartItems(data.items || []);
+          setVoucherCode(data.voucher_code || "");
+          setDiscountPercent(Number(data.discount_percent || 0));
         } else {
           setCartItems([]);
+          setVoucherCode("");
+          setDiscountPercent(0);
         }
   
         return;
@@ -244,6 +250,8 @@ export function CartProvider({ children }) {
         cartItemCount,
         cartSubtotal,
         cartLoading,
+        voucherCode,
+        discountPercent,
         addToCart,
         updateCartItem,
         removeCartItem,

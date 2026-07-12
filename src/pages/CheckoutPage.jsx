@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import OrderSummary from "../components/OrderSummary";
 import {
   ArrowLeft,
   CheckCircle,
@@ -18,7 +19,7 @@ import LoginPage from "./LoginPage";
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
-  const { cartItems, requestOrder } = useCart();
+  const { cartItems, requestOrder, voucherCode,discountPercent,fetchCart, } = useCart();
 
   const bottomSubmitRef = useRef(null);
 
@@ -270,33 +271,45 @@ const totalAmount = subtotal + deliveryCharge + vatAmount;
                 </div>
               </div>
 
-              <div className="md:hidden bg-white border border-[#edf1f7]  p-5">
+              <div className="md:hidden bg-white border border-[#edf1f7] p-5">
                 <OrderSummary
+                  ref={bottomSubmitRef}
                   totalItems={totalItems}
                   subtotal={subtotal}
                   deliveryCharge={deliveryCharge}
+                  voucherCode={voucherCode}
+                  discountPercent={discountPercent}
                   vatAmount={vatAmount}
                   totalAmount={totalAmount}
-                  submitting={submitting}
-                  onSubmit={handleSubmitOrder}
-                  submitRef={bottomSubmitRef}
+                  loading={submitting}
+                  disabled={!canSubmit}
+                  actionLabel="Submit Order Request"
+                  loadingLabel="Submitting..."
+                  deliveryLabel="Estimated delivery charge"
+                  onAction={handleSubmitOrder}
                 />
               </div>
             </div>
 
             <aside className="hidden lg:block">
               <div className="sticky top-24 space-y-4">
-                <div className="border border-[#edf1f7]  p-5 shadow-sm bg-white">
-                  <OrderSummary
-                    totalItems={totalItems}
-                    subtotal={subtotal}
-                    deliveryCharge={deliveryCharge}
-                    vatAmount={vatAmount}
-                    totalAmount={totalAmount}
-                    submitting={submitting}
-                    onSubmit={handleSubmitOrder}
-                  />
-                </div>
+              <div className="border border-[#edf1f7] p-5 shadow-sm bg-white">
+                <OrderSummary
+                  totalItems={totalItems}
+                  subtotal={subtotal}
+                  deliveryCharge={deliveryCharge}
+                  vatAmount={vatAmount}
+                  voucherCode={voucherCode}
+                  discountPercent={discountPercent}
+                  totalAmount={totalAmount}
+                  loading={submitting}
+                  disabled={!canSubmit}
+                  actionLabel="Submit Order Request"
+                  loadingLabel="Submitting..."
+                  deliveryLabel="Estimated delivery charge"
+                  onAction={handleSubmitOrder}
+                />
+              </div>
 
                 <div className="border border-[#edf1f7]  p-4 gap-3 text-[#071b3a] bg-white flex">
                   <ShieldCheck size={22} />
@@ -349,51 +362,6 @@ const totalAmount = subtotal + deliveryCharge + vatAmount;
   );
 }
 
-function OrderSummary({
-  totalItems,
-  subtotal,
-  deliveryCharge,
-  vatAmount,
-  totalAmount,
-  submitting,
-  onSubmit,
-  submitRef,
-}) {
-  return (
-    <>
-      <h2 className="text-xl font-bold text-[#071b3a] mb-5">
-        Order summary
-      </h2>
-
-      <SummaryRow label="Items" value={totalItems} />
-      <SummaryRow label="Subtotal" value={`£${subtotal.toFixed(2)}`} />
-      <SummaryRow label="VAT (20%)" value={`£${vatAmount.toFixed(2)}`} />
-      <SummaryRow
-          label="Estimated delivery charge"
-          value={deliveryCharge === 0 ? "Free" : `£${deliveryCharge.toFixed(2)}`}
-          green={deliveryCharge === 0}
-        />
-
-      <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-xl text-[#071b3a]">
-        <span>Total incl. VAT</span>
-        <span>£{totalAmount.toFixed(2)}</span>
-      </div>
-
-      <button
-        ref={submitRef}
-        onClick={() => {
-          if (submitting) return;
-          onSubmit();
-        }}
-        disabled={submitting}
-        className="w-full h-12 bg-green-700 text-white font-bold text-sm mt-5 hover:bg-green-800 transition disabled:opacity-70"
-        type="button"
-      >
-        {submitting ? "Submitting..." : "Submit Order Request"}
-      </button>
-    </>
-  );
-}
 
 function DetailsCard({ title, icon, complete, onEdit, children }) {
   return (
@@ -445,17 +413,3 @@ function DetailRow({ icon, text }) {
   );
 }
 
-function SummaryRow({ label, value, green }) {
-  return (
-    <div className="flex justify-between mb-3 text-sm text-[#3f4043]">
-      <span className="font-semibold">{label}</span>
-      <span
-        className={`font-bold ${
-          green ? "text-green-700" : "text-[#071b3a]"
-        }`}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}

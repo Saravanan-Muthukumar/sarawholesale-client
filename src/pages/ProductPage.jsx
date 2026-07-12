@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import QtyAddControl from "../components/QtyAddControl";
 import { Helmet } from "react-helmet-async";
+import PriceTier from "../components/PriceTier";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -287,7 +288,7 @@ export default function ProductPage() {
   };
 
   return (
-    <main className="bg-[#f3f4f6] min-h-screen">
+    <main className="bg-[#f7f7f7] min-h-screen">
       <Helmet>
         <title>{product.meta_title || `${product.product_name} | SARA WHOLESALE`}</title>
         <meta name="description" content={product.meta_description || `${product.product_name}. Available from SARA WHOLESALE with competitive trade pricing and UK delivery.`} />
@@ -312,11 +313,11 @@ export default function ProductPage() {
 
       <section className="max-w-7xl mx-auto px-4 pb-10">
         <div className="hidden md:flex items-center text-sm font-semibold text-[#071b3a]/70 mb-4 mt-4">
-          <Link to="/" className="text-blue-700 underline hover:text-green-700 cursor-pointer">Home</Link>
+          <Link to="/" className="text-gray-700 hover:text-red-700 cursor-pointer">Home</Link>
           {parentCategory && (
             <>
               <span className="mx-2 text-[#071b3a]/50">›</span>
-              <Link to={`/category/${parentCategory.slug}`} className="text-blue-700 underline hover:text-green-700 cursor-pointer">
+              <Link to={`/category/${parentCategory.slug}`} className="text-gray-700 hover:text-red-700 cursor-pointer">
                 {parentCategory.category_name}
               </Link>
             </>
@@ -324,13 +325,13 @@ export default function ProductPage() {
           {currentCategory && (
             <>
               <span className="mx-2 text-[#071b3a]/50">›</span>
-              <Link to={`/subcategory/${currentCategory.slug}`} className="text-blue-700 underline hover:text-green-700 cursor-pointer">
+              <Link to={`/subcategory/${currentCategory.slug}`} className="text-gray-700 hover:text-red-700 cursor-pointer">
                 {currentCategory.category_name}
               </Link>
             </>
           )}
           <span className="mx-2 text-[#071b3a]/50">›</span>
-          <span className="text-[#071b3a]/70">{product.product_name}</span>
+          <span className="text-gray-900">{product.product_name}</span>
         </div>
 
         <div className="md:hidden mb-4 mt-3">
@@ -340,9 +341,9 @@ export default function ProductPage() {
           </Link>
         </div>
 
-        <div className="bg-white border border-[#dfe5ee] shadow-md">
+        <div className="bg-white border border-gray-200 shadow-sm">
           <div className="grid grid-cols-1 lg:grid-cols-[390px_1fr_330px] gap-0">
-            <div className="p-5 md:p-7 border-b lg:border-b-0 lg:border-r border-[#edf1f7]">
+            <div className="p-5 md:p-7 border-b lg:border-b-0 lg:border-r border-gray-200">
               <div className="h-80 md:h-105 flex items-center justify-center bg-white">
                 {mainImageSrc ? (
                   <img src={mainImageSrc} alt={product.product_name} className="max-w-full max-h-full object-contain" />
@@ -379,7 +380,7 @@ export default function ProductPage() {
               )}
             </div>
 
-            <div className="p-5 md:p-7 border-b lg:border-b-0 lg:border-r border-[#edf1f7]">
+            <div className="p-5 md:p-7 border-b lg:border-b-0 lg:border-r border-gray-200">
               <h1 className="text-xl md:text-xl font-bold text-[#071b3a] leading-tight">{product.product_name}</h1>
               <p className="text-sm text-[#071b3a]/55 mt-3">SKU: {product.sku || "N/A"}</p>
               <p className={`text-sm font-bold mt-4 ${Number(product.stock_qty) > 0 ? "text-green-700" : "text-red-600"}`}>
@@ -388,22 +389,27 @@ export default function ProductPage() {
 
               {product.price_breaks?.length > 0 && (
                 <div className="mt-6">
-                  <h2 className="text-sm font-bold text-[#071b3a] mb-3">Buy more for more savings</h2>
-                  <div className="grid grid-cols-4 gap-2 max-w-md">
-                    {product.price_breaks.map((tier) => {
-                      const isActive = activeTier === tier;
-                      return (
-                        <button
-                          type="button"
-                          key={`${tier.min_qty}-${tier.max_qty}`}
-                          onClick={() => handleSlabClick(tier)}
-                          className={`border text-center transition ${isActive ? "border-green-600 bg-green-50" : "border-[#d9e2ef] bg-white hover:border-green-500"}`}
-                        >
-                          <div className="text-xs font-bold bg-[#f5f7fb] px-3 py-2 text-[#071b3a]">{getSlabLabel(tier)}</div>
-                          <div className="font-extrabold text-sm px-3 py-2 text-green-700">£{Number(tier.price).toFixed(2)}</div>
-                        </button>
-                      );
-                    })}
+                  <h2 className="text-sm font-bold text-gray-900 mb-3">
+                    Buy more for more savings
+                  </h2>
+
+                  <div className="max-w-md">
+                    <PriceTier
+                      tiers={product.price_breaks}
+                      currentQty={qty}
+                      isOutOfStock={isOutOfStock}
+                      hasQtyChanged={Number(qty) !== 1}
+                      getSlabLabel={(tier) =>
+                        tier.max_qty
+                          ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
+                          : `${Number(tier.min_qty)}+`
+                      }
+                      onSelect={(tier) => {
+                        handleSlabClick(tier);
+                        setQtyWarning("");
+                      }}
+                      unit={unit}
+                    />
                   </div>
                 </div>
               )}
@@ -423,7 +429,7 @@ export default function ProductPage() {
               <div className="sticky top-24">
                 <p className="text-lg md:text-3xl font-extrabold text-[#3f4043] leading-none">£{Number(unitPrice).toFixed(2)}</p>
                 <p className="text-xs font-bold text-[#071b3a]/60 mt-1">Price per {unit} Exc. VAT</p>
-                <div className="border-t border-[#edf1f7] my-5" />
+                <div className="border-t border-gray-200 my-5" />
 
                 <div className="mb-5">
                   {qtyInCart > 0 && (
@@ -464,7 +470,7 @@ export default function ProductPage() {
                   </p>
                 )}
 
-                <div className="border-t border-[#edf1f7] pt-5 space-y-3 text-sm text-[#071b3a]">
+                <div className="border-t border-gray-200 pt-5 space-y-3 text-sm text-[#071b3a]">
                   <p className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full bg-green-700 inline-block" />
                     Order above 40 for next day free delivery
@@ -484,10 +490,10 @@ export default function ProductPage() {
 
         <div className="mt-6 bg-white border border-[#d9e2ef] shadow-sm">
           <div className="flex border-b border-[#d9e2ef]">
-            <button type="button" onClick={() => setActiveTab("description")} className={`px-6 py-4 font-bold text-sm transition ${activeTab === "description" ? "bg-white text-blue-800 border-b-2 border-red-600" : "bg-[#f5f7fb] text-[#071b3a]/60"}`}>
+            <button type="button" onClick={() => setActiveTab("description")} className={`px-6 py-4 font-bold text-sm transition ${activeTab === "description" ? "bg-white text-black border-b-2 border-red-600" : "bg-[#f5f7fb] text-[#071b3a]/60"}`}>
               Description
             </button>
-            <button type="button" onClick={() => setActiveTab("specifications")} className={`px-6 py-4 font-bold text-sm transition ${activeTab === "specifications" ? "bg-white text-blue-800 border-b-2 border-red-600" : "bg-[#f5f7fb] text-[#071b3a]/60"}`}>
+            <button type="button" onClick={() => setActiveTab("specifications")} className={`px-6 py-4 font-bold text-sm transition ${activeTab === "specifications" ? "bg-white text-black border-b-2 border-red-600" : "bg-[#f5f7fb] text-[#071b3a]/60"}`}>
               Product Specifications
             </button>
           </div>
@@ -504,7 +510,7 @@ export default function ProductPage() {
                 <table className="w-full text-sm">
                   <tbody>
                     {product.specifications.map((spec) => (
-                      <tr key={spec.spec_id || spec.spec_name} className="border-b border-[#edf1f7] last:border-b-0">
+                      <tr key={spec.spec_id || spec.spec_name} className="border-b border-gray-200 last:border-b-0">
                         <td className="w-[30%] px-4 py-3 font-bold bg-[#f5f7fb]">{spec.spec_name}</td>
                         <td className="px-4 py-3 text-[#071b3a]/80">{spec.spec_value}</td>
                       </tr>
@@ -530,7 +536,7 @@ export default function ProductPage() {
         {relatedProducts.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-[#071b3a]">You may also like:</h2>
+            <h2 className="text-2xl font-bold text-gray-900">You may also like:</h2>
               <div className="hidden md:flex gap-2">
                 <button type="button" onClick={() => scrollRelated("left")} className="h-10 w-10 border border-[#d9e2ef] bg-white shadow-sm flex items-center justify-center">
                   <ChevronLeft size={24} />
@@ -554,7 +560,7 @@ export default function ProductPage() {
                         <div className="w-full h-full bg-gray-100" />
                       )}
                     </div>
-                    <h3 className="text-sm font-extrabold text-blue-800 leading-snug line-clamp-2 uppercase">{item.product_name}</h3>
+                    <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2">{item.product_name}</h3>
                     <p className="text-[11px] text-[#071b3a]/45 mt-1">SKU: {item.sku || "N/A"}</p>
                     {firstPrice && <p className="text-xl font-extrabold text-[#071b3a] mt-2">£{Number(firstPrice).toFixed(2)}</p>}
                     <p className="text-[11px] text-[#071b3a]/45 mt-1">{item.category_name}</p>

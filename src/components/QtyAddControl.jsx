@@ -84,7 +84,7 @@ export default function QtyAddControl({
         type="button"
         disabled={disabled || qty === ""}
         onClick={() => onAdd(Number(qty || 1))}
-        className="h-10 px-4 bg-green-700 text-white font-bold disabled:bg-gray-300 flex items-center gap-2"
+        className="h-10 px-4 bg-black text-white font-bold hover:bg-gray-900 transition-colors disabled:bg-gray-300 disabled:text-gray-500 flex items-center gap-2"
       >
         <ShoppingCart size={16} />
         Add

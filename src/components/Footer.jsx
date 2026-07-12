@@ -2,10 +2,15 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, Phone } from "lucide-react";
 
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function Footer() {
   const [categories, setCategories] = useState([]);
+  const [email, setEmail] = useState("");
+const [loading, setLoading] = useState(false);
+const [message, setMessage] = useState("");
+const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     fetch(`${API_URL}/api/categories`)
@@ -18,6 +23,40 @@ export default function Footer() {
     (category) => !category.parent_category_id
   );
 
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+  
+    if (!email.trim()) return;
+  
+    setLoading(true);
+    setMessage("");
+  
+    try {
+      const res = await fetch(`${API_URL}/api/subscriptions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+        }),
+      });
+  
+      const data = await res.json();
+  
+      setSuccess(res.ok);
+      setMessage(data.message);
+  
+      if (res.ok) {
+        setEmail("");
+      }
+    } catch {
+      setSuccess(false);
+      setMessage("Unable to subscribe. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <footer className="bg-[black] text-white">
       <div className="max-w-7xl mx-auto px-4 py-10">
@@ -96,32 +135,69 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-bold mb-4">Get in Touch</h3>
+  <h3 className="font-bold mb-4">Subscribe & Save £10</h3>
 
-            <div className="space-y-3 text-sm text-blue-100">
-            <a
-                href="tel:07424715150"
-                className="flex items-center gap-2 hover:text-white transition"
-              >
-                <Phone size={16} />
-                07424715150
-              </a>
+  <p className="text-sm text-blue-100 mb-4">
+    Join our mailing list for exclusive offers and receive a
+    <span className="font-semibold text-white"> £10 voucher</span>.
+  </p>
 
-              <a
-                href="mailto:sales@sarawholesale.co.uk"
-                className="flex items-center gap-2 hover:text-white transition break-all"
-              >
-                <Mail size={16} />
-                sales@sarawholesale.co.uk
-              </a>
+  <form onSubmit={handleSubscribe} className="space-y-3">
+    <input
+      type="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      placeholder="Enter your email"
+      className="w-full bg-white rounded px-3 py-2 text-gray-900 text-sm"
+    />
 
-              <p>
-                Monday - Friday
-                <br />
-                9:00am - 5:00pm
-              </p>
-            </div>
-          </div>
+    <button
+      type="submit"
+      disabled={loading}
+      className="w-full bg-red-600 hover:bg-red-700 py-2 rounded font-semibold transition disabled:opacity-60"
+    >
+      {loading ? "Subscribing..." : "Subscribe"}
+    </button>
+  </form>
+
+  {message && (
+    <p
+      className={`mt-3 text-xs ${
+        success ? "text-green-400" : "text-red-400"
+      }`}
+    >
+      {message}
+    </p>
+  )}
+
+  <hr className="my-6 border-white/20" />
+
+  <h3 className="font-bold mb-4">Get in Touch</h3>
+
+  <div className="space-y-3 text-sm text-blue-100">
+    <a
+      href="tel:07424715150"
+      className="flex items-center gap-2 hover:text-white transition"
+    >
+      <Phone size={16} />
+      07424715150
+    </a>
+
+    <a
+      href="mailto:sales@sarawholesale.co.uk"
+      className="flex items-center gap-2 hover:text-white transition break-all"
+    >
+      <Mail size={16} />
+      sales@sarawholesale.co.uk
+    </a>
+
+    <p>
+      Monday - Friday
+      <br />
+      9:00am - 5:00pm
+    </p>
+  </div>
+</div>
         </div>
 
         <div className="border-t border-red-500/30 mt-8 pt-5">

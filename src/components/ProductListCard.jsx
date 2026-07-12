@@ -14,6 +14,7 @@ export default function ProductListCard({
   onAddToCart,
 }) {
   const [qtyWarning, setQtyWarning] = useState("");
+  const [hasQtyChanged, setHasQtyChanged] = useState(false);
 
   const getImage = (imageUrl) => {
     if (!imageUrl) return "";
@@ -61,13 +62,13 @@ export default function ProductListCard({
     {/* Image */}
     <Link
       to={`/product/${product.slug}`}
-      className="h-[68px] flex items-center justify-center overflow-hidden"
+      className="h-[82px] flex items-center justify-center overflow-hidden"
     >
       {product.image_url ? (
         <img
           src={getImage(product.image_url)}
           alt={product.product_name}
-          className="max-w-full max-h-full object-contain"
+          className="w-full h-full object-contain object-center"
         />
       ) : (
         <span className="text-[9px] text-gray-400">
@@ -80,7 +81,7 @@ export default function ProductListCard({
       {/* Product name */}
       <Link
         to={`/product/${product.slug}`}
-        className="block text-[13px]  font-semibold leading-[16px] text-gray-900 line-clamp-2"
+        className="block text-[13px] font-semibold leading-[16px] text-[#222222] hover:text-[#C62828] transition-colors line-clamp-2"
       >
         {product.product_name}
       </Link>
@@ -88,22 +89,24 @@ export default function ProductListCard({
       {/* Small space between name and tiers */}
       <div className="mt-3 mb-2">
       {product.price_breaks?.length > 0 && (
-  <PriceTier
-    tiers={product.price_breaks}
-    currentQty={productQty}
-    isOutOfStock={isOutOfStock || availableQty < 1}
-    compact
-    getSlabLabel={(tier) =>
-      tier.max_qty
-        ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
-        : `${Number(tier.min_qty)}+`
-    }
-    onSelect={(tier) => {
-      onSlabClick(product.product_id, tier.min_qty);
-      setQtyWarning("");
-    }}
-  />
-)}
+        <PriceTier
+          tiers={product.price_breaks}
+          currentQty={productQty}
+          isOutOfStock={isOutOfStock || availableQty < 1}
+          compact
+          hasQtyChanged={hasQtyChanged}
+          getSlabLabel={(tier) =>
+            tier.max_qty
+              ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
+              : `${Number(tier.min_qty)}+`
+          }
+          onSelect={(tier) => {
+            onSlabClick(product.product_id, tier.min_qty);
+            setQtyWarning("");
+          }}
+          unit={getSpecValue("Unit")}
+        />
+      )}
       </div>
     </div>
   </div>
@@ -149,6 +152,7 @@ export default function ProductListCard({
           maxQty={availableQty}
           disabled={isOutOfStock}
           onQtyChange={(value) => {
+            setHasQtyChanged(true);
             onQtyChange(
               product.product_id,
               value,
@@ -172,7 +176,7 @@ export default function ProductListCard({
 
       {/* Quantity already in cart */}
       {qtyInCart > 0 && (
-        <p className="mt-0.5 text-center text-[9px] leading-3 font-medium text-orange-700">
+        <p className="mt-0.5 text-center text-[9px] leading-3 font-medium text-gray-700">
           {qtyInCart} already in cart
         </p>
       )}
@@ -212,7 +216,7 @@ export default function ProductListCard({
           <Link
             to={`/product/${product.slug}`}
             
-            className="text-[11px] md:text-sm font-semibold text-gray-700 leading-tight line-clamp-2 min-h-8.5 md:min-h-10.5"
+            className="text-[11px] md:text-sm font-semibold text-[#222222] hover:text-[#C62828] transition-colors leading-tight line-clamp-2 min-h-8.5 md:min-h-10.5"
           >
             {product.product_name}
           </Link>
@@ -233,22 +237,25 @@ export default function ProductListCard({
         </div>
 
         {/* Desktop price tiers */}
-        <div className="w-[230px]">
-          <PriceTier
-            tiers={product.price_breaks}
-            currentQty={productQty}
-            isOutOfStock={isOutOfStock || availableQty < 1}
-            compact
-            getSlabLabel={(tier) =>
-              tier.max_qty
-                ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
-                : `${Number(tier.min_qty)}+`
-            }
-            onSelect={(tier) => {
-              onSlabClick(product.product_id, tier.min_qty);
-              setQtyWarning("");
-            }}
-          />
+        <div className="w-[260px]">
+        <PriceTier
+    tiers={product.price_breaks}
+    currentQty={productQty}
+    isOutOfStock={isOutOfStock || availableQty < 1}
+    compact
+    hasQtyChanged={hasQtyChanged}
+    getSlabLabel={(tier) =>
+      tier.max_qty
+        ? `${Number(tier.min_qty)}-${Number(tier.max_qty)}`
+        : `${Number(tier.min_qty)}+`
+    }
+    onSelect={(tier) => {
+      setHasQtyChanged(true);
+      onSlabClick(product.product_id, tier.min_qty);
+      setQtyWarning("");
+    }}
+    unit={getSpecValue("Unit")}
+  />
         </div>
 
         {/* Current price */}
@@ -278,6 +285,7 @@ export default function ProductListCard({
               maxQty={availableQty}
               disabled={isOutOfStock}
               onQtyChange={(value) => {
+                setHasQtyChanged(true);
                 onQtyChange(
                   product.product_id,
                   value,

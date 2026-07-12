@@ -486,19 +486,19 @@ const getOptionQty = (specName, option) => {
   return (
     <main className="bg-gray-100 min-h-screen">
       {addedProduct && (
-        <div className="fixed top-5 right-5 z-50 bg-white border border-green-100 shadow-lg px-5 py-4">
-          <p className="text-sm font-semibold text-green-700">Added to cart</p>
+        <div className="fixed top-5 right-5 z-50 bg-white border border-[#F3DCDC] shadow-lg px-5 py-4">
+        <p className="text-sm font-semibold text-[#C62828]">Added to cart</p>
           <p className="text-xs text-[#071b3a]/55 mt-1">{addedProduct}</p>
         </div>
       )}
 
 
 
-      <section className="max-w-7xl mx-auto px-4 pt-6 pb-6">
+      <section className="max-w-[1400px] mx-auto px-4 pt-6 pb-6">
         <div className="hidden md:flex items-center text-sm font-semibold text-[#071b3a]/70 mb-4 mt-4">
           <Link
             to="/"
-            className="text-blue-700 underline hover:text-green-700 cursor-pointer"
+            className="text-gray-900 hover:text-[#C62828] transition-colors cursor-pointer"
           >
             Home
           </Link>
@@ -508,7 +508,7 @@ const getOptionQty = (specName, option) => {
               <span className="mx-2">›</span>
               <Link
                 to={`/category/${parentCategory.slug}`}
-                className="text-blue-700 underline hover:text-green-700 cursor-pointer"
+                className="text-gray-900 hover:text-[#C62828] transition-colors cursor-pointer"
               >
                 {parentCategory.category_name}
               </Link>
@@ -532,7 +532,7 @@ const getOptionQty = (specName, option) => {
             <button
               type="button"
               onClick={() => setMobileFilterOpen(true)}
-              className="inline-flex items-center gap-1 border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-blue-800"
+              className="inline-flex items-center gap-1 border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:text-black"
             >
               <SlidersHorizontal size={16} />
               Filter
@@ -544,7 +544,7 @@ const getOptionQty = (specName, option) => {
           <div className="fixed inset-0 z-[9999] bg-black/40 lg:hidden">
             <div className="absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white overflow-y-auto">
               <div className="flex items-center justify-between border-b border-gray-300 p-4">
-                <h2 className="text-lg font-bold text-blue-800">
+              <h2 className="text-lg font-bold text-gray-900">
                   Filter Products
                 </h2>
 
@@ -559,7 +559,7 @@ const getOptionQty = (specName, option) => {
                 <button
                   type="button"
                   onClick={() => setMobileFilterOpen(false)}
-                  className="mt-4 w-full bg-blue-800 text-white py-3 font-bold"
+                  className="mt-4 w-full bg-black hover:bg-gray-800 text-white py-3 font-bold transition-colors"
                 >
                   Show Products
                 </button>
@@ -584,7 +584,7 @@ const getOptionQty = (specName, option) => {
                     key={cat.category_id}
                     to={`/subcategory/${cat.slug}`}
                     className={`flex items-center justify-between w-full text-left py-2 border-b border-gray-300 ${
-                      cat.slug === slug ? "font-bold text-green-700" : ""
+                      cat.slug === slug ? "font-bold text-[#C62828]" : ""
                     }`}
                   >
                     <span>{cat.category_name}</span>
@@ -619,7 +619,7 @@ const getOptionQty = (specName, option) => {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-800"
+                    className="border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-[#C62828]"
                   >
                     <option value="price-asc">Price: Low to High</option>
                     <option value="price-desc">Price: High to Low</option>
@@ -634,7 +634,7 @@ const getOptionQty = (specName, option) => {
                       onClick={() => setViewMode("grid")}
                       className={`px-3 py-2 ${
                         viewMode === "grid"
-                          ? "bg-blue-800 text-white"
+                          ? "bg-[#C62828] text-white"
                           : "text-gray-700"
                       }`}
                     >
@@ -646,7 +646,7 @@ const getOptionQty = (specName, option) => {
                       onClick={() => setViewMode("list")}
                       className={`px-3 py-2 ${
                         viewMode === "list"
-                          ? "bg-blue-800 text-white"
+                          ? "bg-[#C62828] text-white"
                           : "text-gray-700"
                       }`}
                     >
@@ -664,7 +664,7 @@ const getOptionQty = (specName, option) => {
             )}
 
             {sortedProducts.length > 0 && viewMode === "grid" && (
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid  gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {sortedProducts.map((product) => (
                   <ProductCard
                     key={product.product_id}

@@ -10,22 +10,34 @@ export default function TopSearches() {
     { name: "A4 Paper", link: "/subcategory/a4-paper" },
     { name: "Mailing Bags", link: "/search?q=mailing bags" },
     { name: "Cable Tie", link: "/search?q=cable tie" },
-    
   ];
 
   return (
-    <section className="bg-white border-y border-[#d9e2ef]">
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-extrabold text-red-600 mr-2">
-            Top Searches:
+    <section className="bg-white">
+      <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex flex-wrap justify-center items-center gap-3">
+          <span className="text-base font-bold text-[#1F2937]">
+            Popular Searches
           </span>
 
           {searches.map((item) => (
             <Link
               key={item.name}
               to={item.link}
-              className="bg-[#f3f4f6] hover:bg-[red] hover:text-white border border-[#d9e2ef] text-[#071b3a] text-xs md:text-sm font-bold px-3 py-2 rounded-full transition"
+              className="
+                bg-[#F5F5F5]
+                text-[#1F2937]
+                text-sm
+                font-medium
+                px-4
+                py-2
+                rounded-full
+                transition-all
+                duration-300
+                hover:bg-[#C1121F]
+                hover:text-white
+                hover:-translate-y-0.5
+              "
             >
               {item.name}
             </Link>

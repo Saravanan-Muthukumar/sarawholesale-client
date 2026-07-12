@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ShieldCheck, Trash2 } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import OrderSummary from "../components/OrderSummary";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
 export default function CartPage() {
-  const { cartItemCount, cartItems, updateCartItem, removeCartItem } = useCart();
-  console.log(cartItems)
+  const { cartItemCount, cartItems, updateCartItem, removeCartItem,voucherCode, discountPercent, loadCart, } = useCart();
 
   const navigate = useNavigate();
   const bottomCheckoutRef = useRef(null);
@@ -345,32 +345,44 @@ export default function CartPage() {
                 })}
               </div>
 
-              <div className="md:hidden bg-white border border-[#edf1f7]  p-5">
-              <OrderSummary
-                totalItems={totalItems}
-                subtotal={subtotal}
-                deliveryCharge={deliveryCharge}
-                vatAmount={vatAmount}
-                totalAmount={totalAmount}
-                canCheckout={canCheckout}
-                onCheckout={() => navigate("/checkout")}
-                checkoutRef={bottomCheckoutRef}
-              />
+              <div className="md:hidden bg-white border border-[#edf1f7] p-5">
+                <OrderSummary
+                  ref={bottomCheckoutRef}
+                  totalItems={totalItems}
+                  subtotal={subtotal}
+                  deliveryCharge={deliveryCharge}
+                  voucherCode={voucherCode}
+                  discountPercent={discountPercent}
+                  refreshCart={loadCart}
+                  vatAmount={vatAmount}
+                  totalAmount={totalAmount}
+                  disabled={!canCheckout}
+                  actionLabel="Go to checkout"
+                  onAction={() => navigate("/checkout")}
+                  showDeliveryMessage
+                  showMinimumOrderMessage
+                />
               </div>
             </div>
 
             <aside className="hidden lg:block">
               <div className="sticky top-24 space-y-4">
-                <div className="border border-[#edf1f7]  p-5 shadow-sm bg-white">
-                <OrderSummary
-                  totalItems={totalItems}
-                  subtotal={subtotal}
-                  deliveryCharge={deliveryCharge}
-                  vatAmount={vatAmount}
-                  totalAmount={totalAmount}
-                  canCheckout={canCheckout}
-                  onCheckout={() => navigate("/checkout")}
-                />
+              <div className="border border-[#edf1f7] p-5 shadow-sm bg-white">
+                  <OrderSummary
+                    totalItems={totalItems}
+                    subtotal={subtotal}
+                    deliveryCharge={deliveryCharge}
+                    vatAmount={vatAmount}
+                    voucherCode={voucherCode}
+                    discountPercent={discountPercent}
+                    refreshCart={loadCart}
+                    totalAmount={totalAmount}
+                    disabled={!canCheckout}
+                    actionLabel="Go to checkout"
+                    onAction={() => navigate("/checkout")}
+                    showDeliveryMessage
+                    showMinimumOrderMessage
+                  />
                 </div>
 
                 <div className="border border-[#edf1f7]  p-4 gap-3 text-[#071b3a] bg-white flex">
@@ -431,80 +443,6 @@ export default function CartPage() {
   );
 }
 
-function OrderSummary({
-  totalItems,
-  subtotal,
-  deliveryCharge,
-  vatAmount,
-  totalAmount,
-  canCheckout,
-  onCheckout,
-  checkoutRef,
-}) {
-  return (
-    <>
-      <h2 className="text-xl font-bold text-[#071b3a] mb-5">Order summary</h2>
-
-      <SummaryRow label="Items" value={totalItems} />
-
-      <SummaryRow
-        label="Subtotal"
-        value={`£${subtotal.toFixed(2)}`}
-      />
-
-      <SummaryRow
-        label="VAT (20%)"
-        value={`£${vatAmount.toFixed(2)}`}
-      />
-
-      <SummaryRow
-        label="Delivery"
-        value={deliveryCharge === 0 ? "FREE" : `£${deliveryCharge.toFixed(2)}`}
-        green={deliveryCharge === 0}
-      />
-
-      {deliveryCharge > 0 && (
-        <p className="mb-3 text-xs text-blue-700">
-          Add another{" "}
-          <strong>£{(40 - subtotal).toFixed(2)}</strong> to qualify for{" "}
-          <strong>FREE delivery</strong>.
-        </p>
-      )}
-
-      {deliveryCharge === 0 && (
-        <p className="mb-3 text-xs text-green-700 font-semibold">
-          ✓ Your order qualifies for FREE delivery.
-        </p>
-      )}
-
-      <div className="border-t border-[#edf1f7] mt-4 pt-4 flex justify-between font-bold text-xl text-[#071b3a]">
-        <span>Total incl. VAT</span>
-        <span>£{totalAmount.toFixed(2)}</span>
-      </div>
-
-      {subtotal < 20 && (
-        <p className="mt-3 text-xs text-gray-600 font-semibold">
-          Please note our minimum order value is £20. Add another{" "}
-          <strong>£{(20 - subtotal).toFixed(2)}</strong> to checkout.
-        </p>
-      )}
-
-      <button
-        ref={checkoutRef}
-        onClick={onCheckout}
-        disabled={!canCheckout}
-        className={`w-full h-12 font-bold text-sm mt-5 transition ${
-          canCheckout
-            ? "bg-green-700 text-white hover:bg-green-800"
-            : "bg-gray-300 text-gray-500 cursor-not-allowed"
-        }`}
-        type="button"
-      >
-        Go to checkout
-      </button>
-    </>
-  );
-}
 
 function QtyBox({ qty, maxQty, onMinus, onPlus, onChangeQty, disabled }) {
   const [localQty, setLocalQty] = useState(String(qty || 1));
@@ -564,17 +502,6 @@ function QtyBox({ qty, maxQty, onMinus, onPlus, onChangeQty, disabled }) {
       >
         +
       </button>
-    </div>
-  );
-}
-
-function SummaryRow({ label, value, green }) {
-  return (
-    <div className="flex justify-between mb-3 text-sm text-[#3f4043]">
-      <span className="font-semibold">{label}</span>
-      <span className={`font-bold ${green ? "text-green-700" : "text-[#071b3a]"}`}>
-        {value}
-      </span>
     </div>
   );
 }

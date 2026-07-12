@@ -8,13 +8,17 @@ const API_URL =
 
 export default function ProductCard({
   product,
-  onAddToCart,
+  qty = 1,
+  activeTier,
   qtyInCart = 0,
+  onQtyChange,
+  onSlabClick,
+  onAddToCart,
 }) {
   const navigate = useNavigate();
 
-  const [qty, setQty] = useState("1");
   const [qtyWarning, setQtyWarning] = useState("");
+  const [hasQtyChanged, setHasQtyChanged] = useState(false);
 
   const getImage = (imageUrl) => {
     if (!imageUrl) return "";
@@ -38,86 +42,71 @@ export default function ProductCard({
     return String(specification?.spec_value || "").trim();
   };
 
-  const getSlabLabel = (tier) => {
-    return tier.max_qty
-      ? `${tier.min_qty}-${tier.max_qty}`
-      : `${tier.min_qty}+`;
-  };
-
+  const productQty = qty ?? 1;
   const unit = getSpecValue("Unit") || "Unit";
 
-  const currentQty = Math.max(Number(qty || 1), 1);
   const stockQty = Number(product.stock_qty || 0);
   const cartQty = Number(qtyInCart || 0);
 
   const availableQty = Math.max(stockQty - cartQty, 0);
-  const isOutOfStock = stockQty < 1 || availableQty < 1;
+
+  const isOutOfStock =
+    stockQty < 1 || availableQty < 1;
 
   const sortedTiers = Array.isArray(product.price_breaks)
     ? [...product.price_breaks].sort(
-        (a, b) => Number(a.min_qty) - Number(b.min_qty)
+        (a, b) =>
+          Number(a.min_qty || 0) -
+          Number(b.min_qty || 0)
       )
     : [];
 
-  const activeTier =
-    sortedTiers.find((tier) => {
-      const minimum = Number(tier.min_qty || 1);
-
-      const maximum =
-        tier.max_qty === null ||
-        tier.max_qty === undefined ||
-        tier.max_qty === ""
-          ? Infinity
-          : Number(tier.max_qty);
-
-      return currentQty >= minimum && currentQty <= maximum;
-    }) ||
-    sortedTiers[0] ||
-    null;
-
-  const unitPrice = activeTier
-    ? Number(activeTier.price || 0)
-    : Number(
-        product.from_price ||
-          product.price ||
-          product.selling_price ||
-          0
-      );
+  const currentPrice = Number(
+    activeTier?.price ||
+      product.from_price ||
+      product.price ||
+      product.selling_price ||
+      sortedTiers[0]?.price ||
+      0
+  );
 
   const goToProduct = () => {
     navigate(`/product/${product.slug}`);
   };
 
   const handleTierClick = (tier) => {
-    if (isOutOfStock) return;
-
     const minimumQty = Number(tier.min_qty || 1);
-
+  
     if (minimumQty > availableQty) {
       setQtyWarning(
         cartQty > 0
           ? `Only ${availableQty} available to add, ${cartQty} already in cart`
           : `Only ${availableQty} available to add`
       );
-
+  
       return;
     }
-
-    setQty(String(minimumQty));
+  
+    setHasQtyChanged(true);
+  
+    onSlabClick?.(
+      product.product_id,
+      minimumQty
+    );
+  
     setQtyWarning("");
   };
 
   const handleQtyChange = (value) => {
+    setHasQtyChanged(true);
+  
+    onQtyChange?.(
+      product.product_id,
+      value,
+      availableQty
+    );
+  
     setQtyWarning("");
-
-    if (value === "") {
-      setQty("");
-      return;
-    }
-
-    const nextQty = Math.max(Number(value) || 1, 1);
-
-    setQty(String(nextQty));
   };
 
   const handleMaxQty = () => {
@@ -129,15 +118,24 @@ export default function ProductCard({
   };
 
   const handleAdd = (quantity) => {
-    const finalQty = Number(quantity || qty || 1);
+    const finalQty = Number(
+      quantity || productQty || 1
+    );
 
     if (isOutOfStock) {
-      setQtyWarning("This product is out of stock");
+      setQtyWarning(
+        "This product is out of stock"
+      );
       return;
     }
 
-    if (!Number.isInteger(finalQty) || finalQty < 1) {
-      setQtyWarning("Please enter a valid quantity");
+    if (
+      !Number.isInteger(finalQty) ||
+      finalQty < 1
+    ) {
+      setQtyWarning(
+        "Please enter a valid quantity"
+      );
       return;
     }
 
@@ -147,12 +145,16 @@ export default function ProductCard({
     }
 
     setQtyWarning("");
-    onAddToCart(product, finalQty);
+
+    onAddToCart?.(
+      product,
+      finalQty
+    );
   };
 
   return (
     <>
-      {/* Mobile view */}
+      {/* Mobile */}
       <article className="flex h-full min-w-0 flex-col overflow-hidden border border-gray-200 bg-white shadow-sm md:hidden">
         <div className="flex h-full min-w-0 flex-col p-3">
           <div className="flex min-w-0 items-start gap-3">
@@ -164,7 +166,9 @@ export default function ProductCard({
             >
               {product.image_url ? (
                 <img
-                  src={getImage(product.image_url)}
+                  src={getImage(
+                    product.image_url
+                  )}
                   alt={product.product_name}
                   className="h-full w-full object-contain p-1"
                   loading="lazy"
@@ -190,7 +194,7 @@ export default function ProductCard({
               <div className="mt-3 flex items-end justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-xl font-extrabold leading-none text-[#001d4c]">
-                    £{unitPrice.toFixed(2)}
+                    £{currentPrice.toFixed(2)}
                   </p>
 
                   <p className="mt-1 text-[9px] font-medium text-gray-500">
@@ -205,7 +209,9 @@ export default function ProductCard({
                       : "text-green-700"
                   }`}
                 >
-                  {isOutOfStock ? "Out of stock" : "In stock"}
+                  {isOutOfStock
+                    ? "Out of stock"
+                    : "In stock"}
                 </p>
               </div>
             </div>
@@ -215,18 +221,20 @@ export default function ProductCard({
             <div className="mt-3">
               <PriceTier
                 tiers={sortedTiers}
-                currentQty={currentQty}
+                currentQty={productQty}
                 isOutOfStock={isOutOfStock}
-                onSelect={handleTierClick}
-                getSlabLabel={getSlabLabel}
                 compact
+                hasQtyChanged={hasQtyChanged}
+                onSelect={handleTierClick}
+                unit={unit}
               />
             </div>
           )}
 
           {cartQty > 0 && (
             <p className="mt-2 text-right text-[10px] font-medium text-gray-500">
-              <strong>{cartQty}</strong> {unit} already added to cart
+              <strong>{cartQty}</strong>{" "}
+              {unit} already added to cart
             </p>
           )}
 
@@ -242,10 +250,12 @@ export default function ProductCard({
             ) : (
               <div className="ml-auto w-fit">
                 <QtyAddControl
-                  value={qty}
+                  value={productQty}
                   maxQty={availableQty}
                   disabled={isOutOfStock}
-                  onQtyChange={handleQtyChange}
+                  onQtyChange={
+                    handleQtyChange
+                  }
                   onMaxQty={handleMaxQty}
                   onAdd={handleAdd}
                 />
@@ -263,19 +273,20 @@ export default function ProductCard({
         </div>
       </article>
 
-      {/* Desktop view — same code and styling */}
+      {/* Desktop */}
       <article className="hidden h-full min-w-0 flex-col overflow-hidden border border-gray-300 bg-white shadow-sm transition hover:shadow-md md:flex">
         <div className="flex h-full min-w-0 flex-col p-2 sm:p-3">
-          {/* Product image */}
           <button
             type="button"
-            onClick={() => navigate(`/product/${product.slug}`)}
+            onClick={goToProduct}
             className="block w-full"
           >
             <div className="flex h-28 items-center justify-center overflow-hidden bg-white sm:h-36 md:h-40">
               {product.image_url ? (
                 <img
-                  src={getImage(product.image_url)}
+                  src={getImage(
+                    product.image_url
+                  )}
                   alt={product.product_name}
                   className="h-full w-full object-contain p-1 sm:p-2"
                   loading="lazy"
@@ -288,22 +299,20 @@ export default function ProductCard({
             </div>
           </button>
 
-          {/* Product name */}
           <button
             type="button"
-            onClick={() => navigate(`/product/${product.slug}`)}
+            onClick={goToProduct}
             className="mt-2 block w-full min-w-0 text-left sm:mt-3"
           >
-            <h2 className="text-[11px] md:text-sm font-bold text-gray-700 leading-tight line-clamp-2 min-h-8.5 md:min-h-10.5">
-            {product.product_name}
-          </h2>
+            <h2 className="line-clamp-2 min-h-8.5 text-[11px] font-bold leading-tight text-gray-700 md:min-h-10.5 md:text-sm">
+              {product.product_name}
+            </h2>
           </button>
 
-          {/* Main price and stock */}
           <div className="mt-2 flex min-w-0 items-end justify-between gap-1.5 sm:mt-3 sm:gap-2">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold leading-none text-[#001d4c] sm:text-2xl">
-                £{unitPrice.toFixed(2)}
+                £{currentPrice.toFixed(2)}
               </p>
 
               <p className="mt-1 truncate text-[8px] font-semibold text-gray-400 sm:text-[10px]">
@@ -318,30 +327,31 @@ export default function ProductCard({
                   : "text-green-700"
               }`}
             >
-              {isOutOfStock ? "Out of stock" : "In stock"}
+              {isOutOfStock
+                ? "Out of stock"
+                : "In stock"}
             </p>
           </div>
 
-          {/* Price tiers */}
-     
           {sortedTiers.length > 0 && (
             <div className="mt-4">
               <PriceTier
                 tiers={sortedTiers}
-                currentQty={currentQty}
+                currentQty={productQty}
                 isOutOfStock={isOutOfStock}
-                onSelect={handleTierClick}
-                getSlabLabel={getSlabLabel}
                 compact
+                hasQtyChanged={hasQtyChanged}
+                onSelect={handleTierClick}
+                unit={unit}
               />
             </div>
           )}
 
-          {/* Quantity control */}
           <div className="mt-3 flex flex-col items-center sm:mt-4">
             {cartQty > 0 && (
               <p className="mb-1 text-center text-[8px] font-medium text-gray-500 sm:mb-1.5 sm:text-[10px]">
-                <strong>{cartQty}</strong> already added to cart
+                <strong>{cartQty}</strong>{" "}
+                already added to cart
               </p>
             )}
 
@@ -356,10 +366,12 @@ export default function ProductCard({
             ) : (
               <div className="w-full sm:max-w-[230px]">
                 <QtyAddControl
-                  value={qty}
+                  value={productQty}
                   maxQty={availableQty}
                   disabled={isOutOfStock}
-                  onQtyChange={handleQtyChange}
+                  onQtyChange={
+                    handleQtyChange
+                  }
                   onMaxQty={handleMaxQty}
                   onAdd={handleAdd}
                 />

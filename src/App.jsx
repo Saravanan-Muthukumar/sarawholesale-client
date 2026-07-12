@@ -8,6 +8,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import CookieBanner from "./components/CookieBanner";
 import WhatsAppChatButton from "./components/WhatsAppButton";
 import ProtectedRoute from "./components/ProtectedRoute";
+import SubscribePopup from "./components/SubscribePopup";
 
 // Core Public Pages (Kept static to ensure fast loading times)
 import HomePage from "./pages/HomePage";
@@ -153,6 +154,7 @@ export default function App() {
 
       <WhatsAppChatButton />
       <Footer />
+      <SubscribePopup />
       <CookieBanner />
     </div>
   );

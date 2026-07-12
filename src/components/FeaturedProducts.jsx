@@ -22,7 +22,7 @@ export default function FeaturedProducts({ products = [] }) {
     .map((categoryProducts) => shuffleArray(categoryProducts)[0])
     .filter(Boolean);
   
-  const shuffledDisplayProducts = shuffleArray(displayProducts).slice(0, 15);
+  const shuffledDisplayProducts = shuffleArray(displayProducts).slice(0, 18);
 
   const getLowestPrice = (product) => {
     if (!product.price_breaks?.length) return "0.00";
@@ -34,7 +34,7 @@ export default function FeaturedProducts({ products = [] }) {
 
   return (
     <section className="bg-[#f3f4f6] py-8 sm:py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="max-w-[1570px] mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-700">
             Popular Products
@@ -48,7 +48,7 @@ export default function FeaturedProducts({ products = [] }) {
           </Link> */}
         </div>
 
-        <div className="grid grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
         {shuffledDisplayProducts.map((product) => {
             const imageSrc = product.image_url?.startsWith("http")
               ? product.image_url
