@@ -335,7 +335,10 @@ export default function ProductPage() {
         </div>
 
         <div className="md:hidden mb-4 mt-3">
-          <Link to={currentCategory ? `/subcategory/${currentCategory.slug}` : "/"} className="inline-flex items-center gap-2 text-sm font-bold text-[#071b3a] hover:text-green-700">
+        <Link
+          to={currentCategory ? `/subcategory/${currentCategory.slug}` : "/"}
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
             <ArrowLeft size={16} />
             {currentCategory?.category_name || "Products"}
           </Link>
@@ -366,7 +369,11 @@ export default function ProductPage() {
                         key={img.image_id || img.image_url}
                         type="button"
                         onClick={() => setSelectedImage(img.image_url)}
-                        className={`h-16 w-16 border bg-white p-1 flex items-center justify-center ${active ? "border-green-600 ring-1 ring-green-200" : "border-[#d9e2ef] hover:border-green-400"}`}
+                        className={`h-16 w-16 border bg-white p-1 flex items-center justify-center transition-colors ${
+                        active
+                            ? "border-black bg-gray-50"
+                            : "border-gray-200 hover:border-gray-500"
+                        }`}
                       >
                         <img src={src} alt={img.alt_text || product.product_name} className="max-w-full max-h-full object-contain" />
                       </button>
