@@ -138,7 +138,7 @@ export default function AdvancedSearchBar() {
             if (query.trim().length >= 2) setOpen(true);
           }}
           placeholder="Search products, SKU, category..."
-          className="w-full h-14 pl-5 pr-24 border border-[#cfd8e6] bg-white text-[16px] text-[#071b3a] shadow-md placeholder:text-[#071b3a]/35 focus:outline-none focus:border-[#0f97d2] focus:ring-2 focus:ring-[#0f97d2]"
+          className="w-full h-14 pl-5 pr-24 border border-gray-300 bg-white text-[16px] text-gray-900 shadow-md placeholder:text-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black"
         />
 
         {query && (
@@ -163,7 +163,7 @@ export default function AdvancedSearchBar() {
             e.preventDefault();
             goToSearch();
           }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#071b3a] hover:text-green-700 z-10"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-gray-600 cursor-pointer z-10"
         >
           <Search size={26} strokeWidth={2.4} />
         </button>
@@ -176,7 +176,7 @@ export default function AdvancedSearchBar() {
         >
           <div className="max-h-[65vh] overflow-y-auto">
             {loading && (
-              <div className="px-5 py-3 text-[15px] text-[#071b3a]/50">
+              <div className="px-5 py-3 text-[15px] text-gray-500">
                 Searching...
               </div>
             )}
@@ -191,10 +191,10 @@ export default function AdvancedSearchBar() {
                       e.preventDefault();
                       goToSearch(item.keyword);
                     }}
-                    className={`w-full text-left px-5 py-3 text-[15px] text-[#071b3a] cursor-pointer border-b border-[#edf1f7] last:border-b-0 ${
+                    className={`w-full text-left px-5 py-3 text-[15px] text-gray-900 cursor-pointer border-b border-gray-100 last:border-b-0 ${
                       activeIndex === index
-                        ? "bg-green-50 font-semibold"
-                        : "hover:bg-[#f3f4f6]"
+                        ? "bg-gray-200 font-semibold"
+                        : "hover:bg-gray-100"
                     }`}
                   >
                     {item.keyword}
@@ -204,7 +204,7 @@ export default function AdvancedSearchBar() {
             )}
 
             {!loading && visibleSuggestions.length === 0 && (
-              <div className="px-5 py-3 text-sm text-[#071b3a]/50">
+              <div className="px-5 py-3 text-sm text-gray-500">
                 No suggestions found
               </div>
             )}
@@ -216,10 +216,10 @@ export default function AdvancedSearchBar() {
               e.preventDefault();
               goToSearch();
             }}
-            className={`w-full text-left px-5 py-3 text-sm font-bold text-gray-700 border-t border-[#d9e2ef] cursor-pointer ${
+            className={`w-full text-left px-5 py-3 text-sm font-bold text-black border-t border-gray-300 cursor-pointer ${
               activeIndex === visibleSuggestions.length
-                ? "bg-green-50"
-                : "bg-[#f3f4f6] hover:bg-green-50"
+                ? "bg-gray-300"
+                : "bg-gray-100 hover:bg-gray-200"
             }`}
           >
             View all results for "{query}"

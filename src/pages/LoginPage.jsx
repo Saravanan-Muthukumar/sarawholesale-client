@@ -56,7 +56,7 @@ export default function LoginPage({ redirectTo: redirectProp, compact = false })
         {/* Login */}
         <div className="bg-white border border-[#edf1f7] p-5 md:p-6 shadow-sm">
           <h2 className="flex items-center gap-2 text-lg font-bold text-[#071b3a] mb-5">
-            <Lock size={18} className="text-green-700" />
+          <Lock size={18} className="text-gray-600" />
             Existing Customer
           </h2>
 
@@ -94,7 +94,7 @@ export default function LoginPage({ redirectTo: redirectProp, compact = false })
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#071b3a]/45 hover:text-[#071b3a]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#1F1F1F] cursor-pointer transition-colors"
                 tabIndex="-1"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -104,7 +104,7 @@ export default function LoginPage({ redirectTo: redirectProp, compact = false })
             <div className="flex items-center justify-end text-xs pt-1">
               <Link
                 to="/forgot-password"
-                className="font-bold text-green-700 hover:text-green-800"
+                className="font-bold text-[#1F1F1F] hover:text-gray-700 cursor-pointer transition-colors"
               >
                 Forgot Password?
               </Link>
@@ -113,7 +113,7 @@ export default function LoginPage({ redirectTo: redirectProp, compact = false })
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-green-700 text-white text-sm font-bold hover:bg-green-800 disabled:opacity-60 transition"
+              className="w-full h-11 bg-black text-white text-sm font-bold hover:bg-gray-800 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
               {loading ? "Logging in..." : "Login"}
             </button>
@@ -123,7 +123,7 @@ export default function LoginPage({ redirectTo: redirectProp, compact = false })
         {/* New account */}
         <div className="bg-white border border-[#edf1f7]  p-5 md:p-6 shadow-sm">
           <h2 className="flex items-center gap-2 text-lg font-bold text-[#071b3a] mb-5">
-            <UserPlus size={18} className="text-green-700" />
+          <UserPlus size={18} className="text-gray-600" />
             New Customer
           </h2>
 
@@ -140,15 +140,14 @@ export default function LoginPage({ redirectTo: redirectProp, compact = false })
             Request Trade Account
           </Link>
 
-          <div className="mt-5 border border-green-100 bg-green-50  p-4 flex gap-3">
-            <ShieldCheck size={22} className="text-green-700 shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-bold text-green-700 text-sm">
-                Trade Account Review
-              </h3>
+          <div className="mt-5 border border-gray-200 bg-gray-50 p-4 flex gap-3">
+          <ShieldCheck size={22} className="text-gray-600 shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-bold text-gray-800 text-sm">
+            Trade Account Benefits
+            </h3>
               <p className="text-xs leading-relaxed text-[#071b3a]/65 mt-1">
-                New registrations are reviewed before order request features are
-                fully enabled.
+              Save your delivery details, view your order history, and enjoy faster checkout on future orders.
               </p>
             </div>
           </div>

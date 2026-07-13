@@ -373,7 +373,7 @@ const getOptionQty = (specName, option) => {
         <button
           type="button"
           onClick={() => toggleFilterGroup(spec.name)}
-          className="w-full flex items-center justify-between text-left"
+          className="w-full flex cursor-pointer items-center justify-between text-left"
         >
           <span className="text-sm font-bold text-gray-800">
             {spec.name}
@@ -432,7 +432,7 @@ const getOptionQty = (specName, option) => {
           <button
             type="button"
             onClick={clearFilters}
-            className="text-sm font-bold text-red-600 hover:underline"
+            className="cursor-pointer text-sm font-bold text-red-600 hover:underline"
           >
             Clear all
           </button>
@@ -532,7 +532,7 @@ const getOptionQty = (specName, option) => {
             <button
               type="button"
               onClick={() => setMobileFilterOpen(true)}
-              className="inline-flex items-center gap-1 border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:text-black"
+              className="inline-flex cursor-pointer items-center gap-1 border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:text-black"
             >
               <SlidersHorizontal size={16} />
               Filter
@@ -548,7 +548,7 @@ const getOptionQty = (specName, option) => {
                   Filter Products
                 </h2>
 
-                <button type="button" onClick={() => setMobileFilterOpen(false)}>
+                <button className="cursor-pointer" type="button"  onClick={() => setMobileFilterOpen(false)} >
                   <X size={22} />
                 </button>
               </div>
@@ -559,7 +559,7 @@ const getOptionQty = (specName, option) => {
                 <button
                   type="button"
                   onClick={() => setMobileFilterOpen(false)}
-                  className="mt-4 w-full bg-black hover:bg-gray-800 text-white py-3 font-bold transition-colors"
+                  className="mt-4 w-full cursor-pointer bg-black hover:bg-gray-800 text-white py-3 font-bold transition-colors"
                 >
                   Show Products
                 </button>

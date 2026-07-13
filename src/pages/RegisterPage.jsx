@@ -6,6 +6,7 @@ import {
   Phone,
   Lock,
   Eye,
+  EyeOff,
   ArrowRight,
   ShieldCheck,
   PackageCheck,
@@ -74,14 +75,11 @@ export default function RegisterPage() {
       <section className="max-w-245 mx-auto">
         <div className="text-center mb-3 md:mb-4">
           <h1 className="text-[23px] md:text-[28px] font-bold text-[#071b3a] leading-tight">
-            Create an Account
+            Create your Account
           </h1>
-          <p className="text-[13px] text-[#071b3a]/80 mt-1">
-            Apply for a trade account with SARA Wholesale Supplies
-          </p>
         </div>
 
-        <div className="flex items-start justify-center mb-4">
+        {/* <div className="flex items-start justify-center mb-4">
           {["Account Details", "Business Details", "Review & Submit"].map(
             (label, index) => (
               <div key={label} className="flex items-start">
@@ -110,20 +108,20 @@ export default function RegisterPage() {
               </div>
             )
           )}
-        </div>
+        </div> */}
 
         <div className="grid md:grid-cols-[1fr_260px] gap-4 items-start max-w-225 mx-auto">
           <form
             onSubmit={handleSubmit}
-            className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm"
+            className="bg-white border border-[#edf1f7] p-4 md:p-5 shadow-sm"
           >
             <h2 className="flex items-center gap-2 text-lg font-bold text-[#071b3a] mb-4">
-              <User size={18} className="text-green-700" />
+            <User size={18} className="text-gray-600" />
               Account Details
             </h2>
 
             {error && (
-              <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              <div className="mb-3 border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
                 {error}
               </div>
             )}
@@ -198,23 +196,29 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-10 bg-green-700 text-white rounded-lg font-bold hover:bg-green-800 disabled:opacity-60 flex items-center justify-center gap-2"
+                className="w-full h-11 bg-[#1F1F1F] text-white text-sm font-bold hover:bg-[#333333] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer transition-colors flex items-center justify-center gap-2"
               >
-                {loading ? "Creating account..." : "Continue"}
-                <ArrowRight size={17} />
+                {loading ? (
+                    "Creating account..."
+                  ) : (
+                    <>
+                      Continue
+                      <ArrowRight size={17} />
+                    </>
+                  )}
               </button>
             </div>
 
             <p className="text-center text-sm mt-3 text-[#071b3a]/70">
               Already have an account?{" "}
-              <Link to="/login" className="font-bold text-blue-700">
+              <Link to="/login" className="font-bold text-[#1F1F1F] hover:text-gray-600 cursor-pointer transition-colors">
                 Login
               </Link>
             </p>
           </form>
 
-          <aside className="hidden md:block bg-green-50 border border-green-100 rounded-xl p-4">
-            <h3 className="font-bold text-green-700 mb-4 text-base">
+          <aside className="hidden md:block bg-gray-50 border border-gray-200 p-4">
+          <h3 className="font-bold text-gray-800 mb-4 text-base">
               Why Create an Account?
             </h3>
 
@@ -298,9 +302,9 @@ function PasswordBox({
         <button
           type="button"
           onClick={() => setShow((prev) => !prev)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#1F1F1F] cursor-pointer transition-colors"
         >
-          <Eye size={17} />
+          {show ? <EyeOff size={17} /> : <Eye size={17} />}
         </button>
       </div>
     </div>
@@ -310,7 +314,7 @@ function PasswordBox({
 function Benefit({ icon, text }) {
   return (
     <div className="flex items-center gap-3 mb-4 text-sm text-[#071b3a]">
-      <span className="text-green-700">{icon}</span>
+      <span className="text-gray-600">{icon}</span>
       {text}
     </div>
   );

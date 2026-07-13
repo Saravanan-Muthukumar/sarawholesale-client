@@ -337,7 +337,7 @@ export default function ProductPage() {
         <div className="md:hidden mb-4 mt-3">
         <Link
           to={currentCategory ? `/subcategory/${currentCategory.slug}` : "/"}
-          className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+          className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
         >
             <ArrowLeft size={16} />
             {currentCategory?.category_name || "Products"}
@@ -357,7 +357,7 @@ export default function ProductPage() {
 
               {productImages.length > 1 && (
                 <div className="flex items-center justify-center gap-3 mt-5">
-                  <button type="button" className="h-10 w-10 border border-[#d9e2ef] bg-[#f8fafc] flex items-center justify-center hover:bg-white">
+                  <button type="button" className="h-10 w-10 border cursor-pointer border border-[#d9e2ef] bg-[#f8fafc] flex items-center justify-center hover:bg-white">
                     <ChevronLeft size={22} />
                   </button>
 
@@ -369,7 +369,7 @@ export default function ProductPage() {
                         key={img.image_id || img.image_url}
                         type="button"
                         onClick={() => setSelectedImage(img.image_url)}
-                        className={`h-16 w-16 border bg-white p-1 flex items-center justify-center transition-colors ${
+                        className={`h-16 w-16 border cursor-pointer bg-white p-1 flex items-center justify-center transition-colors ${
                         active
                             ? "border-black bg-gray-50"
                             : "border-gray-200 hover:border-gray-500"
@@ -380,7 +380,7 @@ export default function ProductPage() {
                     );
                   })}
 
-                  <button type="button" className="h-10 w-10 border border-[#d9e2ef] bg-[#f8fafc] flex items-center justify-center hover:bg-white">
+                  <button type="button" className="h-10 w-10 cursor-pointer border border-[#d9e2ef] bg-[#f8fafc] flex items-center justify-center hover:bg-white">
                     <ChevronRight size={22} />
                   </button>
                 </div>
@@ -425,7 +425,7 @@ export default function ProductPage() {
               {currentCategory && (
                 <p className="text-sm text-[#071b3a] mt-5">
                   View all:{" "}
-                  <Link to={`/subcategory/${currentCategory.slug}`} className="text-gray-700 underline font-semibold">
+                  <Link to={`/subcategory/${currentCategory.slug}`} className="cursor-pointer text-gray-700 underline font-semibold">
                     {currentCategory.category_name}
                   </Link>
                 </p>
@@ -497,10 +497,10 @@ export default function ProductPage() {
 
         <div className="mt-6 bg-white border border-[#d9e2ef] shadow-sm">
           <div className="flex border-b border-[#d9e2ef]">
-            <button type="button" onClick={() => setActiveTab("description")} className={`px-6 py-4 font-bold text-sm transition ${activeTab === "description" ? "bg-white text-black border-b-2 border-red-600" : "bg-[#f5f7fb] text-[#071b3a]/60"}`}>
+            <button type="button" onClick={() => setActiveTab("description")} className={`cursor-pointer px-6 py-4 font-bold text-sm transition ${activeTab === "description" ? "bg-white text-black border-b-2 border-red-600" : "bg-[#f5f7fb] text-[#071b3a]/60"}`}>
               Description
             </button>
-            <button type="button" onClick={() => setActiveTab("specifications")} className={`px-6 py-4 font-bold text-sm transition ${activeTab === "specifications" ? "bg-white text-black border-b-2 border-red-600" : "bg-[#f5f7fb] text-[#071b3a]/60"}`}>
+            <button type="button" onClick={() => setActiveTab("specifications")} className={`cursor-pointer px-6 py-4 font-bold text-sm transition ${activeTab === "specifications" ? "bg-white text-black border-b-2 border-red-600" : "bg-[#f5f7fb] text-[#071b3a]/60"}`}>
               Product Specifications
             </button>
           </div>
@@ -545,10 +545,10 @@ export default function ProductPage() {
             <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900">You may also like:</h2>
               <div className="hidden md:flex gap-2">
-                <button type="button" onClick={() => scrollRelated("left")} className="h-10 w-10 border border-[#d9e2ef] bg-white shadow-sm flex items-center justify-center">
+                <button type="button" onClick={() => scrollRelated("left")} className="h-10 w-10 cursor-pointer border border-[#d9e2ef] bg-white shadow-sm flex items-center justify-center">
                   <ChevronLeft size={24} />
                 </button>
-                <button type="button" onClick={() => scrollRelated("right")} className="h-10 w-10 border border-[#d9e2ef] bg-white shadow-sm flex items-center justify-center">
+                <button type="button" onClick={() => scrollRelated("right")} className="h-10 w-10 cursor-pointer border border-[#d9e2ef] bg-white shadow-sm flex items-center justify-center">
                   <ChevronRight size={24} />
                 </button>
               </div>
@@ -559,7 +559,7 @@ export default function ProductPage() {
                 const imageUrl = item.image_url?.startsWith("http") ? item.image_url : item.image_url ? `${API_URL}${item.image_url}` : "";
                 const firstPrice = item.price_breaks?.[0]?.price;
                 return (
-                  <Link key={item.product_id} to={`/product/${item.slug}`} className="shrink-0 w-55 md:w-60 bg-white border border-[#d9e2ef] shadow-sm p-4 transition">
+                  <Link key={item.product_id} to={`/product/${item.slug}`} className="cursor-pointer shrink-0 w-55 md:w-60 bg-white border border-[#d9e2ef] shadow-sm p-4 transition">
                     <div className="h-36 bg-white flex items-center justify-center mb-3">
                       {imageUrl ? (
                         <img src={imageUrl} alt={item.product_name} className="max-w-full max-h-full object-contain" />

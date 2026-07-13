@@ -65,7 +65,7 @@ const canonicalUrl = `https://www.sarawholesale.co.uk/category/${slug}`;
 
       <section className="max-w-7xl mx-auto px-4 py-5">
       <div className="hidden md:flex items-center text-sm font-semibold text-[#071b3a]/70 mb-4 mt-4">
-          <Link to="/" className="text-blue-700 underline hover:text-[#0f97d2] cursor-pointer">
+          <Link to="/" className="text-gray-900 hover:text-black cursor-pointer transition-colors">
             Home
           </Link>
 
@@ -74,7 +74,7 @@ const canonicalUrl = `https://www.sarawholesale.co.uk/category/${slug}`;
           <button
             type="button"
             onClick={goToCategories}
-            className="text-blue-700 underline hover:text-[#0f97d2] cursor-pointer"
+            className="text-gray-900 hover:text-black cursor-pointer transition-colors"
           >
             Categories
           </button>
@@ -121,12 +121,12 @@ const canonicalUrl = `https://www.sarawholesale.co.uk/category/${slug}`;
                 to={`/subcategory/${sub.slug}`}
                 className="bg-white border border-[#e6edf5] p-3 md:p-4 shadow-sm hover:shadow-md hover:border-[#cbd8e8] transition group"
               >
-                <div className="aspect-square bg-[#f8fafc] flex items-center justify-center p-2">
+                <div className="aspect-square bg-white flex items-center justify-center p-2">
                   {getImage(sub.image_url) ? (
                     <img
                       src={getImage(sub.image_url)}
                       alt={sub.category_name}
-                      className="w-full h-full object-contain group-hover:scale-105 transition"
+                      className="w-full h-full object-contain group-hover:scale-105 transition cursor-pointer"
                     />
                   ) : (
                     <div className="w-full h-full bg-[#eef3f8]" />

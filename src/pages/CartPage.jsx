@@ -157,14 +157,14 @@ export default function CartPage() {
   };
 
   return (
-    <main className="bg-[#f4f6f9] min-h-screen border-t border-[#edf1f7] pb-28 md:pb-0">
+    <main className="bg-[#f7f7f7] min-h-screen border-t border-gray-200 pb-28 md:pb-0">
 
       <section className="max-w-7xl mx-auto px-4 py-5">
-        <div className="sticky top-0 z-30 bg-[#f4f6f9]/95 backdrop-blur py-3 -mx-4 px-4 mb-4 border-b border-[#e5eaf2] md:static md:bg-transparent md:border-0 md:p-0 md:mx-0">
+        <div className="sticky top-0 z-30 bg-[#f7f7f7]/95 backdrop-blur py-3 -mx-4 px-4 mb-4 border-b border-[#e5eaf2] md:static md:bg-transparent md:border-0 md:p-0 md:mx-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-semibold text-[#071b3a] hover:text-red-700"
+            className="flex items-center gap-2 text-sm font-semibold text-[#071b3a] hover:text-black"
           >
             <ArrowLeft size={18} />
             Previous page
@@ -178,14 +178,14 @@ export default function CartPage() {
         </div>
 
         {cartItems.length === 0 ? (
-          <div className="bg-white border border-[#edf1f7]  p-6">
+          <div className="bg-white border border-gray-200  p-6">
             <p className="font-semibold text-[#071b3a] mb-4">
               Your basket is empty.
             </p>
 
             <button
               onClick={() => navigate("/")}
-              className="bg-green-700 text-white px-5 h-10 font-bold text-sm hover:bg-green-800"
+              className="bg-black text-white px-5 h-10 font-bold text-sm hover:bg-gray-800"
               type="button"
             >
               Continue Shopping
@@ -195,10 +195,6 @@ export default function CartPage() {
           <div className="grid lg:grid-cols-[1fr_330px] gap-7">
             <div className="space-y-4">
               <div className="bg-white border border-[#edf1f7] overflow-hidden">
-                <div className="bg-[#26343a] text-white px-4 py-3 flex justify-between text-sm font-bold">
-                  <span>Your Items</span>
-                  <span>{cartItems.length} products</span>
-                </div>
 
                 {cartItems.map((item) => {
                   const id = getItemId(item);
@@ -207,7 +203,7 @@ export default function CartPage() {
                   return (
                     <div
                       key={id}
-                      className="border-b border-[#c7d0dd] last:border-b-0 bg-white"
+                      className="border-b border-gray-200 last:border-b-0 bg-white"
                     >
                       {deleteItemId === id ? (
                         <div className="p-4 md:p-5 bg-gray-100 min-h-38.75 flex flex-col justify-center">
@@ -256,16 +252,16 @@ export default function CartPage() {
                             <div>
                               <Link
                                 to={getProductLink(item)}
-                                className="font-bold text-sm md:text-base text-[#071b3a] hover:text-green-700 leading-snug"
+                                className="font-bold text-sm md:text-base text-[#071b3a] hover:text-black leading-snug"
                               >
                                 {item.product_name}
                               </Link>
 
-                              <p className="text-xs text-[#071b3a]/60 mt-1">
+                              <p className="text-xs text-gray-500 mt-1">
                                 SKU: {item.sku || "N/A"}
                               </p>
 
-                              <p className="text-xs mt-3 text-green-700 font-bold">
+                              <p className="text-xs mt-3 text-gray-700 font-semibold">
                                 Available for delivery
                               </p>
 
@@ -304,7 +300,7 @@ export default function CartPage() {
                                 <button
                                   onClick={() => setDeleteItemId(id)}
                                   disabled={isUpdating}
-                                  className="text-[#071b3a] hover:text-red-600 disabled:opacity-50"
+                                  className="text-[#071b3a] cursor-pointer hover:text-red-600 disabled:opacity-50"
                                   type="button"
                                 >
                                   <Trash2 size={18} />
@@ -385,8 +381,8 @@ export default function CartPage() {
                   />
                 </div>
 
-                <div className="border border-[#edf1f7]  p-4 gap-3 text-[#071b3a] bg-white flex">
-                  <ShieldCheck size={22} />
+                <div className="border border-[#edf1f7] p-4 gap-3 text-gray-700 bg-white flex">
+                <ShieldCheck size={22} className="text-black" />
 
                   <div>
                     <p className="font-bold text-sm">Secure checkout</p>
@@ -402,10 +398,10 @@ export default function CartPage() {
       </section>
 
       {cartItems.length > 0 && showMobileStickyCheckout && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#dfe5ee] shadow-[0_-8px_24px_rgba(0,0,0,0.12)] px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-xs text-[#071b3a]/60 font-semibold">
+              <p className="text-xs text-gray-500 font-semibold">
                 Estimated Total
               </p>
 
@@ -430,8 +426,8 @@ export default function CartPage() {
             disabled={!canCheckout}
             className={`w-full h-12 font-bold text-sm transition ${
               canCheckout
-                ? "bg-green-700 text-white hover:bg-green-800"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "cursor-pointer bg-[#C62828] text-white hover:bg-[#A61E1E]"
+              : "cursor-not-allowed bg-gray-300 text-gray-500"
             }`}
             type="button"
           >
@@ -463,14 +459,14 @@ function QtyBox({ qty, maxQty, onMinus, onPlus, onChangeQty, disabled }) {
   };
 
   return (
-    <div className="flex h-10 border border-gray-300 overflow-hidden bg-white">
+    <div className="flex h-10 border border-gray-200 overflow-hidden bg-white">
       <button
         onClick={onMinus}
         disabled={disabled}
-        className={`w-10 text-2xl font-bold transition-colors disabled:opacity-50 ${
+        className={`w-10 text-2xl font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
           Number(qty) === 1
-            ? "bg-red-50 text-red-600 hover:bg-red-100"
-            : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+          ? "bg-red-50 text-red-600 hover:bg-red-100"
+          : "bg-gray-100 text-gray-900 hover:bg-gray-200"
         }`}
         type="button"
       >
@@ -491,13 +487,13 @@ function QtyBox({ qty, maxQty, onMinus, onPlus, onChangeQty, disabled }) {
           }
         }}
         inputMode="numeric"
-        className="w-14 text-center text-black font-bold outline-none border-x border-gray-300 bg-white"
+        className="w-14 text-center text-black font-bold outline-none border-x border-gray-200 bg-white"
       />
 
       <button
         onClick={onPlus}
         disabled={disabled}
-        className="w-10 bg-gray-100 text-2xl font-bold text-gray-900 hover:bg-gray-200 disabled:opacity-50"
+        className="w-10 bg-gray-100 text-2xl font-bold text-gray-900 hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         type="button"
       >
         +

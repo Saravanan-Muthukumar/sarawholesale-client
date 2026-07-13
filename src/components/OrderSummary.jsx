@@ -196,7 +196,7 @@ const amountForMinimumOrder = Math.max(
                 }}
                 placeholder="Enter voucher code"
                 disabled={voucherLoading}
-                className="h-11 min-w-0 flex-1 border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-green-700 disabled:bg-gray-100"
+                className="h-11 min-w-0 flex-1 border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-black disabled:bg-gray-100"
               />
 
               <button
@@ -206,7 +206,7 @@ const amountForMinimumOrder = Math.max(
                   voucherLoading ||
                   !enteredVoucher.trim()
                 }
-                className="h-11 bg-green-700 px-4 text-sm font-bold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                className="h-11 bg-black px-4 text-sm font-bold text-white hover:bg-gray-800 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
               >
                 {voucherLoading
                   ? "Checking..."
@@ -273,8 +273,8 @@ const amountForMinimumOrder = Math.max(
         disabled={disabled || loading}
         className={`mt-5 h-12 w-full text-sm font-bold transition ${
           disabled || loading
-            ? "cursor-not-allowed bg-gray-300 text-gray-500"
-            : "bg-green-700 text-white hover:bg-green-800"
+          ? "cursor-not-allowed bg-gray-300 text-gray-500"
+          : "cursor-pointer bg-[#C62828] text-white hover:bg-[#A61E1E]"
         }`}
         type="button"
       >

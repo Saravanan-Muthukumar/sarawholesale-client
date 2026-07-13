@@ -72,7 +72,7 @@ export default function VerifyEmailPage() {
   return (
     <main className="bg-white px-4 pt-4 pb-6 md:pt-6 md:pb-7">
       <section className="max-w-105 mx-auto">
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-gray-200 p-5 shadow-sm">
           <h1 className="text-[23px] md:text-[28px] font-bold text-[#071b3a] leading-tight mb-2">
             Verify Email
           </h1>
@@ -88,7 +88,7 @@ export default function VerifyEmailPage() {
           )}
 
           {message && (
-            <div className="mb-4 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
+            <div className="mb-4 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-sm text-gray-700">
               {message}
             </div>
           )}
@@ -108,7 +108,11 @@ export default function VerifyEmailPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-10 mt-4 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:opacity-60"
+              className={`w-full h-10 mt-4 font-bold text-white transition-colors ${
+              loading
+                ? "cursor-not-allowed bg-gray-400"
+                : "cursor-pointer bg-black hover:bg-gray-800"
+            }`}
             >
               {loading ? "Verifying..." : "Verify Email"}
             </button>
@@ -118,7 +122,11 @@ export default function VerifyEmailPage() {
             type="button"
             onClick={handleResendCode}
             disabled={resending}
-            className="w-full mt-4 text-sm text-blue-700 hover:underline disabled:opacity-60"
+            className={`w-full h-10 mt-3 font-bold border transition-colors ${
+              resending
+                ? "cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400"
+                : "cursor-pointer bg-white border-black text-black hover:bg-gray-100"
+            }`}
           >
             {resending ? "Sending..." : "Resend code"}
           </button>

@@ -156,9 +156,9 @@ export default function SearchResultsPage() {
       <div className="hidden md:block sticky top-0 z-800 bg-[#4f5961]">
       </div>
 
-        <div className="max-w-7xl mx-auto px-4 pt-6 pb-6">
-        <div className="text-sm mb-2">
-          <Link to="/" className="text-blue-700 underline">
+        <div className="max-w-7xl mx-auto pt-6 pb-6">
+        <div className="text-sm px-3 mb-2">
+        <Link to="/" className="text-gray-700 hover:text-black transition-colors">
             Home
           </Link>
         </div>
@@ -274,7 +274,7 @@ export default function SearchResultsPage() {
             )}
 
             {!loading && products.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 {products.map((product) => (
                   <ProductCard
                     key={product.product_id}

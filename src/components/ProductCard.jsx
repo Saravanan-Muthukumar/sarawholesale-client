@@ -181,6 +181,7 @@ export default function ProductCard({
             </button>
 
             <div className="min-w-0 flex-1">
+            
               <button
                 type="button"
                 onClick={goToProduct}
@@ -279,7 +280,7 @@ export default function ProductCard({
           <button
             type="button"
             onClick={goToProduct}
-            className="block w-full"
+            className="block w-full cursor-pointer"
           >
             <div className="flex h-28 items-center justify-center overflow-hidden bg-white sm:h-36 md:h-40">
               {product.image_url ? (
@@ -288,7 +289,7 @@ export default function ProductCard({
                     product.image_url
                   )}
                   alt={product.product_name}
-                  className="h-full w-full object-contain p-1 sm:p-2"
+                  className="h-full w-full cursor-pointer object-contain p-1 sm:p-2"
                   loading="lazy"
                 />
               ) : (
@@ -302,9 +303,9 @@ export default function ProductCard({
           <button
             type="button"
             onClick={goToProduct}
-            className="mt-2 block w-full min-w-0 text-left sm:mt-3"
+            className="mt-2 block w-full min-w-0 cursor-pointer text-left sm:mt-3"
           >
-            <h2 className="line-clamp-2 min-h-8.5 text-[11px] font-bold leading-tight text-gray-700 md:min-h-10.5 md:text-sm">
+            <h2 className="line-clamp-3 min-h-8.5 cursor-pointer text-[11px] font-bold leading-tight text-gray-700 md:min-h-10.5 md:text-sm">
               {product.product_name}
             </h2>
           </button>

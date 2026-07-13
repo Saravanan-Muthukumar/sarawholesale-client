@@ -55,7 +55,7 @@ export default function QtyAddControl({
           type="button"
           disabled={disabled || Number(qty || 1) <= 1}
           onClick={() => updateQty(Number(qty || 1) - 1)}
-          className="w-9 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40"
+          className="cursor-pointer w-9 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40"
         >
           <Minus size={14} />
         </button>
@@ -74,7 +74,7 @@ export default function QtyAddControl({
           type="button"
           disabled={disabled}
           onClick={handleIncrease}
-          className="w-9 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40"
+          className="cursor-pointer w-9 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40"
         >
           <Plus size={14} />
         </button>
@@ -84,7 +84,7 @@ export default function QtyAddControl({
         type="button"
         disabled={disabled || qty === ""}
         onClick={() => onAdd(Number(qty || 1))}
-        className="h-10 px-4 bg-black text-white font-bold hover:bg-gray-900 transition-colors disabled:bg-gray-300 disabled:text-gray-500 flex items-center gap-2"
+        className="cursor-pointer h-10 px-4 bg-black text-white font-bold hover:bg-gray-900 transition-colors disabled:bg-gray-300 disabled:text-gray-500 flex items-center gap-2"
       >
         <ShoppingCart size={16} />
         Add

@@ -39,7 +39,7 @@ export default function CategoryMenu({ categories = [], sticky = false }) {
       onMouseLeave={closeCategoryMenu}
     >
       <div className="bg-[black]">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-stretch">
             {parentCategories.map((cat) => {
               const isActive =
@@ -49,14 +49,14 @@ export default function CategoryMenu({ categories = [], sticky = false }) {
                 <div
                   key={cat.category_id}
                   onMouseEnter={() => openCategorySlowly(cat)}
-                  className="relative"
+                  className="relative flex-1"
                 >
                   <Link
                     to={`/category/${cat.slug}`}
-                    className={`h-16 px-7 flex items-center justify-center text-center text-[15px] font-medium tracking-normal transition ${
+                    className={`h-16 w-full px-7 flex items-center justify-center text-center text-[15px] font-medium tracking-normal transition cursor-pointer ${
                       isActive
-                        ? "bg-white text-[#1f2937] font-semibold relative z-10 border-none"
-                        : "bg-[black] text-white hover:bg-[balck]"
+                        ? "bg-white text-black font-semibold relative z-10"
+                        : "bg-black text-white hover:bg-gray-800"
                     }`}
                   >
                     {cat.category_name}
@@ -69,15 +69,15 @@ export default function CategoryMenu({ categories = [], sticky = false }) {
       </div>
 
       {activeCategory && subCategories.length > 0 && (
-        <div className="absolute left-0 right-0 top-full z-999">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="bg-white shadow-xl min-h-45 p-10">
+        <div className="absolute left-0 right-0 -mt-px top-full z-999" onClick={closeCategoryMenu}>
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="bg-white border border-gray-300 border-t-0 shadow-lg min-h-45 p-10">
               <div className="grid grid-cols-4 gap-x-12 gap-y-6">
                 {subCategories.map((sub) => (
                   <Link
                     key={sub.category_id}
                     to={`/subcategory/${sub.slug}`}
-                    className="text-[15px] font-medium text-[#1f2937] hover:text-green-700"
+                    className="cursor-pointer text-[15px] font-medium text-gray-900 hover:text-black"
                   >
                     {sub.category_name}
                   </Link>

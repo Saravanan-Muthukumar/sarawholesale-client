@@ -191,7 +191,7 @@ const totalAmount = subtotal + deliveryCharge + vatAmount;
 
             <button
               onClick={() => navigate("/")}
-              className="bg-green-700 text-white px-5 h-10 font-bold text-sm hover:bg-green-800"
+              className="bg-[#C62828] text-white px-5 h-10 font-bold text-sm hover:bg-[#A61E1E] cursor-pointer"
               type="button"
             >
               Continue Shopping
@@ -263,7 +263,7 @@ const totalAmount = subtotal + deliveryCharge + vatAmount;
 
                   <Link
                     to="/cart"
-                    className="inline-flex items-center gap-2 text-xs font-bold text-[#071b3a] hover:text-green-700"
+                    className="inline-flex items-center gap-2 text-xs font-bold text-[#071b3a] hover:text-[#C62828] cursor-pointer"
                   >
                     <ArrowLeft size={15} />
                     Back to Cart
@@ -351,7 +351,7 @@ const totalAmount = subtotal + deliveryCharge + vatAmount;
               handleSubmitOrder();
             }}
             disabled={submitting}
-            className="w-full h-12 bg-green-700 text-white font-bold text-sm hover:bg-green-800 disabled:opacity-70"
+            className="w-full h-12 bg-[#C62828] text-white font-bold text-sm hover:bg-[#A61E1E] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer transition-colors"
             type="button"
           >
             {submitting ? "Submitting..." : "Submit Order Request"}
@@ -368,13 +368,13 @@ function DetailsCard({ title, icon, complete, onEdit, children }) {
     <div className="border border-[#edf1f7] bg-white p-4">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-green-700">{icon}</span>
+        <span className="text-[#C62828]">{icon}</span>
           <h2 className="text-xl font-bold text-[#071b3a]">{title}</h2>
         </div>
 
         <button
           onClick={onEdit}
-          className="text-xs font-bold text-green-700 hover:text-green-800"
+          className="text-xs font-bold text-[#C62828] hover:text-[#A61E1E] cursor-pointer"
           type="button"
         >
           Edit
@@ -386,15 +386,15 @@ function DetailsCard({ title, icon, complete, onEdit, children }) {
       <div className="mt-3 text-[11px] flex items-center gap-1">
         {complete ? (
           <>
-            <CheckCircle size={13} className="text-green-700" />
-            <span className="text-green-700 font-semibold">
+          <CheckCircle size={13} className="text-gray-600" />
+          <span className="text-gray-700 font-semibold">
               Details complete
             </span>
           </>
         ) : (
           <>
-            <AlertCircle size={13} className="text-red-600" />
-            <span className="text-red-600 font-semibold">
+            <AlertCircle size={13} className="text-gray-600" />
+            <span className="text-gray-600 font-semibold">
               Details incomplete
             </span>
           </>
