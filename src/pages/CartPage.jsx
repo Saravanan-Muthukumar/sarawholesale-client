@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ShieldCheck, Trash2 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import OrderSummary from "../components/OrderSummary";
+import { useAuth } from "../context/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
 
@@ -17,9 +18,19 @@ export default function CartPage() {
   const [showMobileStickyCheckout, setShowMobileStickyCheckout] = useState(true);
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [qtyWarnings, setQtyWarnings] = useState({});
+  const { isLoggedIn } = useAuth();
   // const [editingQty, setEditingQty] = useState({});
   
-
+  const handleCheckout = () => {
+    if (!canCheckout) return;
+  
+    if (isLoggedIn) {
+      navigate("/checkout");
+      return;
+    }
+  
+    navigate("/proceed-checkout");
+  };
   const getImage = (imageUrl) => {
     if (!imageUrl) return null;
     return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
@@ -157,7 +168,7 @@ export default function CartPage() {
   };
 
   return (
-    <main className="bg-[#f7f7f7] min-h-screen border-t border-gray-200 pb-28 md:pb-0">
+    <main className="min-h-screen border-t border-gray-200 bg-[#f7f7f7] pb-28 lg:pb-0">
 
       <section className="max-w-7xl mx-auto px-4 py-5">
         <div className="sticky top-0 z-30 bg-[#f7f7f7]/95 backdrop-blur py-3 -mx-4 px-4 mb-4 border-b border-[#e5eaf2] md:static md:bg-transparent md:border-0 md:p-0 md:mx-0">
@@ -341,53 +352,56 @@ export default function CartPage() {
                 })}
               </div>
 
-              <div className="md:hidden bg-white border border-[#edf1f7] p-5">
-                <OrderSummary
-                  ref={bottomCheckoutRef}
-                  totalItems={totalItems}
-                  subtotal={subtotal}
-                  deliveryCharge={deliveryCharge}
-                  voucherCode={voucherCode}
-                  discountPercent={discountPercent}
-                  refreshCart={loadCart}
-                  vatAmount={vatAmount}
-                  totalAmount={totalAmount}
-                  disabled={!canCheckout}
-                  actionLabel="Go to checkout"
-                  onAction={() => navigate("/checkout")}
-                  showDeliveryMessage
-                  showMinimumOrderMessage
-                />
+              <div className="lg:hidden bg-white border border-[#edf1f7] p-5">
+              <OrderSummary
+                totalItems={totalItems}
+                subtotal={subtotal}
+                deliveryCharge={deliveryCharge}
+                voucherCode={voucherCode}
+                discountPercent={discountPercent}
+                refreshCart={loadCart}
+                disabled={!canCheckout}
+                actionLabel="Go to checkout"
+                onAction={handleCheckout}
+                showAction={false}
+                showDeliveryMessage
+                showMinimumOrderMessage
+              />
               </div>
             </div>
 
             <aside className="hidden lg:block">
               <div className="sticky top-24 space-y-4">
-              <div className="border border-[#edf1f7] p-5 shadow-sm bg-white">
-                  <OrderSummary
-                    totalItems={totalItems}
-                    subtotal={subtotal}
-                    deliveryCharge={deliveryCharge}
-                    vatAmount={vatAmount}
-                    voucherCode={voucherCode}
-                    discountPercent={discountPercent}
-                    refreshCart={loadCart}
-                    totalAmount={totalAmount}
-                    disabled={!canCheckout}
-                    actionLabel="Go to checkout"
-                    onAction={() => navigate("/checkout")}
-                    showDeliveryMessage
-                    showMinimumOrderMessage
-                  />
+                <div className="border border-[#edf1f7] bg-white p-5 shadow-sm">
+                <OrderSummary
+                totalItems={totalItems}
+                subtotal={subtotal}
+                deliveryCharge={deliveryCharge}
+                voucherCode={voucherCode}
+                discountPercent={discountPercent}
+                refreshCart={loadCart}
+                disabled={!canCheckout}
+                actionLabel="Go to checkout"
+                onAction={handleCheckout}
+                showAction
+                showDeliveryMessage
+                showMinimumOrderMessage
+              />
                 </div>
 
-                <div className="border border-[#edf1f7] p-4 gap-3 text-gray-700 bg-white flex">
-                <ShieldCheck size={22} className="text-black" />
+                <div className="flex gap-3 border border-[#edf1f7] bg-white p-4 text-gray-700">
+                  <ShieldCheck
+                    size={22}
+                    className="text-black"
+                  />
 
                   <div>
-                    <p className="font-bold text-sm">Secure checkout</p>
+                    <p className="text-sm font-bold">
+                      Secure checkout
+                    </p>
+
                     <p className="text-xs">
-                      Your order request is safely submitted.
+                      Your payment is securely processed.
                     </p>
                   </div>
                 </div>
@@ -398,7 +412,7 @@ export default function CartPage() {
       </section>
 
       {cartItems.length > 0 && showMobileStickyCheckout && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-xs text-gray-500 font-semibold">
@@ -422,17 +436,18 @@ export default function CartPage() {
           )}
 
           <button
-            onClick={() => navigate("/checkout")}
+            onClick={handleCheckout}
             disabled={!canCheckout}
             className={`w-full h-12 font-bold text-sm transition ${
               canCheckout
-              ? "cursor-pointer bg-[#C62828] text-white hover:bg-[#A61E1E]"
+              ? "cursor-pointer bg-black text-white hover:bg-gray-800"
               : "cursor-not-allowed bg-gray-300 text-gray-500"
             }`}
             type="button"
           >
             Go to checkout
-        </button>
+
+          </button>
         </div>
       )}
     </main>

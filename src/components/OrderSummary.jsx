@@ -3,26 +3,30 @@ import { forwardRef, useState } from "react";
 const API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:9000";
 
-const OrderSummary = forwardRef(function OrderSummary(
-  {
-    totalItems = 0,
-    subtotal = 0,
-    deliveryCharge = 0,
-    voucherCode = "",
-    discountPercent = 0,
-    refreshCart,
-    actionLabel = "Continue",
-    loadingLabel = "Processing...",
-    loading = false,
-    disabled = false,
-    onAction,
-    showDeliveryMessage = false,
-    showMinimumOrderMessage = false,
-    minimumOrder = 20,
-    freeDeliveryThreshold = 40,
-
-    deliveryLabel = "Delivery",
-  },
+  const OrderSummary = forwardRef(function OrderSummary(
+    {
+      totalItems = 0,
+      subtotal = 0,
+      deliveryCharge = 0,
+      voucherCode = "",
+      discountPercent = 0,
+  
+      showDeliveryMessage = false,
+      showMinimumOrderMessage = false,
+  
+      minimumOrder = 20,
+      freeDeliveryThreshold = 40,
+      deliveryLabel = "Delivery",
+  
+      refreshCart,
+  
+      showAction = true,
+      onAction,
+      disabled = false,
+      loading = false,
+      actionLabel = "Proceed to checkout",
+      loadingLabel = "Processing...",
+    },
   ref
 ) {
   const [enteredVoucher, setEnteredVoucher] = useState("");
@@ -124,7 +128,7 @@ const amountForMinimumOrder = Math.max(
   };
 
   return (
-    <>
+    <div ref={ref}>
       <h2 className="mb-5 text-xl font-bold text-[#071b3a]">
         Order summary
       </h2>
@@ -180,7 +184,7 @@ const amountForMinimumOrder = Math.max(
             </div>
           </div>
         ) : (
-          <>
+          <div>
             <div className="flex">
               <input
                 type="text"
@@ -225,7 +229,7 @@ const amountForMinimumOrder = Math.max(
                 {voucherMessage}
               </p>
             )}
-          </>
+          </div>
         )}
       </div>
 
@@ -267,29 +271,36 @@ const amountForMinimumOrder = Math.max(
           </p>
         )}
 
-      <button
-        ref={ref}
-        onClick={handleAction}
-        disabled={disabled || loading}
-        className={`mt-5 h-12 w-full text-sm font-bold transition ${
-          disabled || loading
-          ? "cursor-not-allowed bg-gray-300 text-gray-500"
-          : "cursor-pointer bg-[#C62828] text-white hover:bg-[#A61E1E]"
-        }`}
-        type="button"
-      >
-        {loading ? loadingLabel : actionLabel}
-      </button>
-    </>
-  );
-});
+        {showAction && (
+            <button
+              type="button"
+              onClick={handleAction}
+              disabled={disabled || loading}
+              className={` mt-5 flex h-12 w-full items-center justify-center text-sm font-bold transition ${
+                disabled || loading
+                  ? "cursor-not-allowed bg-gray-300 text-gray-500"
+                  : "cursor-pointer bg-black text-white hover:bg-gray-800"
+              }`}
+            >
+              {loading ? loadingLabel : actionLabel}
+            </button>
+          )}
+      </div>
+    );
+  });
 
 export default OrderSummary;
 
-function SummaryRow({ label, value, green = false }) {
+function SummaryRow({
+  label,
+  value,
+  green = false,
+}) {
   return (
     <div className="mb-3 flex justify-between text-sm text-[#3f4043]">
-      <span className="font-semibold">{label}</span>
+      <span className="font-semibold">
+        {label}
+      </span>
 
       <span
         className={`font-bold ${

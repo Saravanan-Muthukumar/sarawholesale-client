@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route,useLocation, } from "react-router-dom";
 
 // Primary Structural Layouts (Kept static for initial fast render)
 import Header from "./components/Header";
@@ -9,6 +9,7 @@ import CookieBanner from "./components/CookieBanner";
 import WhatsAppChatButton from "./components/WhatsAppButton";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SubscribePopup from "./components/SubscribePopup";
+
 
 // Core Public Pages (Kept static to ensure fast loading times)
 import HomePage from "./pages/HomePage";
@@ -28,6 +29,8 @@ const SubCategoryPage = lazy(() => import("./pages/SubCategoryPage"));
 const ProductListPage = lazy(() => import("./pages/ProductListPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+import ProceedCheckoutPage from "./pages/ProceedCheckoutPage";
+
 
 // Protected Dashboard Layouts & Views
 const AccountLayout = lazy(() => import("./pages/account/AccountLayout"));
@@ -49,6 +52,10 @@ const TermsPage = lazy(() => import("./pages/footer/TermsPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/footer/PrivacyPolicyPage"));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
 import CancellationPolicyPage from "./pages/footer/CancellationPolicyPage";
+import PaymentPage from "./pages/PaymentPage";
+import PaymentReturnPage from "./pages/PaymentReturnPage";
+import PaymentProcessingPage from "./pages/PaymentProcessingPage";
+// import AllProductsPage from "./pages/AllProductsPage";
 
 // Optimized Global Loading Skeleton Indicator
 function RouteLoaderSkeleton() {
@@ -60,10 +67,27 @@ function RouteLoaderSkeleton() {
 }
 
 export default function App() {
+  const location = useLocation();
+
+  const hideMobileCheckoutHeader =
+   location.pathname === "/cart" ||
+    location.pathname === "/checkout" ||
+    location.pathname === "/payment" ||
+    location.pathname === "/payment/return" ||
+    location.pathname === "/payment-processing" ||
+    location.pathname.startsWith("/guest-checkout");
   return (
     <div className="min-h-screen flex flex-col bg-white font-sans antialiased text-gray-900 selection:bg-blue-500 selection:text-white">
       <ScrollToTop />
-      <Header />
+      <div
+          className={
+            hideMobileCheckoutHeader
+              ? "hidden md:contents"
+              : "contents"
+          }
+        >
+          <Header />
+        </div>  
       
       <main className="flex-1">
         {/* Suspense intercepts lazy chunks loading across routing threads */}
@@ -75,6 +99,7 @@ export default function App() {
             <Route path="/category/:slug" element={<SubCategoryPage />} />
             <Route path="/subcategory/:slug" element={<ProductListPage />} />
             <Route path="/search" element={<SearchResultsPage />} />
+            {/* <Route path="/products" element={<AllProductsPage />} /> */}
 
             {/* Authentication Matrix */}
             <Route path="/login" element={<LoginPage />} />
@@ -88,6 +113,14 @@ export default function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-success/:orderNumber" element={<OrderSuccessPage />} />
+            <Route path="/proceed-checkout" element={<ProceedCheckoutPage />}/>
+            <Route path="/checkout" element={<CheckoutPage />}/>
+            <Route path="/payment" element={<PaymentPage />}/>
+            <Route path="/payment/return" element={<PaymentReturnPage />}/>
+            <Route path="/payment-processing" element={<PaymentProcessingPage />}/>
+            
+
+
 
             {/* Secure B2B User Customer Panel */}
             <Route
@@ -148,6 +181,7 @@ export default function App() {
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/cookie-policy" element={<CookiePolicyPage />} />
             <Route path="/cancellation-policy" element={<CancellationPolicyPage />} />
+
           </Routes>
         </Suspense>
       </main>

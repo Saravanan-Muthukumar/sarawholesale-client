@@ -212,25 +212,28 @@ const [discountPercent, setDiscountPercent] = useState(0);
     };
   };
 
-  const requestOrder = async () => {
-    if (!isLoggedIn) {
-      throw new Error("Please login to request order");
+  const requestOrder = async (checkoutData = {}) => {
+    const response = await fetch(
+      `${API_URL}/api/orders/request`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(checkoutData),
+      }
+    );
+  
+    const data = await response.json();
+  
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to submit order"
+      );
     }
   
-    const res = await fetch(`${API_URL}/api/cart/request-order`, {
-      method: "POST",
-      credentials: "include",
-    });
-  
-    const data = await res.json();
-  
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to submit order request");
-    }
-  
-    setCartItems([]);
-    localStorage.removeItem("guestCart");
-  
+    await loadCart();
   
     return data;
   };
