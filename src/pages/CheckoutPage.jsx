@@ -397,7 +397,7 @@ export default function CheckoutPage() {
       };
 
       const response = await fetch(
-        `${API_URL}/api/orders/request`,
+        `${API_URL}/api/cart/request-order`,
         {
           method: "POST",
           credentials: "include",
@@ -425,11 +425,9 @@ export default function CheckoutPage() {
       }
 
       const orderNumber =
+        data.order_request_number ||
         data.order_number ||
         data.orderNumber ||
-        data.order_request_no ||
-        data.order?.order_number ||
-        data.order?.orderNumber ||
         "";
 
       setOrderSuccess({
@@ -1263,7 +1261,7 @@ function OrderSubmittedPage({
           <button
             type="button"
             onClick={() =>
-              navigate("/my-orders")
+              navigate("/account/orders")
             }
             className="h-12 cursor-pointer bg-black px-6 text-sm font-bold text-white hover:bg-gray-800"
           >

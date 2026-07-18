@@ -72,9 +72,9 @@ export default function App() {
   const hideMobileCheckoutHeader =
    location.pathname === "/cart" ||
     location.pathname === "/checkout" ||
-    location.pathname === "/payment" ||
-    location.pathname === "/payment/return" ||
-    location.pathname === "/payment-processing" ||
+    // location.pathname === "/payment" ||
+    // location.pathname === "/payment/return" ||
+    // location.pathname === "/payment-processing" ||
     location.pathname.startsWith("/guest-checkout");
   return (
     <div className="min-h-screen flex flex-col bg-white font-sans antialiased text-gray-900 selection:bg-blue-500 selection:text-white">
@@ -115,9 +115,9 @@ export default function App() {
             <Route path="/order-success/:orderNumber" element={<OrderSuccessPage />} />
             <Route path="/proceed-checkout" element={<ProceedCheckoutPage />}/>
             <Route path="/checkout" element={<CheckoutPage />}/>
-            <Route path="/payment" element={<PaymentPage />}/>
+            {/* <Route path="/payment" element={<PaymentPage />}/>
             <Route path="/payment/return" element={<PaymentReturnPage />}/>
-            <Route path="/payment-processing" element={<PaymentProcessingPage />}/>
+            <Route path="/payment-processing" element={<PaymentProcessingPage />}/> */}
             
 
 
