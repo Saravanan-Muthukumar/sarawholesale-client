@@ -52,10 +52,7 @@ const TermsPage = lazy(() => import("./pages/footer/TermsPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/footer/PrivacyPolicyPage"));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
 import CancellationPolicyPage from "./pages/footer/CancellationPolicyPage";
-import PaymentPage from "./pages/PaymentPage";
-import PaymentReturnPage from "./pages/PaymentReturnPage";
-import PaymentProcessingPage from "./pages/PaymentProcessingPage";
-// import AllProductsPage from "./pages/AllProductsPage";
+
 
 // Optimized Global Loading Skeleton Indicator
 function RouteLoaderSkeleton() {
@@ -72,9 +69,6 @@ export default function App() {
   const hideMobileCheckoutHeader =
    location.pathname === "/cart" ||
     location.pathname === "/checkout" ||
-    // location.pathname === "/payment" ||
-    // location.pathname === "/payment/return" ||
-    // location.pathname === "/payment-processing" ||
     location.pathname.startsWith("/guest-checkout");
   return (
     <div className="min-h-screen flex flex-col bg-white font-sans antialiased text-gray-900 selection:bg-blue-500 selection:text-white">
