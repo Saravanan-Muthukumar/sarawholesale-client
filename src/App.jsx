@@ -30,6 +30,8 @@ const ProductListPage = lazy(() => import("./pages/ProductListPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 import ProceedCheckoutPage from "./pages/ProceedCheckoutPage";
+const NewProductListPage = lazy(() => import("./pages/NewProductListPage"));
+const NewProductPage =lazy(()=>import ("./pages/NewProductPage"));
 
 
 // Protected Dashboard Layouts & Views
@@ -42,6 +44,7 @@ const ChangePasswordPage = lazy(() => import("./pages/account/ChangePasswordPage
 // Administrative Suite
 const AdminCategoriesPage = lazy(() => import("./pages/admin/AdminCategoriesPage"));
 const AdminProductsPage = lazy(() => import("./pages/admin/AdminProductsPage"));
+const AdminProductsMainPage = lazy(() => import("./pages/admin/AdminProductsMainPage"));
 const AdminFlyerBuilderPage = lazy(() => import("./pages/admin/AdminFlyerBuilderPage"));
 
 // Footer Institutional Columns
@@ -94,6 +97,9 @@ export default function App() {
             <Route path="/subcategory/:slug" element={<ProductListPage />} />
             <Route path="/search" element={<SearchResultsPage />} />
             {/* <Route path="/products" element={<AllProductsPage />} /> */}
+            <Route path="/newsubcategory/:slug" element={<NewProductListPage />} />
+            <Route path="/newproduct/:slug" element={<NewProductPage />}
+/>
 
             {/* Authentication Matrix */}
             <Route path="/login" element={<LoginPage />} />
@@ -150,11 +156,19 @@ export default function App() {
                 }
               />
               <Route
-                path="products"
+                path="/admin/products/:productId?"
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
-                    <AdminProductsPage />
-                  </ProtectedRoute>
+                <AdminProductsPage />
+                </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/productsmain/:productId?"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminProductsMainPage />
+                </ProtectedRoute>
                 }
               />
               <Route

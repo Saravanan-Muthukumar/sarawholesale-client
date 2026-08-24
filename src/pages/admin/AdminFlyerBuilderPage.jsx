@@ -1,233 +1,365 @@
 import { useEffect, useMemo, useState } from "react";
-import { Printer, Plus, X } from "lucide-react";
+import {
+  Check,
+  ImageOff,
+  Loader2,
+  Plus,
+  Printer,
+  X,
+} from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:9000";
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:9000";
+
+/*
+Existing endpoints used:
+GET /api/product-main              -> product selection list
+GET /api/product-main/id/:id       -> full product with variants
+*/
 
 export default function AdminFlyerBuilderPage() {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
 
-  const [parentId, setParentId] = useState("");
-  const [subCategoryId, setSubCategoryId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [paperSize, setPaperSize] = useState("a4");
-  const [title, setTitle] = useState("DIY & PAINTING SUPPLIES");
-  const [subtitle, setSubtitle] = useState("Product List for Painting Contractors");
+
+  const [title, setTitle] = useState(
+    "PACKAGING, STATIONERY & TRADE SUPPLIES"
+  );
+
+  const [subtitle, setSubtitle] = useState(
+    "Trade Pricing for Businesses and Contractors"
+  );
+
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [checkedProducts, setCheckedProducts] = useState([]);
 
-  useEffect(() => {
-    fetch(`${API_URL}/api/categories`)
-      .then((res) => res.json())
-      .then((data) => setCategories(Array.isArray(data) ? data : []))
-      .catch(console.error);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [addingProductIds, setAddingProductIds] = useState([]);
+  const [bulkAdding, setBulkAdding] = useState(false);
 
-    fetch(`${API_URL}/api/products`)
-      .then((res) => res.json())
-      .then((data) => setProducts(Array.isArray(data) ? data : []))
-      .catch(console.error);
+  useEffect(() => {
+    loadFlyerData();
   }, []);
 
-  const parentCategories = categories.filter((cat) => !cat.parent_category_id);
+  const loadFlyerData = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-  const subCategories = categories.filter(
-    (cat) => String(cat.parent_category_id) === String(parentId)
-  );
+      const [categoryResponse, productResponse] =
+        await Promise.all([
+          fetch(`${API_URL}/api/categories`, {
+            credentials: "include",
+          }),
 
-  const filteredProducts = products.filter((product) => {
-    if (subCategoryId) {
-      return String(product.category_id) === String(subCategoryId);
+          fetch(`${API_URL}/api/product-main`, {
+            credentials: "include",
+          }),
+        ]);
+
+      if (!categoryResponse.ok) {
+        throw new Error("Unable to load categories.");
+      }
+
+      if (!productResponse.ok) {
+        throw new Error(
+          "Unable to load products from product-main route."
+        );
+      }
+
+      const categoryData = await categoryResponse.json();
+      const productData = await productResponse.json();
+
+      const safeCategories = Array.isArray(categoryData)
+        ? categoryData
+        : categoryData.categories || [];
+
+      const rawProducts = Array.isArray(productData)
+        ? productData
+        : productData.products || [];
+
+      const normalizedProducts = rawProducts.map(
+        normalizeProduct
+      );
+
+      setCategories(safeCategories);
+      setProducts(normalizedProducts);
+    } catch (loadError) {
+      console.error("Flyer data loading error:", loadError);
+
+      setError(
+        loadError.message ||
+          "Unable to load flyer products."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProducts = useMemo(() => {
+    if (!categoryId) {
+      return products;
     }
 
-    if (parentId) {
-      const childIds = subCategories.map((cat) => cat.category_id);
-      return childIds.includes(product.category_id);
+    return products.filter(
+      (product) =>
+        String(product.category_id) === String(categoryId)
+    );
+  }, [products, categoryId]);
+
+  const loadFullProduct = async (productId) => {
+    const response = await fetch(
+      `${API_URL}/api/product-main/id/${productId}`,
+      {
+        credentials: "include",
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Unable to load product details."
+      );
     }
 
-    return true;
-  });
+    return normalizeProduct(data);
+  };
 
-  const addProduct = (product) => {
-    if (selectedProducts.some((item) => item.product_id === product.product_id)) {
+  const addProduct = async (product) => {
+    const productId = Number(product.product_id);
+
+    const alreadyAdded = selectedProducts.some(
+      (item) => Number(item.product_id) === productId
+    );
+
+    if (
+      alreadyAdded ||
+      addingProductIds.includes(productId)
+    ) {
       return;
     }
 
-    setSelectedProducts((prev) => [...prev, product]);
+    try {
+      setError("");
+      setAddingProductIds((current) => [
+        ...current,
+        productId,
+      ]);
+
+      const fullProduct = await loadFullProduct(productId);
+
+      setSelectedProducts((currentProducts) => {
+        const exists = currentProducts.some(
+          (item) =>
+            Number(item.product_id) === productId
+        );
+
+        return exists
+          ? currentProducts
+          : [...currentProducts, fullProduct];
+      });
+    } catch (addError) {
+      console.error("Add flyer product error:", addError);
+      setError(
+        addError.message ||
+          "Unable to add product to the flyer."
+      );
+    } finally {
+      setAddingProductIds((current) =>
+        current.filter((id) => id !== productId)
+      );
+    }
+  };
+
+  const addProducts = async (productsToAdd) => {
+    const existingIds = new Set(
+      selectedProducts.map((product) =>
+        Number(product.product_id)
+      )
+    );
+
+    const uniqueProducts = productsToAdd.filter(
+      (product) =>
+        !existingIds.has(Number(product.product_id))
+    );
+
+    if (!uniqueProducts.length) return;
+
+    const productIds = uniqueProducts.map((product) =>
+      Number(product.product_id)
+    );
+
+    try {
+      setBulkAdding(true);
+      setError("");
+      setAddingProductIds((current) => [
+        ...new Set([...current, ...productIds]),
+      ]);
+
+      const results = await Promise.allSettled(
+        productIds.map(loadFullProduct)
+      );
+
+      const loadedProducts = results
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+
+      const failedCount =
+        results.length - loadedProducts.length;
+
+      setSelectedProducts((currentProducts) => {
+        const currentIds = new Set(
+          currentProducts.map((product) =>
+            Number(product.product_id)
+          )
+        );
+
+        return [
+          ...currentProducts,
+          ...loadedProducts.filter(
+            (product) =>
+              !currentIds.has(Number(product.product_id))
+          ),
+        ];
+      });
+
+      if (failedCount > 0) {
+        setError(
+          `${failedCount} product${
+            failedCount === 1 ? "" : "s"
+          } could not be added.`
+        );
+      }
+    } catch (addError) {
+      console.error("Add flyer products error:", addError);
+      setError("Unable to add the selected products.");
+    } finally {
+      setAddingProductIds((current) =>
+        current.filter((id) => !productIds.includes(id))
+      );
+      setBulkAdding(false);
+    }
+  };
+
+  const addCheckedProducts = async () => {
+    const productsToAdd = filteredProducts.filter(
+      (product) =>
+        checkedProducts.includes(product.product_id)
+    );
+
+    await addProducts(productsToAdd);
+  };
+
+  const addAllFilteredProducts = async () => {
+    await addProducts(filteredProducts);
   };
 
   const removeProduct = (productId) => {
-    setSelectedProducts((prev) =>
-      prev.filter((item) => item.product_id !== productId)
+    setSelectedProducts((currentProducts) =>
+      currentProducts.filter(
+        (product) =>
+          Number(product.product_id) !==
+          Number(productId)
+      )
     );
-  };
-
-  const getImage = (imageUrl) => {
-    if (!imageUrl) return "";
-    return imageUrl.startsWith("http") ? imageUrl : `${API_URL}${imageUrl}`;
-  };
-
-  const getFromPrice = (product) => {
-    const prices = product.price_breaks || [];
-    if (!prices.length) return "Call";
-
-    const lowest = prices.reduce((min, item) => {
-      const price = Number(item.price || 0);
-      return price < min ? price : min;
-    }, Number(prices[0].price || 0));
-
-    return `£${lowest.toFixed(2)}`;
-  };
-
-  const getPriceSlabText = (product) => {
-    if (!product.price_breaks?.length) return "Call for price";
-
-    return product.price_breaks
-      .map((tier) => {
-        const qty = tier.max_qty
-          ? `${tier.min_qty}-${tier.max_qty}`
-          : `${tier.min_qty}+`;
-        return `${qty}: £${Number(tier.price).toFixed(2)}`;
-      })
-      .join(" | ");
-  };
-
-  const printFlyer = () => {
-    window.print();
   };
 
   const toggleCheckedProduct = (productId) => {
-    setCheckedProducts((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
+    setCheckedProducts((currentIds) =>
+      currentIds.includes(productId)
+        ? currentIds.filter((id) => id !== productId)
+        : [...currentIds, productId]
     );
   };
-  
-  const addCheckedProducts = () => {
-    const productsToAdd = filteredProducts.filter((product) =>
-      checkedProducts.includes(product.product_id)
+
+  const checkAllProducts = () => {
+    setCheckedProducts(
+      filteredProducts.map(
+        (product) => product.product_id
+      )
     );
-  
-    setSelectedProducts((prev) => {
-      const existingIds = prev.map((item) => item.product_id);
-  
-      const newItems = productsToAdd.filter(
-        (item) => !existingIds.includes(item.product_id)
-      );
-  
-      return [...prev, ...newItems];
-    });
   };
-  
-  const addAllFilteredProducts = () => {
-    setSelectedProducts((prev) => {
-      const existingIds = prev.map((item) => item.product_id);
-  
-      const newItems = filteredProducts.filter(
-        (item) => !existingIds.includes(item.product_id)
-      );
-  
-      return [...prev, ...newItems];
-    });
-  };
-  
-  const clearSelectedProducts = () => {
-    setSelectedProducts([]);
+
+  const clearAllProducts = () => {
     setCheckedProducts([]);
+    setSelectedProducts([]);
   };
 
   return (
-    <main className="bg-[#f6f8fb] min-h-screen p-4">
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
+    <main className="min-h-screen bg-[#f4f6f8] p-4">
+      <FlyerPrintStyles />
 
-          #flyer-preview, #flyer-preview * {
-            visibility: visible;
-          }
+      <section className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[370px_1fr]">
+        <aside className="no-print h-fit rounded-2xl border border-gray-200 bg-white p-4">
+          <div className="mb-5">
+            <h1 className="text-xl font-black text-[#071b3a]">
+              Product Flyer Builder
+            </h1>
 
-          #flyer-preview {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            box-shadow: none !important;
-            border: none !important;
-          }
-
-          .no-print {
-            display: none !important;
-          }
-
-          @page {
-            margin: 8mm;
-          }
-        }
-      `}</style>
-
-      <section className="max-w-7xl mx-auto grid lg:grid-cols-[380px_1fr] gap-5">
-        <div className="no-print bg-white border border-gray-200 rounded-2xl p-4 h-fit">
-          <h1 className="text-xl font-bold text-[#071b3a] mb-1">
-            Flyer Builder
-          </h1>
-          <p className="text-xs text-gray-500 mb-4">
-            Choose category, size, products and print a trade flyer.
-          </p>
+            <p className="mt-1 text-xs text-gray-500">
+              Select products and print or save the flyer as a
+              PDF.
+            </p>
+          </div>
 
           <div className="space-y-3">
-            <Input label="Flyer Title" value={title} onChange={setTitle} />
-            <Input label="Subtitle" value={subtitle} onChange={setSubtitle} />
+            <FlyerInput
+              label="Flyer title"
+              value={title}
+              onChange={setTitle}
+            />
+
+            <FlyerInput
+              label="Subtitle"
+              value={subtitle}
+              onChange={setSubtitle}
+            />
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Flyer Size
+              <label className="mb-1 block text-xs font-bold text-gray-700">
+                Flyer size
               </label>
+
               <select
                 value={paperSize}
-                onChange={(e) => setPaperSize(e.target.value)}
-                className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm"
+                onChange={(event) =>
+                  setPaperSize(event.target.value)
+                }
+                className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-red-500"
               >
-                <option value="a4">A4 Full Page</option>
-                <option value="a5">A5 Small Flyer</option>
-                <option value="small">Small Handout</option>
+                <option value="a4">A4 full page</option>
+                <option value="a5">A5 flyer</option>
+                <option value="small">
+                  Small handout
+                </option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Main Category
+              <label className="mb-1 block text-xs font-bold text-gray-700">
+                Category
               </label>
+
               <select
-                value={parentId}
-                onChange={(e) => {
-                  setParentId(e.target.value);
-                  setSubCategoryId("");
+                value={categoryId}
+                onChange={(event) => {
+                  setCategoryId(event.target.value);
+                  setCheckedProducts([]);
                 }}
-                className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm"
+                className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-red-500"
               >
-                <option value="">All Categories</option>
-                {parentCategories.map((cat) => (
-                  <option key={cat.category_id} value={cat.category_id}>
-                    {cat.category_name}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <option value="">All categories</option>
 
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Sub Category
-              </label>
-              <select
-                value={subCategoryId}
-                onChange={(e) => setSubCategoryId(e.target.value)}
-                className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm"
-              >
-                <option value="">All Sub Categories</option>
-                {subCategories.map((cat) => (
-                  <option key={cat.category_id} value={cat.category_id}>
-                    {cat.category_name}
+                {categories.map((category) => (
+                  <option
+                    key={category.category_id}
+                    value={category.category_id}
+                  >
+                    {category.category_name}
                   </option>
                 ))}
               </select>
@@ -235,135 +367,131 @@ export default function AdminFlyerBuilderPage() {
 
             <button
               type="button"
-              onClick={printFlyer}
-              className="w-full h-10 bg-green-700 text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-green-800"
+              onClick={() => window.print()}
+              disabled={selectedProducts.length === 0}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-green-700 text-sm font-bold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
-              <Printer size={16} />
+              <Printer size={17} />
               Print / Save PDF
             </button>
           </div>
 
-          <div className="border-t border-gray-100 mt-5 pt-4">
-  <div className="flex items-center justify-between mb-2">
-    <h2 className="text-sm font-bold text-[#071b3a]">
-      Select Products
-    </h2>
+          <div className="mt-5 border-t border-gray-100 pt-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-black text-[#071b3a]">
+                Select products
+              </h2>
 
-    <span className="text-[11px] text-gray-400">
-      {selectedProducts.length} selected
-    </span>
-  </div>
+              <span className="text-[11px] text-gray-500">
+                {selectedProducts.length} selected
+              </span>
+            </div>
 
-  <div className="grid grid-cols-2 gap-2 mb-3">
-    <button
-      type="button"
-      onClick={addCheckedProducts}
-      className="h-9 rounded-lg bg-green-700 text-white text-xs font-semibold hover:bg-green-800"
-    >
-      Add Checked
-    </button>
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              <SmallActionButton
+                onClick={addCheckedProducts}
+                disabled={bulkAdding || checkedProducts.length === 0}
+                primary
+              >
+                Add Checked
+              </SmallActionButton>
 
-    <button
-      type="button"
-      onClick={addAllFilteredProducts}
-      className="h-9 rounded-lg border border-green-200 text-green-700 text-xs font-semibold hover:bg-green-50"
-    >
-      Add All
-    </button>
+              <SmallActionButton
+                onClick={addAllFilteredProducts}
+                disabled={bulkAdding || filteredProducts.length === 0}
+              >
+                Add All
+              </SmallActionButton>
 
-    <button
-      type="button"
-      onClick={() =>
-        setCheckedProducts(filteredProducts.map((p) => p.product_id))
-      }
-      className="h-9 rounded-lg border border-gray-200 text-[#071b3a] text-xs font-semibold hover:bg-gray-50"
-    >
-      Check All
-    </button>
+              <SmallActionButton
+                onClick={checkAllProducts}
+                disabled={bulkAdding || filteredProducts.length === 0}
+              >
+                Check All
+              </SmallActionButton>
 
-    <button
-      type="button"
-      onClick={clearSelectedProducts}
-      className="h-9 rounded-lg border border-red-200 text-red-500 text-xs font-semibold hover:bg-red-50"
-    >
-      Clear
-    </button>
-  </div>
+              <SmallActionButton
+                onClick={clearAllProducts}
+                disabled={bulkAdding}
+                danger
+              >
+                Clear
+              </SmallActionButton>
+            </div>
 
-  <div className="max-h-105 overflow-y-auto space-y-2 pr-1">
-    {filteredProducts.map((product) => {
-      const checked = checkedProducts.includes(product.product_id);
-      const alreadyAdded = selectedProducts.some(
-        (item) => item.product_id === product.product_id
-      );
-
-      return (
-        <div
-          key={product.product_id}
-          className={`border rounded-xl p-2 flex items-center gap-3 ${
-            alreadyAdded
-              ? "border-green-200 bg-green-50"
-              : "border-gray-200 bg-white hover:border-green-300"
-          }`}
-        >
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={() => toggleCheckedProduct(product.product_id)}
-            className="h-4 w-4 accent-green-700"
-          />
-
-          <button
-            type="button"
-            onClick={() => addProduct(product)}
-            className="flex-1 text-left flex items-center gap-3"
-          >
-            <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
-              {product.image_url ? (
-                <img
-                  src={getImage(product.image_url)}
-                  alt={product.product_name}
-                  className="max-w-full max-h-full object-contain"
+            {loading ? (
+              <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
+                <Loader2
+                  size={18}
+                  className="animate-spin"
                 />
-              ) : null}
-            </div>
+                Loading products...
+              </div>
+            ) : error ? (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                <p className="text-xs text-red-700">
+                  {error}
+                </p>
 
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-[#071b3a] line-clamp-2">
-                {product.product_name}
-              </p>
-              <p className="text-[11px] text-gray-400">
-                From {getFromPrice(product)}
-              </p>
-            </div>
-          </button>
+                <button
+                  type="button"
+                  onClick={loadFlyerData}
+                  className="mt-2 text-xs font-bold text-red-700 underline"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : (
+              <div className="max-h-[620px] space-y-2 overflow-y-auto pr-1">
+                {filteredProducts.map((product) => {
+                  const checked =
+                    checkedProducts.includes(
+                      product.product_id
+                    );
 
-          {alreadyAdded ? (
-            <span className="text-[10px] font-semibold text-green-700">
-              Added
-            </span>
-          ) : (
-            <Plus size={15} className="text-green-700" />
-          )}
-        </div>
-      );
-    })}
-  </div>
-</div>         
-        </div>
+                  const alreadyAdded =
+                    selectedProducts.some(
+                      (item) =>
+                        Number(item.product_id) ===
+                        Number(product.product_id)
+                    );
 
-        <div>
-          <FlyerPreview
-            paperSize={paperSize}
-            title={title}
-            subtitle={subtitle}
-            products={selectedProducts}
-            removeProduct={removeProduct}
-            getImage={getImage}
-            getFromPrice={getFromPrice}
-            getPriceSlabText={getPriceSlabText}
-          />
-        </div>
+                  return (
+                    <ProductSelectorCard
+                      key={product.product_id}
+                      product={product}
+                      checked={checked}
+                      alreadyAdded={alreadyAdded}
+                      adding={addingProductIds.includes(
+                        Number(product.product_id)
+                      )}
+                      onToggle={() =>
+                        toggleCheckedProduct(
+                          product.product_id
+                        )
+                      }
+                      onAdd={() => addProduct(product)}
+                    />
+                  );
+                })}
+
+                {filteredProducts.length === 0 && (
+                  <p className="py-8 text-center text-xs text-gray-400">
+                    No products found.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </aside>
+
+        <FlyerPreview
+          paperSize={paperSize}
+          title={title}
+          subtitle={subtitle}
+          products={selectedProducts}
+          onRemove={removeProduct}
+        />
       </section>
     </main>
   );
@@ -374,174 +502,790 @@ function FlyerPreview({
   title,
   subtitle,
   products,
-  removeProduct,
-  getImage,
-  getFromPrice,
-  getPriceSlabText,
+  onRemove,
 }) {
-  const sizeClass =
+  const paperClass =
     paperSize === "a4"
       ? "max-w-[794px] min-h-[1123px]"
       : paperSize === "a5"
-      ? "max-w-[560px] min-h-[794px]"
-      : "max-w-[520px] min-h-[650px]";
+        ? "max-w-[560px] min-h-[794px]"
+        : "max-w-[520px] min-h-[650px]";
 
   return (
-    <div
+    <section
       id="flyer-preview"
-      className={`${sizeClass} mx-auto bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden`}
+      className={`${paperClass} mx-auto overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm`}
     >
-      <div className="bg-white p-6 border-b-4 border-[black]">
-        <div className="flex justify-between gap-4">
-        <div>
-                <img
-                    src="/logo.png"
-                    alt="SARA Wholesale"
-                    className="w-40 h-auto object-contain"
-                />
-                <p className="text-[11px] font-semibold text-[#071b3a] mt-2">
-                    Quality Supplies. Trade Prices.
-                </p>
-                </div>
+      <FlyerHeader title={title} subtitle={subtitle} />
 
-          <div className="text-right">
-            <h2 className="text-2xl font-black text-[red] uppercase">
-              {title}
-            </h2>
-            <p className="text-sm font-bold text-gray-700 uppercase mt-1">
-              {subtitle}
-            </p>
-
-            <div className="text-xs text-[#071b3a] mt-3 space-y-1">
-              <p>07424 715150</p>
-              <p>sales@sarawholesale.co.uk</p>
-              <p>www.sarawholesale.co.uk</p>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-4 bg-black text-center text-[10px] font-black uppercase tracking-wide text-white">
+        <div className="py-2.5">Trade Prices</div>
+        <div className="py-2.5">Bulk Discounts</div>
+        <div className="py-2.5">Same Day Slough</div>
+        <div className="py-2.5">Next Day UK</div>
       </div>
 
-      <div className="grid grid-cols-4 bg-[black] text-white text-xs font-bold text-center">
-        <div className="py-3">TRADE PRICES</div>
-        <div className="py-3">BULK DISCOUNTS</div>
-        <div className="py-3">SAME DAY SLOUGH</div>
-        <div className="py-3">NEXT DAY UK</div>
-      </div>
+      <div
+  className={
+    paperSize === "a4"
+      ? "grid grid-cols-2 gap-3 p-4"
+      : "space-y-3 p-4"
+  }
+>
+  {products.length > 0 ? (
+    products.map((product) => (
+      <FlyerProductCard
+        key={product.product_id}
+        product={product}
+        onRemove={onRemove}
+      />
+    ))
+  ) : (
+    <div
+      className={`flex items-center justify-center rounded-xl border-2 border-dashed border-gray-200 ${
+        paperSize === "a4"
+          ? "col-span-2 min-h-[500px]"
+          : "min-h-[500px]"
+      }`}
+    >
+      <p className="text-sm text-gray-400">
+        Select products to preview the flyer.
+      </p>
+    </div>
+  )}
+</div>
 
-      <div className="p-5">
-        <table className="w-full text-xs border border-gray-200">
-          <thead>
-            <tr className="bg-[black] text-white">
-              <th className="p-2 text-left w-17.5">Image</th>
-              <th className="p-2 text-left">Product</th>
-              <th className="p-2 text-left">Price Slabs</th>
-              <th className="p-2 text-right w-22.5">From</th>
-              <th className="no-print p-2 w-10"></th>
-            </tr>
-          </thead>
+      <FlyerFooter />
+    </section>
+  );
+}
 
-          <tbody>
-            {products.length > 0 ? (
-              products.map((product) => (
-                <tr key={product.product_id} className="border-t border-gray-200">
-                  <td className="p-2">
-                    <div className="w-14 h-14 bg-gray-50 rounded-lg flex items-center justify-center">
-                      {product.image_url ? (
-                        <img
-                          src={getImage(product.image_url)}
-                          alt={product.product_name}
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      ) : null}
-                    </div>
-                  </td>
+function FlyerProductCard({ product, onRemove }) {
+  const variants = product.variants || [];
 
-                  <td className="p-2">
-                    <p className="font-bold text-[#071b3a]">
-                      {product.product_name}
-                    </p>
-                    <p className="text-[10px] text-gray-500 mt-1">
-                      SKU: {product.sku || "N/A"}
-                    </p>
-                  </td>
+  const samePrices =
+    variants.length > 0 &&
+    variantsHaveSamePriceTiers(variants);
 
-                  <td className="p-2 text-[#071b3a]/70">
-                    {getPriceSlabText(product)}
-                  </td>
+  const commonTiers =
+    variants.length > 0
+      ? getVariantPriceTiers(variants[0])
+      : [];
 
-                  <td className="p-2 text-right font-black text-gray-700 text-base">
-                    {getFromPrice(product)}
-                  </td>
+  return (
+    <article className="relative min-w-0 break-inside-avoid overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <button
+        type="button"
+        onClick={() => onRemove(product.product_id)}
+        className="no-print absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-red-200 bg-white text-red-500 shadow-sm hover:bg-red-50"
+        aria-label={`Remove ${product.product_name}`}
+      >
+        <X size={14} />
+      </button>
 
-                  <td className="no-print p-2 text-right">
-                    <button
-                      type="button"
-                      onClick={() => removeProduct(product.product_id)}
-                      className="h-7 w-7 rounded-full border border-red-200 text-red-500 inline-flex items-center justify-center"
-                    >
-                      <X size={14} />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="p-8 text-center text-gray-400">
-                  Select products from the left to preview flyer.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="p-2.5">
+        {/* Product heading */}
+        <div className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] items-center gap-2 pr-8">
+          <MainProductImage product={product} />
 
-        <div className="grid grid-cols-2 gap-4 mt-5">
-          <div className="border border-red-100 bg-red-50 rounded-xl p-4">
-            <h3 className="text-sm font-black text-gray-700 mb-2">
-              WHY CONTRACTORS CHOOSE US
+          <div className="min-w-0">
+            <h3 className="break-words text-[12px] font-black leading-[1.15] text-[#071b3a]">
+              {product.product_name}
             </h3>
-            <div className="grid grid-cols-2 gap-2 text-xs text-[#071b3a]">
-              <p>✓ Trade Pricing</p>
-              <p>✓ Bulk Discounts</p>
-              <p>✓ Same Day Slough</p>
-              <p>✓ Next Day UK</p>
-              <p>✓ Credit Accounts</p>
-              <p>✓ UK Stock</p>
-            </div>
-          </div>
 
-          <div className="border border-[#dbe7f5] bg-[#f8fafc] rounded-xl p-4 text-center">
-            <p className="text-sm font-black text-[#071b3a]">
-              NEED A BETTER PRICE?
-            </p>
-            <p className="text-xs text-[#071b3a]/60 mt-1">
-              Call us today for trade and bulk orders
-            </p>
-            <p className="text-2xl font-black text-gray-700 mt-2">
-              07424 715150
-            </p>
+            {product.brand && (
+              <p className="mt-1 text-[8px] font-semibold text-gray-400">
+                {product.brand}
+              </p>
+            )}
           </div>
         </div>
 
-        <p className="text-[10px] text-center text-gray-500 mt-5">
-          All prices are trade prices and exclude VAT. Prices subject to change
-          without notice.
-        </p>
+        {/* Full-width pricing section */}
+        <div className="mt-2 min-w-0">
+          {variants.length === 0 ? (
+            <p className="py-2 text-[10px] font-semibold text-red-600">
+              Contact us for price
+            </p>
+          ) : samePrices ? (
+            <SamePriceVariantLayout
+              variants={variants}
+              tiers={commonTiers}
+            />
+          ) : (
+            <DifferentPriceVariantLayout
+              variants={variants}
+            />
+          )}
+        </div>
       </div>
+
+      <div className="grid grid-cols-4 border-t border-gray-100 bg-gray-50 px-2 py-1.5 text-center text-[7px] font-bold text-gray-600">
+        <span>UK Stock</span>
+        <span>Trade Price</span>
+        <span>Bulk Orders</span>
+        <span>Excluding VAT</span>
+      </div>
+    </article>
+  );
+}
+
+function SamePriceVariantLayout({ variants, tiers }) {
+  return (
+    <div className="mt-2">
+      <p className="mb-1 text-[9px] font-black uppercase tracking-wide text-gray-500">
+        Available variants
+      </p>
+
+      <div className="flex flex-wrap gap-1">
+        {variants.map((variant) => (
+          <span
+            key={variant.variant_id}
+            className="rounded border border-gray-300 bg-white px-2 py-1 text-[9px] font-bold text-[#071b3a]"
+          >
+            {getVariantLabel(variant)}
+          </span>
+        ))}
+      </div>
+
+      <HorizontalPriceTiers tiers={tiers} />
     </div>
   );
 }
 
-function Input({ label, value, onChange }) {
+function DifferentPriceVariantLayout({ variants }) {
+  const allTierQuantities = getAllTierQuantities(variants);
+
+  return (
+    <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+      <div
+        className="grid bg-black text-[8px] font-black uppercase text-white"
+        style={{
+          gridTemplateColumns: `minmax(100px, 1.4fr) repeat(${allTierQuantities.length}, minmax(50px, 0.75fr))`,
+        }}
+      >
+        <div className="px-2 py-1.5">Variant</div>
+
+        {allTierQuantities.map((quantity) => (
+          <div
+            key={quantity}
+            className="border-l border-white/20 px-1 py-1.5 text-center"
+          >
+            {formatUnits(quantity)}
+          </div>
+        ))}
+      </div>
+
+      {variants.map((variant, index) => {
+        const tierMap = new Map(
+          getVariantPriceTiers(variant).map((tier) => [
+            Number(tier.qty),
+            tier.price,
+          ])
+        );
+
+        return (
+          <div
+            key={variant.variant_id}
+            className={`grid text-[9px] ${
+              index > 0
+                ? "border-t border-gray-200"
+                : ""
+            }`}
+            style={{
+              gridTemplateColumns: `minmax(100px, 1.4fr) repeat(${allTierQuantities.length}, minmax(50px, 0.75fr))`,
+            }}
+          >
+            <div className="px-2 py-1.5 font-bold text-[#071b3a]">
+              {getVariantLabel(variant)}
+            </div>
+
+            {allTierQuantities.map((quantity) => {
+              const price = tierMap.get(Number(quantity));
+
+              return (
+                <div
+                  key={quantity}
+                  className="border-l border-gray-200 px-1 py-1.5 text-center font-black text-gray-800"
+                >
+                  {price !== undefined
+                    ? formatPrice(price)
+                    : "—"}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function HorizontalPriceTiers({ tiers }) {
+  if (!tiers.length) {
+    return (
+      <p className="mt-2 text-[10px] font-bold text-red-600">
+        Contact us for price
+      </p>
+    );
+  }
+
+  return (
+    <div
+      className="mt-2 grid overflow-hidden rounded-lg border border-gray-200"
+      style={{
+        gridTemplateColumns: `repeat(${tiers.length}, minmax(0, 1fr))`,
+      }}
+    >
+      {tiers.map((tier, index) => {
+        const isBestPrice = index === tiers.length - 1;
+
+        return (
+          <div
+            key={`${tier.qty}-${tier.price}`}
+            className={`px-1.5 py-1.5 text-center ${
+              index > 0
+                ? "border-l border-gray-200"
+                : ""
+            } ${
+              isBestPrice
+                ? "bg-green-50"
+                : "bg-gray-50"
+            }`}
+          >
+            <p className="text-[8px] font-bold uppercase text-gray-500">
+              {formatUnits(tier.qty)}
+            </p>
+
+            <p
+              className={`text-[12px] font-black ${
+                isBestPrice
+                  ? "text-green-700"
+                  : "text-[#071b3a]"
+              }`}
+            >
+              {formatPrice(tier.price)}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ProductSelectorCard({
+  product,
+  checked,
+  alreadyAdded,
+  adding,
+  onToggle,
+  onAdd,
+}) {
+  const lowestPrice = getProductLowestPrice(product);
+
+  return (
+    <div
+      className={`flex items-center gap-2 rounded-xl border p-2 ${
+        alreadyAdded
+          ? "border-green-200 bg-green-50"
+          : "border-gray-200 bg-white hover:border-green-300"
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onToggle}
+        className="h-4 w-4 shrink-0 accent-green-700"
+      />
+
+      <button
+        type="button"
+        onClick={onAdd}
+        disabled={alreadyAdded || adding}
+        className="flex min-w-0 flex-1 items-center gap-2 text-left disabled:cursor-not-allowed disabled:opacity-70"
+      >
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-50">
+          {product.image_url ? (
+            <img
+              src={getImageUrl(product.image_url)}
+              alt={product.product_name}
+              className="h-full w-full object-contain"
+            />
+          ) : (
+            <ImageOff
+              size={17}
+              className="text-gray-300"
+            />
+          )}
+        </div>
+
+        <div className="min-w-0">
+          <p className="line-clamp-2 text-xs font-bold text-[#071b3a]">
+            {product.product_name}
+          </p>
+
+          <p className="mt-0.5 text-[10px] text-gray-500">
+            {Number(product.variant_count || product.variants.length || 0)} variant
+            {Number(product.variant_count || product.variants.length || 0) === 1 ? "" : "s"}
+            {lowestPrice !== null
+              ? ` · From ${formatPrice(lowestPrice)}`
+              : ""}
+          </p>
+        </div>
+      </button>
+
+      {adding ? (
+        <Loader2
+          size={16}
+          className="shrink-0 animate-spin text-green-700"
+        />
+      ) : alreadyAdded ? (
+        <Check
+          size={16}
+          className="shrink-0 text-green-700"
+        />
+      ) : (
+        <Plus
+          size={16}
+          className="shrink-0 text-green-700"
+        />
+      )}
+    </div>
+  );
+}
+
+function MainProductImage({ product }) {
+  return (
+    <div className="flex h-[68px] w-[72px] items-center justify-center overflow-hidden rounded-lg bg-gray-50 p-1.5">
+      {product.image_url ? (
+        <img
+          src={getImageUrl(product.image_url)}
+          alt={product.product_name}
+          className="max-h-full max-w-full object-contain"
+        />
+      ) : (
+        <div className="text-center text-gray-300">
+          <ImageOff size={19} className="mx-auto" />
+
+          <p className="mt-1 text-[6px] font-bold">
+            No image
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FlyerHeader({ title, subtitle }) {
+  return (
+    <header className="border-b-4 border-red-600 bg-white p-5">
+      <div className="flex items-start justify-between gap-5">
+        <div>
+          <img
+            src="/logo.png"
+            alt="SARA Wholesale"
+            className="h-auto w-36 object-contain"
+          />
+
+          <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-[#071b3a]">
+            Quality Supplies. Trade Prices.
+          </p>
+        </div>
+
+        <div className="max-w-[500px] text-right">
+          <h2 className="text-xl font-black uppercase leading-tight text-red-600">
+            {title}
+          </h2>
+
+          <p className="mt-1 text-[11px] font-bold uppercase text-gray-700">
+            {subtitle}
+          </p>
+
+          <div className="mt-2 text-[9px] font-semibold leading-relaxed text-[#071b3a]">
+            <p>07424 715150</p>
+            <p>sales@sarawholesale.co.uk</p>
+            <p>www.sarawholesale.co.uk</p>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function FlyerFooter() {
+  return (
+    <footer className="px-4 pb-4">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-xl border border-red-100 bg-red-50 p-3">
+          <h3 className="text-[11px] font-black uppercase text-red-700">
+            Why businesses choose us
+          </h3>
+
+          <div className="mt-2 grid grid-cols-2 gap-1 text-[9px] font-semibold text-[#071b3a]">
+            <p>✓ Trade pricing</p>
+            <p>✓ Bulk discounts</p>
+            <p>✓ Same-day Slough</p>
+            <p>✓ Next-day UK</p>
+            <p>✓ Credit accounts</p>
+            <p>✓ UK-held stock</p>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-center">
+          <p className="text-[11px] font-black uppercase text-[#071b3a]">
+            Need a better bulk price?
+          </p>
+
+          <p className="mt-1 text-[9px] text-gray-500">
+            Call our sales team for large quantities.
+          </p>
+
+          <p className="mt-1 text-xl font-black text-red-600">
+            07424 715150
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-3 text-center text-[8px] text-gray-500">
+        Prices exclude VAT and are subject to availability and
+        change without notice.
+      </p>
+    </footer>
+  );
+}
+
+function FlyerInput({ label, value, onChange }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-700 mb-1">
+      <label className="mb-1 block text-xs font-bold text-gray-700">
         {label}
       </label>
+
       <input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm"
+        onChange={(event) => onChange(event.target.value)}
+        className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm outline-none focus:border-red-500"
       />
     </div>
   );
+}
+
+function SmallActionButton({
+  children,
+  onClick,
+  primary = false,
+  danger = false,
+  disabled = false,
+}) {
+  let className =
+    "h-9 rounded-lg border text-xs font-bold transition";
+
+  if (primary) {
+    className +=
+      " border-green-700 bg-green-700 text-white hover:bg-green-800";
+  } else if (danger) {
+    className +=
+      " border-red-200 text-red-600 hover:bg-red-50";
+  } else {
+    className +=
+      " border-gray-200 text-[#071b3a] hover:bg-gray-50";
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`${className} disabled:cursor-not-allowed disabled:opacity-50`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function FlyerPrintStyles() {
+  return (
+    <style>{`
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+
+        #flyer-preview,
+        #flyer-preview * {
+          visibility: visible;
+        }
+
+        #flyer-preview {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          max-width: none !important;
+          min-height: auto !important;
+          border: none !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+        }
+
+        .no-print {
+          display: none !important;
+        }
+
+        .break-inside-avoid {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+
+        @page {
+          size: A4;
+          margin: 7mm;
+        }
+      }
+    `}</style>
+  );
+}
+
+/* --------------------------------------------------
+   Product and pricing helper functions
+-------------------------------------------------- */
+
+function normalizeProduct(product) {
+  const variants = Array.isArray(product.variants)
+    ? product.variants
+    : Array.isArray(product.product_variants)
+      ? product.product_variants
+      : [];
+
+  return {
+    ...product,
+
+    product_id:
+      product.product_id ?? product.id,
+
+    category_id:
+      product.category_id ?? "",
+
+    product_name:
+      product.product_name ??
+      product.name ??
+      "Unnamed Product",
+
+    image_url:
+      product.image_url ||
+      product.main_image_url ||
+      product.primary_image ||
+      product.main_image ||
+      product.images?.find(
+        (image) =>
+          Number(image.is_main) === 1 ||
+          Number(image.is_primary) === 1
+      )?.image_url ||
+      product.images?.[0]?.image_url ||
+      "",
+
+    variants: variants
+      .filter(
+        (variant) =>
+          variant.is_active === undefined ||
+          Number(variant.is_active) === 1
+      )
+      .map(normalizeVariant),
+  };
+}
+
+function normalizeVariant(variant) {
+  return {
+    ...variant,
+
+    variant_id:
+      variant.variant_id ?? variant.id,
+
+    variant_1:
+      variant.variant_1 ||
+      variant.option_1_name ||
+      "",
+
+    variant_1_value:
+      variant.variant_1_value ||
+      variant.option_1_value ||
+      "",
+
+    variant_2:
+      variant.variant_2 ||
+      variant.option_2_name ||
+      "",
+
+    variant_2_value:
+      variant.variant_2_value ||
+      variant.option_2_value ||
+      "",
+
+    tier_1_qty:
+      variant.tier_1_qty ?? 1,
+
+    tier_1_price:
+      variant.tier_1_price ??
+      variant.price ??
+      null,
+
+    tier_2_qty:
+      variant.tier_2_qty ?? null,
+
+    tier_2_price:
+      variant.tier_2_price ?? null,
+
+    tier_3_qty:
+      variant.tier_3_qty ?? null,
+
+    tier_3_price:
+      variant.tier_3_price ?? null,
+
+    tier_4_qty:
+      variant.tier_4_qty ?? null,
+
+    tier_4_price:
+      variant.tier_4_price ?? null,
+  };
+}
+
+function getVariantLabel(variant) {
+  const values = [
+    variant.variant_1_value,
+    variant.variant_2_value,
+  ].filter(Boolean);
+
+  if (values.length > 0) {
+    return values.join(" / ");
+  }
+
+  return variant.sku || "Standard";
+}
+
+function getVariantPriceTiers(variant) {
+  const tiers = [
+    {
+      qty: variant.tier_1_qty,
+      price: variant.tier_1_price,
+    },
+    {
+      qty: variant.tier_2_qty,
+      price: variant.tier_2_price,
+    },
+    {
+      qty: variant.tier_3_qty,
+      price: variant.tier_3_price,
+    },
+    {
+      qty: variant.tier_4_qty,
+      price: variant.tier_4_price,
+    },
+  ];
+
+  return tiers
+    .filter(
+      (tier) =>
+        Number(tier.qty) > 0 &&
+        tier.price !== null &&
+        tier.price !== undefined &&
+        tier.price !== ""
+    )
+    .map((tier) => ({
+      qty: Number(tier.qty),
+      price: Number(tier.price),
+    }));
+}
+
+function variantsHaveSamePriceTiers(variants) {
+  if (!variants.length) {
+    return false;
+  }
+
+  const firstSignature = createTierSignature(
+    variants[0]
+  );
+
+  return variants.every(
+    (variant) =>
+      createTierSignature(variant) === firstSignature
+  );
+}
+
+function createTierSignature(variant) {
+  return getVariantPriceTiers(variant)
+    .map(
+      (tier) =>
+        `${tier.qty}:${Number(tier.price).toFixed(4)}`
+    )
+    .join("|");
+}
+
+function getAllTierQuantities(variants) {
+  const quantities = new Set();
+
+  variants.forEach((variant) => {
+    getVariantPriceTiers(variant).forEach((tier) => {
+      quantities.add(Number(tier.qty));
+    });
+  });
+
+  return [...quantities].sort(
+    (first, second) => first - second
+  );
+}
+
+function getProductLowestPrice(product) {
+  const prices = [];
+  const variants = Array.isArray(product.variants)
+    ? product.variants
+    : [];
+
+  variants.forEach((variant) => {
+    getVariantPriceTiers(variant).forEach((tier) => {
+      prices.push(Number(tier.price));
+    });
+  });
+
+  if (prices.length > 0) {
+    return Math.min(...prices);
+  }
+
+  const listPrice = Number(product.lowest_price);
+  return Number.isFinite(listPrice) ? listPrice : null;
+}
+
+function formatUnits(quantity) {
+  const numericQuantity = Number(quantity);
+
+  return `${numericQuantity} ${
+    numericQuantity === 1 ? "Unit" : "Units"
+  }`;
+}
+
+function formatPrice(price) {
+  const numericPrice = Number(price);
+
+  if (!Number.isFinite(numericPrice)) {
+    return "Call";
+  }
+
+  return `£${numericPrice.toFixed(2)}`;
+}
+
+function getImageUrl(imageUrl) {
+  if (!imageUrl) {
+    return "";
+  }
+
+  if (
+    imageUrl.startsWith("http://") ||
+    imageUrl.startsWith("https://") ||
+    imageUrl.startsWith("data:")
+  ) {
+    return imageUrl;
+  }
+
+  return `${API_URL}${
+    imageUrl.startsWith("/") ? "" : "/"
+  }${imageUrl}`;
 }

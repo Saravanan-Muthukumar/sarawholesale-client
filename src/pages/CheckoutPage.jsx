@@ -1038,14 +1038,26 @@ function CartItemsSection({
                   {item.product_name}
                 </p>
 
-                {item.unit && (
+                {/* {item.unit && (
                   <p className="mt-0.5 text-xs text-gray-500">
                     {item.unit}
                   </p>
-                )}
+                )} */}
+                {item.variant_1_value && (
+                    <p className="text-xs text-gray-600">
+                      {item.variant_1}: {item.variant_1_value}
+                    </p>
+                  )}
+
+                  {item.variant_2_value && (
+                    <p className="text-xs text-gray-600">
+                      {item.variant_2}: {item.variant_2_value}
+                    </p>
+                  )}
+                
 
                 <p className="mt-1 text-xs text-gray-600">
-                  Qty: {quantity} × £
+                  Qty: {quantity} {item.unit} × £
                   {unitPrice.toFixed(2)}
                 </p>
               </div>

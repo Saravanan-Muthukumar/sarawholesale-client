@@ -48,7 +48,7 @@ export default function CartPage() {
     return slug ? `/product/${slug}` : "#";
   };
 
-  const getItemId = (item) => item.cart_item_id || item.product_id;
+  const getItemId = (item) => item.cart_item_id || item.variant_id;
 
   const getLineTotal = (item) =>
     Number(item.quantity || 0) * Number(item.unit_price || 0);
@@ -271,6 +271,17 @@ export default function CartPage() {
                               <p className="text-xs text-gray-500 mt-1">
                                 SKU: {item.sku || "N/A"}
                               </p>
+                              {item.variant_1_value && (
+                                <p className="text-xs text-gray-600">
+                                  {item.variant_1}: {item.variant_1_value}
+                                </p>
+                              )}
+
+                              {item.variant_2_value && (
+                                <p className="text-xs text-gray-600">
+                                  {item.variant_2}: {item.variant_2_value}
+                                </p>
+                              )}
 
                               <p className="text-xs mt-3 text-gray-700 font-semibold">
                                 Available for delivery

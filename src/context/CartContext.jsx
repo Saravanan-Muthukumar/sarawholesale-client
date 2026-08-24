@@ -25,7 +25,7 @@ const [discountPercent, setDiscountPercent] = useState(0);
         },
         credentials: "include",
         body: JSON.stringify({
-          product_id: item.product_id,
+          variant_id: product.variant_id,
           quantity: item.quantity || 1,
           unit_price: item.unit_price || item.price || 0,
         }),
@@ -86,7 +86,7 @@ const [discountPercent, setDiscountPercent] = useState(0);
         },
         credentials: "include",
         body: JSON.stringify({
-          product_id: product.product_id,
+          variant_id: product.variant_id,
           quantity: product.quantity || 1,
           unit_price: product.unit_price || product.price,
         }),
@@ -108,7 +108,7 @@ const [discountPercent, setDiscountPercent] = useState(0);
     const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
   
     const existingItem = guestCart.find(
-      (item) => item.product_id === product.product_id
+      (item) => item.variant_id === product.variant_id
     );
   
     if (existingItem) {
@@ -117,7 +117,7 @@ const [discountPercent, setDiscountPercent] = useState(0);
     } else {
       guestCart.push({
         ...product,
-        cart_item_id: product.product_id,
+        cart_item_id: product.variant_id,
         quantity: product.quantity || 1,
         unit_price: product.unit_price || product.price,
       });
@@ -163,11 +163,11 @@ const [discountPercent, setDiscountPercent] = useState(0);
 
     if (cleanQuantity <= 0) {
       guestCart = guestCart.filter(
-        (item) => Number(item.cart_item_id || item.product_id) !== Number(cartItemId)
+        (item) => Number(item.cart_item_id || item.variant_id) !== Number(cartItemId)
       );
     } else {
       guestCart = guestCart.map((item) =>
-        Number(item.cart_item_id || item.product_id) === Number(cartItemId)
+        Number(item.cart_item_id || item.variant_id) === Number(cartItemId)
           ? { ...item, quantity: cleanQuantity }
           : item
       );

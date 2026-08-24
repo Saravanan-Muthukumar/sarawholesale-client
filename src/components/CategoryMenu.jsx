@@ -52,7 +52,7 @@ export default function CategoryMenu({ categories = [], sticky = false }) {
                   className="relative flex-1"
                 >
                   <Link
-                    to={`/category/${cat.slug}`}
+                    to={`/newsubcategory/${cat.slug}`}
                     className={`h-16 w-full px-7 flex items-center justify-center text-center text-[15px] font-medium tracking-normal transition cursor-pointer ${
                       isActive
                         ? "bg-white text-black font-semibold relative z-10"
@@ -68,7 +68,7 @@ export default function CategoryMenu({ categories = [], sticky = false }) {
         </div>
       </div>
 
-      {activeCategory && subCategories.length > 0 && (
+      {/* {activeCategory && subCategories.length > 0 && (
         <div className="absolute left-0 right-0 -mt-px top-full z-999" onClick={closeCategoryMenu}>
           <div className="max-w-6xl mx-auto px-4">
             <div className="bg-white border border-gray-300 border-t-0 shadow-lg min-h-45 p-10">
@@ -76,7 +76,7 @@ export default function CategoryMenu({ categories = [], sticky = false }) {
                 {subCategories.map((sub) => (
                   <Link
                     key={sub.category_id}
-                    to={`/subcategory/${sub.slug}`}
+                    to={`/newsubcategory/${sub.slug}`}
                     className="cursor-pointer text-[15px] font-medium text-gray-900 hover:text-black"
                   >
                     {sub.category_name}
@@ -86,7 +86,7 @@ export default function CategoryMenu({ categories = [], sticky = false }) {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

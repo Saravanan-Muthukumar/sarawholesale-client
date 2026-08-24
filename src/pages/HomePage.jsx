@@ -92,7 +92,7 @@ export default function HomePage() {
       <section id="home-category-grid">
         <CategoryGrid categories={categories} />
       </section>
-      <TopSearches />
+      {/* <TopSearches /> */}
 
       {/* <ShopByIndustry /> */}
       <WhyChooseUs />

@@ -36,7 +36,6 @@ const BRAND = {
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [cartPreviewOpen, setCartPreviewOpen] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -68,14 +67,6 @@ export default function Header() {
   const parentCategories = categories.filter(
     (category) => !category.parent_category_id
   );
-
-  const subCategories = selectedCategory
-    ? categories.filter(
-        (category) =>
-          category.parent_category_id ===
-          selectedCategory.category_id
-      )
-    : [];
 
   const displayName =
     user?.first_name ||
@@ -125,7 +116,6 @@ export default function Header() {
 
   const closeMenus = () => {
     setMenuOpen(false);
-    setSelectedCategory(null);
     setUserMenuOpen(false);
     setCartHoverOpen(false);
     setCartPreviewOpen(false);
@@ -138,9 +128,9 @@ export default function Header() {
     navigate("/login");
   };
 
-  const handleSubCategoryClick = (slug) => {
+  const handleCategoryClick = (slug) => {
     closeMenus();
-    navigate(`/subcategory/${slug}`);
+    navigate(`/newsubcategory/${slug}`);
   };
 
   useEffect(() => {
@@ -296,6 +286,12 @@ export default function Header() {
                     onClick={closeMenus}
                   >
                     Products
+                  </AdminLink>
+                  <AdminLink
+                    to="/admin/productsmain"
+                    onClick={closeMenus}
+                  >
+                    Products Main
                   </AdminLink>
 
                   <AdminLink
@@ -543,124 +539,65 @@ export default function Header() {
               aria-label="Close menu"
             />
 
-            <nav className="relative h-full w-[88%] max-w-sm overflow-y-auto bg-[#F5F5F5] shadow-2xl">
-              <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-[#E5E7EB] bg-white px-4 py-4">
-                {selectedCategory ? (
+          <nav className="relative h-full w-[88%] max-w-sm overflow-y-auto bg-[#F5F5F5] shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-[#E5E7EB] bg-white px-4 py-4">
+              <button
+                type="button"
+                onClick={closeMenus}
+                className="rounded-md p-1 text-[#171717] transition-colors hover:bg-[#F5F5F5] hover:text-[#D90416]"
+                aria-label="Close menu"
+              >
+                <X size={22} />
+              </button>
+
+              <h2 className="text-base font-bold text-[#171717]">
+                Shop by category
+              </h2>
+            </div>
+
+            <div className="p-4">
+              <div className="grid grid-cols-2 gap-3">
+                {parentCategories.map((category) => (
                   <button
+                    key={category.category_id}
                     type="button"
                     onClick={() =>
-                      setSelectedCategory(null)
+                      handleCategoryClick(category.slug)
                     }
-                    className="rounded-md p-1 text-[#171717] transition-colors hover:bg-[#F5F5F5] hover:text-[#D90416]"
-                    aria-label="Back to categories"
+                    className="min-h-20 rounded-lg border border-[#E5E7EB] bg-white p-3 text-left text-sm font-semibold text-[#171717] shadow-sm transition-colors hover:border-[#D90416] hover:text-[#D90416]"
                   >
-                    <ArrowLeft size={22} />
+                    {category.category_name}
                   </button>
-                ) : (
-                  <button
-                    type="button"
+                ))}
+              </div>
+
+              {parentCategories.length === 0 && (
+                <p className="py-8 text-center text-sm text-[#6B7280]">
+                  No categories available.
+                </p>
+              )}
+
+              {isAdmin && (
+                <div className="mt-5 space-y-2 border-t border-[#E5E7EB] pt-5">
+                  <Link
+                    to="/admin/categories"
                     onClick={closeMenus}
-                    className="rounded-md p-1 text-[#171717] transition-colors hover:bg-[#F5F5F5] hover:text-[#D90416]"
-                    aria-label="Close menu"
+                    className="block rounded-lg bg-white px-4 py-3 text-sm font-semibold text-[#171717] transition-colors hover:text-[#D90416]"
                   >
-                    <X size={22} />
-                  </button>
-                )}
+                    Admin Categories
+                  </Link>
 
-                <h2 className="text-base font-bold text-[#171717]">
-                  {selectedCategory
-                    ? selectedCategory.category_name
-                    : "Shop by category"}
-                </h2>
-              </div>
-
-              <div className="p-4">
-                {!selectedCategory && (
-                  <div className="grid grid-cols-2 gap-3">
-                    {parentCategories.map(
-                      (category) => (
-                        <button
-                          key={
-                            category.category_id
-                          }
-                          type="button"
-                          onClick={() =>
-                            setSelectedCategory(
-                              category
-                            )
-                          }
-                          className="min-h-20 rounded-lg border border-[#E5E7EB] bg-white p-3 text-left text-sm font-semibold text-[#171717] shadow-sm transition-colors hover:border-[#D90416] hover:text-[#D90416]"
-                        >
-                          {category.category_name}
-                        </button>
-                      )
-                    )}
-                  </div>
-                )}
-
-                {selectedCategory && (
-                  <>
-                    {subCategories.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-3">
-                        {subCategories.map(
-                          (subcategory) => (
-                            <button
-                              key={
-                                subcategory.category_id
-                              }
-                              type="button"
-                              onClick={() =>
-                                handleSubCategoryClick(
-                                  subcategory.slug
-                                )
-                              }
-                              className="min-h-20 rounded-lg border border-[#E5E7EB] bg-white p-3 text-left text-sm font-semibold text-[#171717] shadow-sm transition-colors hover:border-[#D90416] hover:text-[#D90416]"
-                            >
-                              {
-                                subcategory.category_name
-                              }
-                            </button>
-                          )
-                        )}
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleSubCategoryClick(
-                            selectedCategory.slug
-                          )
-                        }
-                        className="w-full rounded-lg bg-[#D90416] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#B00012]"
-                      >
-                        View products
-                      </button>
-                    )}
-                  </>
-                )}
-
-                {isAdmin &&
-                  !selectedCategory && (
-                    <div className="mt-5 space-y-2 border-t border-[#E5E7EB] pt-5">
-                      <Link
-                        to="/admin/categories"
-                        onClick={closeMenus}
-                        className="block rounded-lg bg-white px-4 py-3 text-sm font-semibold text-[#171717] transition-colors hover:text-[#D90416]"
-                      >
-                        Admin Categories
-                      </Link>
-
-                      <Link
-                        to="/admin/products"
-                        onClick={closeMenus}
-                        className="block rounded-lg bg-white px-4 py-3 text-sm font-semibold text-[#171717] transition-colors hover:text-[#D90416]"
-                      >
-                        Admin Products
-                      </Link>
-                    </div>
-                  )}
-              </div>
-            </nav>
+                  <Link
+                    to="/admin/products"
+                    onClick={closeMenus}
+                    className="block rounded-lg bg-white px-4 py-3 text-sm font-semibold text-[#171717] transition-colors hover:text-[#D90416]"
+                  >
+                    Admin Products
+                  </Link>
+                </div>
+              )}
+            </div>
+          </nav>
           </div>
         )}
 
@@ -722,6 +659,23 @@ export default function Header() {
                             ?.product_name
                         }
                       </h4>
+                      {cartItems[0]?.variant_1_value && (
+                        <p className="mt-2 text-sm text-[#6B7280]">
+                          <span className="font-semibold text-[#171717]">
+                            {cartItems[0]?.variant_1}:
+                          </span>{" "}
+                          {cartItems[0]?.variant_1_value}
+                        </p>
+                      )}
+
+                      {cartItems[0]?.variant_2_value && (
+                        <p className="mt-1 text-sm text-[#6B7280]">
+                          <span className="font-semibold text-[#171717]">
+                            {cartItems[0]?.variant_2}:
+                          </span>{" "}
+                          {cartItems[0]?.variant_2_value}
+                        </p>
+                      )}
 
                       <p className="mt-2 text-sm text-[#6B7280]">
                         Quantity:{" "}

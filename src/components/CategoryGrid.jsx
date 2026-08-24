@@ -36,7 +36,7 @@ export default function CategoryGrid({ categories = [] }) {
           {parentCategories.map((cat) => (
             <Link
               key={cat.category_id}
-              to={`/category/${cat.slug}`}
+              to={`/newsubcategory/${cat.slug}`}
               className="
               group
             bg-white
