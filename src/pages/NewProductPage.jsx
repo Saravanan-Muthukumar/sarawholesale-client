@@ -423,7 +423,7 @@ export default function NewProductPage() {
         </div>
       )}
 
-      <section className="mx-auto max-w-7xl px-4 pb-10">
+      <section className="mx-auto max-w-7xl px-0 pb-10 sm:px-4">
         <div className="py-4">
           <Link
             to={`/newsubcategory/${product.category_slug || ""}`}
@@ -477,7 +477,7 @@ export default function NewProductPage() {
               )}
             </div>
 
-            <div className="border-b border-gray-200 p-5 md:p-7 lg:border-b-0 lg:border-r">
+            <div className="border-b border-gray-200 px-3 py-5 sm:p-5 md:p-7 lg:border-b-0 lg:border-r">
               <h1 className="text-xl font-bold leading-tight text-[#071b3a] md:text-2xl">
                 {product.product_name}
               </h1>
