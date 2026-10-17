@@ -45,7 +45,7 @@ export default function CartPage() {
 
   const getProductLink = (item) => {
     const slug = item.slug || item.product_slug;
-    return slug ? `/product/${slug}` : "#";
+    return slug ? `/newproduct/${slug}` : "/cart";
   };
 
   const getItemId = (item) => item.cart_item_id || item.variant_id;
@@ -400,7 +400,7 @@ export default function CartPage() {
               />
                 </div>
 
-                <div className="flex gap-3 border border-[#edf1f7] bg-white p-4 text-gray-700">
+                {/* <div className="flex gap-3 border border-[#edf1f7] bg-white p-4 text-gray-700">
                   <ShieldCheck
                     size={22}
                     className="text-black"
@@ -415,7 +415,7 @@ export default function CartPage() {
                       Your payment is securely processed.
                     </p>
                   </div>
-                </div>
+                </div> */}
               </div>
             </aside>
           </div>

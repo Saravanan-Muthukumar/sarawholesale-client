@@ -554,7 +554,7 @@ export default function AdminProductsMainPage() {
 
       {editing && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-2 md:p-5"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 p-2 md:p-5"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget && !saving) closeEditor();
           }}

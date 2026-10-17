@@ -46,7 +46,7 @@ export default function CheckoutPage() {
     cartItems = [],
     voucherCode,
     discountPercent,
-    refreshCart,
+    loadCart,
   } = useCart();
 
   const [details, setDetails] =
@@ -437,12 +437,8 @@ export default function CheckoutPage() {
           "Your order has been submitted successfully.",
       });
 
-      if (
-        typeof refreshCart ===
-        "function"
-      ) {
-        await refreshCart();
-      }
+        await loadCart();
+      
 
       window.scrollTo({
         top: 0,

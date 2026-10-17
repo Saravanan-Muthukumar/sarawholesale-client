@@ -442,7 +442,7 @@ export default function AdminFlyerBuilderPage() {
                 </button>
               </div>
             ) : (
-              <div className="max-h-[620px] space-y-2 overflow-y-auto pr-1">
+              <div className="max-h-155 space-y-2 overflow-y-auto pr-1">
                 {filteredProducts.map((product) => {
                   const checked =
                     checkedProducts.includes(
@@ -544,8 +544,8 @@ function FlyerPreview({
     <div
       className={`flex items-center justify-center rounded-xl border-2 border-dashed border-gray-200 ${
         paperSize === "a4"
-          ? "col-span-2 min-h-[500px]"
-          : "min-h-[500px]"
+          ? "col-span-2 min-h-125"
+          : "min-h-125"
       }`}
     >
       <p className="text-sm text-gray-400">
@@ -589,7 +589,7 @@ function FlyerProductCard({ product, onRemove }) {
           <MainProductImage product={product} />
 
           <div className="min-w-0">
-            <h3 className="break-words text-[12px] font-black leading-[1.15] text-[#071b3a]">
+            <h3 className="wrap-break-word text-[12px] font-black leading-[1.15] text-[#071b3a]">
               {product.product_name}
             </h3>
 
@@ -856,7 +856,7 @@ function ProductSelectorCard({
 
 function MainProductImage({ product }) {
   return (
-    <div className="flex h-[68px] w-[72px] items-center justify-center overflow-hidden rounded-lg bg-gray-50 p-1.5">
+    <div className="flex h-17 w-18 items-center justify-center overflow-hidden rounded-lg bg-gray-50 p-1.5">
       {product.image_url ? (
         <img
           src={getImageUrl(product.image_url)}
@@ -892,7 +892,7 @@ function FlyerHeader({ title, subtitle }) {
           </p>
         </div>
 
-        <div className="max-w-[500px] text-right">
+        <div className="max-w-125 text-right">
           <h2 className="text-xl font-black uppercase leading-tight text-red-600">
             {title}
           </h2>

@@ -13,13 +13,13 @@ export default function CategoryGrid({ categories = [] }) {
     const url = imageUrl.startsWith("http")
       ? imageUrl
       : `${API_URL}${imageUrl}`;
+      return url;
 
-    return `${url}?v=${Date.now()}`;
   };
 
   return (
     <section className="bg-[#F5F5F5]">
-      <div className="max-w-[1570px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+      <div className="max-w-392.5 mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
         {/* Heading */}
         <div className="mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1F2937]">
@@ -55,6 +55,8 @@ export default function CategoryGrid({ categories = [] }) {
                   <img
                     src={getImage(cat.image_url)}
                     alt={cat.category_name}
+                    loading="lazy"
+                    decoding="async"
                     className="
                       w-full
                       h-full

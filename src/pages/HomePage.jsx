@@ -5,7 +5,6 @@ import FeaturedProducts from "../components/FeaturedProducts";
 import WhyChooseUs from "../components/WhyChooseUs";
 import ShopByCollection from "../components/ShopByCollection";
 import ShopByIndustry from "../components/ShopByIndustry";
-import TopSearches from "../components/TopSearches";
 import TradeAccountBanner from "../components/TradeAccountBanner";
 import { useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -98,7 +97,7 @@ export default function HomePage() {
       <WhyChooseUs />
       <FeaturedProducts products={products} />
 
-      <ShopByCollection />
+      {/* <ShopByCollection /> */}
 
       <TradeAccountBanner />
 

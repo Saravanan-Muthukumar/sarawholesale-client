@@ -172,7 +172,7 @@ export default function AdvancedSearchBar() {
       {open && query.trim().length >= 2 && (
         <div
           onMouseDown={(e) => e.stopPropagation()}
-          className="absolute left-0 right-0 top-full bg-white border border-[#cfd8e6] shadow-2xl z-[99999] overflow-hidden"
+          className="absolute left-0 right-0 top-full bg-white border border-[#cfd8e6] shadow-2xl z-99999 overflow-hidden"
         >
           <div className="max-h-[65vh] overflow-y-auto">
             {loading && (

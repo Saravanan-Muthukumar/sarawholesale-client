@@ -119,7 +119,9 @@ export default function NewProductPage() {
           setError(err.message || "Unable to load product");
         }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -389,7 +391,7 @@ export default function NewProductPage() {
   if (error || !product) {
     return (
       <main className="min-h-screen bg-[#f7f7f7] px-4 py-10">
-        <p className="font-semibold text-red-600">
+        <p className="font-semibold text-blue-600">
           {error || "Product not found"}
         </p>
       </main>
@@ -435,7 +437,7 @@ export default function NewProductPage() {
         <div className="border border-gray-200 bg-white shadow-sm">
           <div className="grid grid-cols-1 lg:grid-cols-[390px_1fr_330px]">
             <div className="border-b border-gray-200 p-5 md:p-7 lg:border-b-0 lg:border-r">
-              <div className="flex h-80 items-center justify-center bg-white md:h-[420px]">
+              <div className="flex h-80 items-center justify-center bg-white md:h-105">
                 {mainImageSrc ? (
                   <img
                     src={mainImageSrc}
@@ -448,7 +450,7 @@ export default function NewProductPage() {
               </div>
 
               {productImages.length > 1 && (
-                <div className="mt-5 flex flex-wrap justify-center gap-3">
+                <div className="mt-5 flex flex-nowrap gap-3 overflow-x-auto overflow-y-hidden pb-2">
                   {productImages.map((image) => {
                     const active = selectedImage === image.image_url;
 
@@ -457,7 +459,7 @@ export default function NewProductPage() {
                         key={image.image_id || image.image_url}
                         type="button"
                         onClick={() => setSelectedImage(image.image_url)}
-                        className={`flex h-16 w-16 items-center justify-center border bg-white p-1 ${
+                        className={`flex h-16 w-16 shrink-0 items-center justify-center border bg-white p-1 ${
                           active
                             ? "border-2 border-gray-900"
                             : "border-gray-200 hover:border-gray-500"

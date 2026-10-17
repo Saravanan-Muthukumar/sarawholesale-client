@@ -56,7 +56,7 @@ export default function FeaturedProducts() {
   if (loading) {
     return (
       <section className="bg-[#f3f4f6] py-8 sm:py-12">
-        <div className="max-w-[1570px] mx-auto px-4 sm:px-6">
+        <div className="max-w-392.5 mx-auto px-4 sm:px-6">
           <p className="text-sm text-gray-500">
             Loading popular products...
           </p>
@@ -68,7 +68,7 @@ export default function FeaturedProducts() {
   if (error) {
     return (
       <section className="bg-[#f3f4f6] py-8 sm:py-12">
-        <div className="max-w-[1570px] mx-auto px-4 sm:px-6">
+        <div className="max-w-392.5 mx-auto px-4 sm:px-6">
           <p className="text-sm text-red-600">{error}</p>
         </div>
       </section>
@@ -81,7 +81,7 @@ export default function FeaturedProducts() {
 
   return (
     <section className="bg-[#f3f4f6] py-8 sm:py-12">
-      <div className="max-w-[1570px] mx-auto px-4 sm:px-6">
+      <div className="max-w-392.5 mx-auto px-4 sm:px-6">
         <h2 className="mb-5 text-xl font-bold text-gray-700 sm:text-2xl">
           Popular Products
         </h2>

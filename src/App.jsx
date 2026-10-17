@@ -13,7 +13,7 @@ import SubscribePopup from "./components/SubscribePopup";
 
 // Core Public Pages (Kept static to ensure fast loading times)
 import HomePage from "./pages/HomePage";
-import ProductPage from "./pages/ProductPage";
+// import ProductPage from "./pages/ProductPage";
 
 // Asynchronous Component Loading (Splits admin/user blocks into micro-chunks)
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -26,7 +26,6 @@ const OrderSuccessPage = lazy(() => import("./pages/OrderSuccessPage"));
 const OrderDetailsPage = lazy(() => import("./pages/OrderDetailsPage"));
 const SearchResultsPage = lazy(() => import("./pages/SearchResultsPage"));
 const SubCategoryPage = lazy(() => import("./pages/SubCategoryPage"));
-const ProductListPage = lazy(() => import("./pages/ProductListPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 import ProceedCheckoutPage from "./pages/ProceedCheckoutPage";
@@ -43,7 +42,7 @@ const ChangePasswordPage = lazy(() => import("./pages/account/ChangePasswordPage
 
 // Administrative Suite
 const AdminCategoriesPage = lazy(() => import("./pages/admin/AdminCategoriesPage"));
-const AdminProductsPage = lazy(() => import("./pages/admin/AdminProductsPage"));
+// const AdminProductsPage = lazy(() => import("./pages/admin/AdminProductsPage"));
 const AdminProductsMainPage = lazy(() => import("./pages/admin/AdminProductsMainPage"));
 const AdminFlyerBuilderPage = lazy(() => import("./pages/admin/AdminFlyerBuilderPage"));
 
@@ -92,9 +91,7 @@ export default function App() {
           <Routes>
             {/* Core Public Storefront */}
             <Route path="/" element={<HomePage />} />
-            <Route path="/product/:slug" element={<ProductPage />} />
             <Route path="/category/:slug" element={<SubCategoryPage />} />
-            <Route path="/subcategory/:slug" element={<ProductListPage />} />
             <Route path="/search" element={<SearchResultsPage />} />
             {/* <Route path="/products" element={<AllProductsPage />} /> */}
             <Route path="/newsubcategory/:slug" element={<NewProductListPage />} />
@@ -155,14 +152,14 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route
+              {/* <Route
                 path="/admin/products/:productId?"
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
                 <AdminProductsPage />
                 </ProtectedRoute>
                 }
-              />
+              /> */}
               <Route
                 path="/admin/productsmain/:productId?"
                 element={

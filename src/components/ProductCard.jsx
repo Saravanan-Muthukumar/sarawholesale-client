@@ -14,6 +14,7 @@ export default function ProductCard({
   onQtyChange,
   onSlabClick,
   onAddToCart,
+  showAddToCart = true,
 }) {
   const navigate = useNavigate();
 
@@ -71,7 +72,7 @@ export default function ProductCard({
   );
 
   const goToProduct = () => {
-    navigate(`/product/${product.slug}`);
+    navigate(`/newproduct/${product.slug}`);
   };
 
   const handleTierClick = (tier) => {
@@ -187,7 +188,7 @@ export default function ProductCard({
                 onClick={goToProduct}
                 className="block w-full cursor-pointer text-left"
               >
-                <h2 className="line-clamp-3 text-[13px] font-extrabold leading-[17px] text-[#062653] hover:text-green-700">
+                <h2 className="line-clamp-3 text-[13px] font-extrabold leading-4.25 text-[#062653] hover:text-green-700">
                   {product.product_name}
                 </h2>
               </button>
@@ -218,6 +219,8 @@ export default function ProductCard({
             </div>
           </div>
 
+          {showAddToCart && (
+            <>
           {sortedTiers.length > 1 && (
             <div className="mt-3">
               <PriceTier
@@ -239,7 +242,7 @@ export default function ProductCard({
             </p>
           )}
 
-          <div className="mt-3 flex justify-end">
+          {/* <div className="mt-3 flex justify-end">
             {isOutOfStock ? (
               <button
                 type="button"
@@ -262,7 +265,7 @@ export default function ProductCard({
                 />
               </div>
             )}
-          </div>
+          </div> */}
 
           {qtyWarning && (
             <div className="mt-2 border border-amber-200 bg-amber-50 px-2 py-1.5">
@@ -270,6 +273,8 @@ export default function ProductCard({
                 {qtyWarning}
               </p>
             </div>
+          )}
+            </>
           )}
         </div>
       </article>
@@ -334,6 +339,8 @@ export default function ProductCard({
             </p>
           </div>
 
+          {showAddToCart && (
+            <>
           {sortedTiers.length > 1 && (
             <div className="mt-4">
               <PriceTier
@@ -356,7 +363,7 @@ export default function ProductCard({
               </p>
             )}
 
-            {isOutOfStock ? (
+            {/* {isOutOfStock ? (
               <button
                 type="button"
                 disabled
@@ -377,16 +384,18 @@ export default function ProductCard({
                   onAdd={handleAdd}
                 />
               </div>
-            )}
+            )} */}
 
             {qtyWarning && (
-              <div className="mt-2 w-full border border-amber-200 bg-amber-50 px-1.5 py-1 sm:max-w-[230px] sm:px-2 sm:py-1.5">
+              <div className="mt-2 w-full border border-amber-200 bg-amber-50 px-1.5 py-1 sm:max-w-57.5 sm:px-2 sm:py-1.5">
                 <p className="text-center text-[8px] font-medium leading-3 text-amber-700 sm:text-[10px]">
                   {qtyWarning}
                 </p>
               </div>
             )}
           </div>
+            </>
+          )}
         </div>
       </article>
     </>

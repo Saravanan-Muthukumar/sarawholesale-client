@@ -205,7 +205,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="relative z-[999] bg-white">
+      <header className="relative z-999 bg-white">
         {/* TOP DELIVERY BAR */}
         <div className="bg-[#D90416] text-white">
           <div className="mx-auto max-w-7xl px-3 md:px-4">
@@ -282,12 +282,6 @@ export default function Header() {
                   </AdminLink>
 
                   <AdminLink
-                    to="/admin/products"
-                    onClick={closeMenus}
-                  >
-                    Products
-                  </AdminLink>
-                  <AdminLink
                     to="/admin/productsmain"
                     onClick={closeMenus}
                   >
@@ -306,7 +300,7 @@ export default function Header() {
               {isLoggedIn ? (
                 <div
                   ref={userMenuRef}
-                  className="relative z-[10001]"
+                  className="relative z-10001"
                   onMouseEnter={openUserMenuSlowly}
                   onMouseLeave={closeUserMenuSlowly}
                 >
@@ -349,7 +343,7 @@ export default function Header() {
               )}
 
               <div
-                className="relative z-[10000]"
+                className="relative z-10000"
                 onMouseEnter={openCartSlowly}
                 onMouseLeave={closeCartSlowly}
               >
@@ -366,7 +360,7 @@ export default function Header() {
                     <ShoppingCart size={23} />
 
                     {cartItemCount > 0 && (
-                      <span className="absolute -right-3 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#D90416] px-1 text-[10px] font-bold leading-none text-white">
+                      <span className="absolute -right-3 -top-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#D90416] px-1 text-[10px] font-bold leading-none text-white">
                         {cartItemCount}
                       </span>
                     )}
@@ -391,7 +385,7 @@ export default function Header() {
 
         {/* MOBILE HEADER */}
         <div
-          className="sticky top-0 z-[9998] border-b border-[#E5E7EB] bg-white shadow-sm md:hidden"
+          className="sticky top-0 z-9998 border-b border-[#E5E7EB] bg-white shadow-sm md:hidden"
           onBlur={(event) => {
             if (
               !event.currentTarget.contains(
@@ -459,7 +453,7 @@ export default function Header() {
 
         {/* FIXED MOBILE BAR AFTER SCROLL */}
         {hideMobileLogo && (
-          <div className="fixed left-0 right-0 top-0 z-[9998] border-b border-[#E5E7EB] bg-white shadow-sm md:hidden">
+          <div className="fixed left-0 right-0 top-0 z-9998 border-b border-[#E5E7EB] bg-white shadow-sm md:hidden">
             <MobileActionBar
               cartItemCount={cartItemCount}
               isLoggedIn={isLoggedIn}
@@ -502,7 +496,7 @@ export default function Header() {
 
         {/* MOBILE ACCOUNT DROPDOWN */}
         {isLoggedIn && userMenuOpen && (
-          <div className="fixed inset-0 z-[100000] md:hidden">
+          <div className="fixed inset-0 z-100000 md:hidden">
             <button
               type="button"
               onClick={() =>
@@ -513,10 +507,10 @@ export default function Header() {
             />
 
             <div
-              className={`absolute right-0 w-[280px] overflow-hidden rounded-bl-xl border-b border-l border-[#E5E7EB] bg-white shadow-xl ${
+              className={`absolute right-0 w-70 overflow-hidden rounded-bl-xl border-b border-l border-[#E5E7EB] bg-white shadow-xl ${
                 hideMobileLogo
-                  ? "top-[62px]"
-                  : "top-[147px]"
+                  ? "top-15.5"
+                  : "top-36.75"
               }`}
             >
               <MobileUserDropdown
@@ -531,7 +525,7 @@ export default function Header() {
 
         {/* MOBILE CATEGORY DRAWER */}
         {menuOpen && (
-          <div className="fixed inset-0 z-[100000] md:hidden">
+          <div className="fixed inset-0 z-100000 md:hidden">
             <button
               type="button"
               onClick={closeMenus}
@@ -603,7 +597,7 @@ export default function Header() {
 
         {/* ITEM ADDED MODAL */}
         {cartPreviewOpen && (
-          <div className="fixed inset-0 z-[100001] flex items-center justify-center bg-black/45 px-4">
+          <div className="fixed inset-0 z-100001 flex items-center justify-center bg-black/45 px-4">
             <div className="relative w-full max-w-xl overflow-hidden rounded-xl bg-white shadow-2xl">
               <button
                 type="button"
@@ -678,7 +672,7 @@ export default function Header() {
                       )}
 
                       <p className="mt-2 text-sm text-[#6B7280]">
-                        Quantity:{" "}
+                        Total Quantity in Cart:{" "}
                         {cartItems[0]?.quantity ||
                           1}
                       </p>
@@ -696,13 +690,13 @@ export default function Header() {
                     View cart
                   </Link>
 
-                  <Link
-                    to="/checkout"
-                    onClick={closeMenus}
+                  <button
+                   onClick={() =>
+                     setCartPreviewOpen(false)}
                     className="flex h-12 items-center justify-center gap-2 rounded-lg bg-[#D90416] text-sm font-bold text-white transition-colors hover:bg-[#B00012]"
                   >
-                    Proceed to checkout
-                  </Link>
+                    Continue Shopping
+                  </button>
                 </div>
               </div>
             </div>
@@ -749,7 +743,7 @@ function MobileActionBar({
   onClose,
 }) {
   return (
-    <div className="grid h-[62px] grid-cols-4 bg-white">
+    <div className="grid h-15.5 grid-cols-4 bg-white">
       <MobileActionButton
         label="Browse"
         active={menuOpen}
@@ -786,7 +780,7 @@ function MobileActionBar({
           <ShoppingCart size={23} />
 
           {cartItemCount > 0 && (
-            <span className="absolute -right-3 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#D90416] px-1 text-[10px] font-bold leading-none text-white">
+            <span className="absolute -right-3 -top-2 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#D90416] px-1 text-[10px] font-bold leading-none text-white">
               {cartItemCount}
             </span>
           )}

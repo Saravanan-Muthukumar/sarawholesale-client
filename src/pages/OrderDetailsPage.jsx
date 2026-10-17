@@ -119,6 +119,17 @@ export default function OrderDetailsPage() {
                 £{Number(order.total_amount || 0).toFixed(2)}
               </span>
             </div>
+            <div>
+  <span className="font-semibold">Discount:</span>{" "}
+  -£{Number(order.discount_amount || 0).toFixed(2)}
+</div>
+
+<div>
+  <span className="font-semibold">Delivery:</span>{" "}
+  {Number(order.delivery_charge || 0) === 0
+    ? "Free"
+    : `£${Number(order.delivery_charge).toFixed(2)}`}
+</div>
           </div>
         </div>
 
@@ -151,7 +162,27 @@ export default function OrderDetailsPage() {
                       className="border-t"
                     >
                       <td className="p-3">
-                        {item.product_name}
+                        <div className="font-semibold text-gray-900">
+                          {item.product_name}
+                        </div>
+
+                        {item.variant_1_value && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            <span className="font-medium">
+                              {item.variant_1 || "Option 1"}:
+                            </span>{" "}
+                            {item.variant_1_value}
+                          </div>
+                        )}
+
+                        {item.variant_2_value && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            <span className="font-medium">
+                              {item.variant_2 || "Option 2"}:
+                            </span>{" "}
+                            {item.variant_2_value}
+                          </div>
+                        )}
                       </td>
 
                       <td className="p-3">
@@ -167,19 +198,19 @@ export default function OrderDetailsPage() {
                       </td>
 
                       <td className="p-3 text-right font-semibold">
-                        £
-                        {(
-                          Number(item.quantity || 0) *
-                          Number(item.unit_price || 0)
-                        ).toFixed(2)}
+                        £{Number(item.line_total ?? (
+                          Number(item.quantity) * Number(item.unit_price)
+                        )).toFixed(2)}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            
           )}
         </div>
+
 
         <div className="mt-6">
           <Link
