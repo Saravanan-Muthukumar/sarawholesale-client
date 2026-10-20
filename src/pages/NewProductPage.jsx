@@ -502,7 +502,7 @@ export default function NewProductPage() {
                     {variant1Name}: {selectedVariant1}
                   </p>
 
-                  <div className="flex flex-wrap justify-center gap-3">
+                  <div className="flex flex-wrap justify-start gap-2">
                     {variant1Values.map((value) => {
                       const selected = selectedVariant1 === value;
                       const available = isVariant1Available(value);
@@ -512,7 +512,7 @@ export default function NewProductPage() {
                           key={value}
                           type="button"
                           onClick={() => handleVariant1Select(value)}
-                          className={`min-h-10 w-auto shrink-0 whitespace-nowrap border px-2 py-2 text-sm font-semibold transition ${
+                          className={`min-h-10 w-auto shrink-0 whitespace-nowrap border px-1 py-2 text-sm font-semibold transition ${
                             selected
                               ? "border-2 border-gray-900 bg-gray-50 text-gray-900"
                               : "border-gray-300 bg-white hover:border-gray-700"
@@ -532,7 +532,7 @@ export default function NewProductPage() {
                     {variant2Name}: {selectedVariant2}
                   </p>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap justify-start gap-2">
                     {variant2Values.map((value) => {
                       const selected = selectedVariant2 === value;
                       const available = isVariant2Available(value);
